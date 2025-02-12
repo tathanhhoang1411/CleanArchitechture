@@ -1,0 +1,12 @@
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\bin\Release\net6.0\CleanArchitecture.Entites.deps.json
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\bin\Release\net6.0\CleanArchitecture.Entites.dll
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\bin\Release\net6.0\CleanArchitecture.Entites.pdb
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.GeneratedMSBuildEditorConfig.editorconfig
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.AssemblyInfoInputs.cache
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.AssemblyInfo.cs
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.csproj.CoreCompileInputs.cache
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.sourcelink.json
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.dll
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\refint\CleanArchitecture.Entites.dll
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\CleanArchitecture.Entites.pdb
+D:\WORK\CleanArchitechture\CleanArchitechture-master\CleanArchitechture-master\CleanArchitecture.Entites\obj\Release\net6.0\ref\CleanArchitecture.Entites.dll
