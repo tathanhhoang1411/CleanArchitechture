@@ -43,7 +43,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
@@ -62,7 +62,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
@@ -140,7 +140,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");

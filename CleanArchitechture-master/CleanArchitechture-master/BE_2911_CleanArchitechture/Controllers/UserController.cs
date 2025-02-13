@@ -48,7 +48,7 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------Internal server error: "+ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
@@ -62,11 +62,6 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 _logger.LogInformation("Log   ||GetAllUser");
-               //string checkToken = await _mediator.Send(validateToken);
-                //if (checkToken == null)
-                //{
-                //    return Unauthorized("Invalid token. Please check and try again.");
-                //}
                 var list = await _mediator.Send(new GetAllProductsQuery());
                 return Ok(list);
 
@@ -74,7 +69,7 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------UnAuthorize");
+                this._logger.LogError(ex, "--------------------------Internal server error : "+ ex.Message);
                 return StatusCode(401, "Internal server error. Please try again later.");
             }
         }
