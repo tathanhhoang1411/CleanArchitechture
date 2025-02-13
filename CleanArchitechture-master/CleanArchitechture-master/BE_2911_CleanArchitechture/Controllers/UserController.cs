@@ -55,16 +55,18 @@ namespace BE_2911_CleanArchitecture.Controllers
             }
         }
         [HttpPost("GetAllUser")]
-        public async Task<IActionResult> GetAllUser([FromBody] ValidateToken validateToken)
+        [Authorize]
+        public async Task<IActionResult> GetAllUser()
         {
             try
             {
+               //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 _logger.LogInformation("Log   ||GetAllUser");
-                string checkToken = await _mediator.Send(validateToken);
-                if (checkToken == null)
-                {
-                    return Unauthorized("Invalid token. Please check and try again.");
-                }
+               //string checkToken = await _mediator.Send(validateToken);
+                //if (checkToken == null)
+                //{
+                //    return Unauthorized("Invalid token. Please check and try again.");
+                //}
                 var list = await _mediator.Send(new GetAllProductsQuery());
                 return Ok(list);
 
