@@ -36,14 +36,14 @@ namespace BE_2911_CleanArchitechture.Controllers
         {
             try
             {
-                this._logger.LogInformation("-------------Log   ||GetListProduct");
+                this._logger.LogInformation("Log   ||GetListProduct");
                 var list = await _mediator.Send(new GetAllProductsQuery());
                 return Ok(list);
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
@@ -55,14 +55,14 @@ namespace BE_2911_CleanArchitechture.Controllers
         {
             try
             {
-            this._logger.LogInformation("-------------Log   ||CreateProduct");
+            this._logger.LogInformation("Log   ||CreateProduct");
             return Ok(await _mediator.Send(command));
 
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");

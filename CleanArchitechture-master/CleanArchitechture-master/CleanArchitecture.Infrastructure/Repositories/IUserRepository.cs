@@ -11,5 +11,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public interface IUserRepository
     {
         Task<Users> Login(UserDto user);
+        Task<Boolean> SaveToken(Users user,string accessToken);
     }
 }

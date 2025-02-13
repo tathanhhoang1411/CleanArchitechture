@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using CleanArchitecture.Application.Query;
+using CleanArchitecture.Application.Query.Utilities;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace BE_2911_CleanArchitecture.Controllers
 {
@@ -32,12 +35,12 @@ namespace BE_2911_CleanArchitecture.Controllers
         {
             try
             {
-                _logger.LogInformation("-------------Log   ||Login");
+                _logger.LogInformation("Log   ||Login");
                 var userList = await _mediator.Send(query);
-                if (userList ==false)
+                if (userList =="")
                 {
-                   this._logger.LogWarning("Login failed for user: {Username}", query.Username);
-                    return Unauthorized("Invalid username or password.");
+                   this._logger.LogWarning("--------------------------Login failed for user: {Username}", query.Username);
+                    return Unauthorized("--------------------------Invalid username or password.");
                 }
 
                 return Ok(userList);
@@ -45,10 +48,32 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                this._logger.LogError(ex, "--------------------------An error occurred while getting the product list.");
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
+            }
+        }
+        [HttpPost("GetAllUser")]
+        public async Task<IActionResult> GetAllUser([FromBody] ValidateToken validateToken)
+        {
+            try
+            {
+                _logger.LogInformation("Log   ||GetAllUser");
+                string checkToken = await _mediator.Send(validateToken);
+                if (checkToken == null)
+                {
+                    return Unauthorized("Invalid token. Please check and try again.");
+                }
+                var list = await _mediator.Send(new GetAllProductsQuery());
+                return Ok(list);
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                this._logger.LogError(ex, "--------------------------UnAuthorize");
+                return StatusCode(401, "Internal server error. Please try again later.");
             }
         }
     }

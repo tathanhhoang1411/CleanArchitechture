@@ -7,17 +7,18 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Query
 {
-    public class LoginQuery : IRequest<Boolean>
+    public class LoginQuery : IRequest<string>
     {
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
-        public class LoginQueryHandler : IRequestHandler<LoginQuery, Boolean>
+        public class LoginQueryHandler : IRequestHandler<LoginQuery, string>
         {
 
             private readonly IUserRepository _userRepository;
@@ -29,7 +30,7 @@ namespace CleanArchitecture.Application.Query
                 _mapper = mapper;
                 _userServices = userServices;
             }
-            public async Task<Boolean> Handle(LoginQuery query, CancellationToken cancellationToken)
+            public async Task<string> Handle(LoginQuery query, CancellationToken cancellationToken)
             {
                 Boolean result = false;
                 // Ánh xạ LoginQuery thành UserDto và lưu vào biến
@@ -37,16 +38,27 @@ namespace CleanArchitecture.Application.Query
                 Users user = await _userRepository.Login(userDto);
                 if (user == null)//Nếu không có tồn tại tài khoản 
                 {
-                    return false;
+                    return "";
                 }
                 result = await _userServices.CheckPassword(userDto.Password, user.PasswordHash);
                 if (result==false)//Nếu không đúng password 
                 {
-                    return false; 
+                    return ""; 
                 }
                 //Khi này, đăng nhập thành công thì trả về Access token
-                string token = _userServices.MakeToken(user);
-                 return true;
+                string accessToken = _userServices.MakeToken(user);
+                if(accessToken=="")
+                {
+                    return "";
+                }
+                //Khi này, lưu token trong server
+                Boolean isSaveToken = await _userServices.SaveToken(user, accessToken);
+                if (isSaveToken == false)
+                {
+                    return ""; 
+                }
+
+                return accessToken;
             }
         }
     }

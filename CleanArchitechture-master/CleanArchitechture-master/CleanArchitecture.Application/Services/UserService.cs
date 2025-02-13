@@ -30,9 +30,11 @@ namespace CleanArchitecture.Application.Services
         //    // Lưu hashedPassword vào cơ sở dữ liệua
         //}
         private  IConfiguration _configuration;
-        public UserService(IConfiguration configuration)
+        private readonly IUserRepository _userRepository;
+        public UserService(IConfiguration configuration, IUserRepository userRepository)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _userRepository = userRepository;
         }
 
         public async Task<bool> VerifyPassword(string enteredPassword, string storedHashedPassword)
@@ -50,17 +52,55 @@ namespace CleanArchitecture.Application.Services
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub,user.Username),
-                new Claim(JwtRegisteredClaimNames.Email,user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub,user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
             };
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims,
-                expires: DateTime.Now.AddMinutes(120),
+                expires: DateTime.Now.AddMinutes(60),
                 signingCredentials: credentials);
             var encodeToken = new JwtSecurityTokenHandler().WriteToken(token);
             return encodeToken;
+        }    
+        public Task<Boolean> SaveToken(Users user, string accessToken)
+        {
+
+            return _userRepository.SaveToken(user, accessToken);
+        }
+        public ClaimsPrincipal ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                // Giải mã và xác thực token
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])),
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true, // Có thể cấu hình theo nhu cầu
+                    ValidateAudience = true, // Có thể cấu hình theo nhu cầu
+                    ClockSkew = TimeSpan.Zero, // Không cho phép thời gian trễ
+                    ValidateLifetime = true,
+                    ValidIssuer = _configuration["Jwt:Issuer"],
+                    ValidAudience = _configuration["Jwt:Audience"]
+                }, out SecurityToken validatedToken);
+
+                // Token hợp lệ và chưa hết hạn
+                return principal;
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                // Token đã hết hạn
+                return null;
+            }
+            catch (Exception)
+            {
+                // Token không hợp lệ
+                return null;
+            }
         }
     }
 }

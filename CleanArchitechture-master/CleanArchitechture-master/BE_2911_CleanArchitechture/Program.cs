@@ -36,12 +36,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
+
             ValidateIssuerSigningKey = true,
+            ValidateIssuer = true, // Có thể cấu hình theo nhu cầu
+            ValidateAudience = true, // Có thể cấu hình theo nhu cầu
+            ClockSkew = TimeSpan.Zero, // Không cho phép thời gian trễ
+            ValidateLifetime = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audiencess"],
+            ValidAudience = builder.Configuration["Jwt:Audiences"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
@@ -94,7 +96,8 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
-
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
 app.Run();
