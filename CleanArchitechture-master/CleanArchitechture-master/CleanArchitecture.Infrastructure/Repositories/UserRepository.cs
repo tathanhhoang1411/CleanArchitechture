@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BCrypt.Net;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.DBContext;
@@ -27,8 +28,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 // Lấy thông tin người dùng từ cơ sở dữ liệu
-                 user = await _userContext.Users
+                user = await _userContext.Users.AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Username == userDto.Username && u.Email == userDto.Email);
+                if (user==null)
+                {
+                    return null;
+                }
+                Boolean checkPass= BCrypt.Net.BCrypt.Verify(userDto.Password, user.PasswordHash);
+                if (checkPass==false)
+                {
+                    return null;
+                }
                 return user;
             }
             catch
@@ -41,9 +51,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
             Users userDB = new Users();
             try
             {
-                // Lấy thông tin người dùng từ cơ sở dữ liệu
                 userDB = await _userContext.Users
-                   .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email );
+                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.PasswordHash == user.PasswordHash);
                 if (userDB == null)
                 {
                     return false;
@@ -53,6 +62,45 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
                 // Lưu thay đổi vào cơ sở dữ liệu
                 await _userContext.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<Users> CreateUser(Users user)
+        {
+            var NewUser = new Users();
+            try
+            {
+                NewUser.Username = user.Username;
+                NewUser.Email = user.Email;
+                NewUser.CreatedAt = user.CreatedAt;
+                NewUser.PasswordHash = user.PasswordHash;
+                NewUser.UserId = user.UserId;
+                _userContext.Users.Add( NewUser );
+               await  _userContext.SaveChangesAsync();
+
+                    return user;
+            }
+            catch
+            {
+                return user;
+            }
+        }
+        public async Task<Boolean> CheckExistUser(Users user)
+        {
+            Users userDB = new Users();
+            try
+            {
+                userDB = await _userContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email);
+                if (userDB == null)
+                {
+                    return false;
+                }
+
                 return true;
             }
             catch

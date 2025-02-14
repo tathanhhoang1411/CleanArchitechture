@@ -12,5 +12,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
     {
         Task<Users> Login(UserDto user);
         Task<Boolean> SaveToken(Users user,string accessToken);
+        Task<Users> CreateUser(Users user);
+        Task<Boolean> CheckExistUser(Users user);
     }
 }

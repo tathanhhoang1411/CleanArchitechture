@@ -37,14 +37,6 @@ namespace CleanArchitecture.Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<bool> VerifyPassword(string enteredPassword, string storedHashedPassword)
-        {
-            return BCrypt.Net.BCrypt.Verify(enteredPassword, storedHashedPassword);
-        }
-        public async Task<bool> CheckPassword(string enteredPassword, string storedHashedPassword)
-        {
-            return await VerifyPassword(enteredPassword, storedHashedPassword);
-        }
         public string MakeToken(Users user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

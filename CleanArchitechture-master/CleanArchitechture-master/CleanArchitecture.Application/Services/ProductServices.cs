@@ -14,7 +14,6 @@ namespace CleanArchitecture.Application.Repository
     public class ProductServices : IProductServices
     {
         private readonly IProductRepository _productRepository;
-        private readonly IMapper _mapper;
         public ProductServices(IProductRepository productRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));

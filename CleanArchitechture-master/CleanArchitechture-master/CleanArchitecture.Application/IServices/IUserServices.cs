@@ -11,8 +11,6 @@ namespace CleanArchitecture.Application.IRepository
 {
     public interface IUserServices
     {
-        Task<Boolean> VerifyPassword(string enteredPassword, string storedHashedPassword);
-        Task<Boolean> CheckPassword(string enteredPassword, string storedHashedPassword);
         string MakeToken(Users user);
         Task<Boolean> SaveToken(Users user, string accessToken);
         ClaimsPrincipal ValidateToken( string accessToken);

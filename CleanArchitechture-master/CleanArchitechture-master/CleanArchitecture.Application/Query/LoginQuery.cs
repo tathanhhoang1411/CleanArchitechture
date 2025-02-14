@@ -40,11 +40,6 @@ namespace CleanArchitecture.Application.Query
                 {
                     return "";
                 }
-                result = await _userServices.CheckPassword(userDto.Password, user.PasswordHash);
-                if (result==false)//Nếu không đúng password 
-                {
-                    return ""; 
-                }
                 //Khi này, đăng nhập thành công thì trả về Access token
                 string accessToken = _userServices.MakeToken(user);
                 if(accessToken=="")

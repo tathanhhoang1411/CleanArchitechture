@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CleanArchitecture.Application.Commands;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
 using CleanArchitecture.Entites.Dtos;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BE_2911_CleanArchitecture.Controllers
 {
@@ -21,7 +23,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
 
-        public UserController(IMediator mediator, IWebHostEnvironment environment, ILogger<UserController> logger, IConfiguration configuration,IMapper mapper)
+        public UserController(IMediator mediator, IWebHostEnvironment environment, ILogger<UserController> logger, IConfiguration configuration, IMapper mapper)
         {
             _mediator = mediator;
             _environment = environment;
@@ -37,9 +39,9 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                 _logger.LogInformation("Log   ||Login");
                 var userList = await _mediator.Send(query);
-                if (userList =="")
+                if (userList == "")
                 {
-                   this._logger.LogWarning("--------------------------Login failed for user: {Username}", query.Username);
+                    this._logger.LogWarning("--------------------------Login failed for user: {Username}", query.Username);
                     return Unauthorized("--------------------------Invalid username or password.");
                 }
 
@@ -48,7 +50,7 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error: "+ex.Message);
+                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 return StatusCode(500, "Internal server error. Please try again later.");
@@ -60,7 +62,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         {
             try
             {
-               //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 _logger.LogInformation("Log   ||GetAllUser");
                 var list = await _mediator.Send(new GetAllProductsQuery());
                 return Ok(list);
@@ -69,7 +71,41 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error : "+ ex.Message);
+                this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
+                return StatusCode(401, "Internal server error. Please try again later.");
+            }
+        }
+
+        [HttpPost("RegisterUser")]
+        public async Task<IActionResult> RegisterUser([FromBody] CreateUserCommand UserCommand)
+        {
+            try
+            {
+                try
+                {
+                    _logger.LogInformation("Log   ||RegisterUser");
+                    Users user = await _mediator.Send(UserCommand);
+
+                    //Mapper che giấu thuộc tính
+                    // Ánh xạ Users thành UserDto và lưu vào biến
+                    UserDto userDto = _mapper.Map<UserDto>(user);
+                    userDto.Password = UserCommand.Password;
+                    if (userDto == null)
+                    {
+                        return StatusCode(200, "The username or Email already exists.");
+                    }
+                    return Ok(userDto);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(200, "The username or Email already exists.");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
                 return StatusCode(401, "Internal server error. Please try again later.");
             }
         }
