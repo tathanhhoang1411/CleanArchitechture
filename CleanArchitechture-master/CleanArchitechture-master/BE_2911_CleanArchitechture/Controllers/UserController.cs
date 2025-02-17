@@ -56,7 +56,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, "Internal server error. Please try again later.");
             }
         }
-        [HttpPost("GetAllUser")]
+        [HttpGet("GetAllUser")]
         [Authorize]
         public async Task<IActionResult> GetAllUser()
         {
