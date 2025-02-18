@@ -32,7 +32,11 @@ builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserService>();
 builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+});
 // Thêm dịch vụ xác thực JWT
 builder.Services.AddAuthentication(options =>
 {

@@ -2,6 +2,7 @@
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -32,6 +33,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         [HttpGet("GetListProduct")]
+        [Authorize]
         public async Task<IActionResult> GetListProduct()
         {
             try

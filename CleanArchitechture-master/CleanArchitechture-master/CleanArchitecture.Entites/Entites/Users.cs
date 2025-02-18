@@ -17,5 +17,6 @@ namespace CleanArchitecture.Entites.Entites
         public string Email { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? Token { get; set; }
+        public string? Role { get; set; }
     }
 }

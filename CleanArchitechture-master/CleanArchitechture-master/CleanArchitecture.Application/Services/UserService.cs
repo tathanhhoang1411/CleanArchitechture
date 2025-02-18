@@ -41,21 +41,26 @@ namespace CleanArchitecture.Application.Services
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            // Thêm claims cho vai trò
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub,user.Username),
-                new Claim(JwtRegisteredClaimNames.Sub,user.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
-            };
+        new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+        new Claim(JwtRegisteredClaimNames.NameId, user.UserId.ToString()), // Sử dụng NameId cho ID
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.Role, user.Role.Trim()) // Gán vai trò từ đối tượng user
+    };
+
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                claims,
+                claims: claims,
                 expires: DateTime.Now.AddMinutes(60),
                 signingCredentials: credentials);
+
             var encodeToken = new JwtSecurityTokenHandler().WriteToken(token);
             return encodeToken;
-        }    
+        }
         public Task<Boolean> SaveToken(Users user, string accessToken)
         {
 
