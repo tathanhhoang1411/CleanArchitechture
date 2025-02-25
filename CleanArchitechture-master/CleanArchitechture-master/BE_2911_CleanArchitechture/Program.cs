@@ -14,6 +14,7 @@ using System.Text;
 //using CleanArchitecture.Application.Services;
 using AutoMapper;
 using CleanArchitecture.Application.Services;
+using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -34,8 +35,13 @@ builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    //Role admin
+    options.AddPolicy("RequireAdminRole", policy => 
+    policy.RequireRole("Admin"));
+    //Role User
+    options.AddPolicy("RequireUserRole", policy => 
+    policy.RequireRole("User"));
+    //Role admin, user
     options.AddPolicy("RequireAdminOrUserRole", policy =>
     policy.RequireRole("Admin", "User"));
 });

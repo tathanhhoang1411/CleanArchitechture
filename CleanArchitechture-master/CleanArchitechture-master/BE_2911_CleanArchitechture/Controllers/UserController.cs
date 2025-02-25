@@ -101,7 +101,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                         return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
 
                     }
-                    return Ok(userDto);
+                    return Ok(new ApiResponse<UserDto>(userDto));
                 }
                 catch (Exception ex)
                 {
