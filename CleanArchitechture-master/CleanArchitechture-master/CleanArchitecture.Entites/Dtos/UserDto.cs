@@ -17,5 +17,6 @@ namespace CleanArchitecture.Entites.Dtos
         [StringLength(100, ErrorMessage = "Password must be at least 5 and at most 100 characters long.", MinimumLength = 5)]
         public string Password { get; set; }
         public string Email { get; set; }
+        public string Role { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace CleanArchitecture.Entites.Entites
     public class Products
     {
         [Key]
-        public int ProductId { get; set; }
+        public string ProductId { get; set; }
         [MaxLength(100)] // Đặt độ dài tối đa là 100 ký tựs
         public string ProductName { get; set; }
         public string? ProductImage1 { get; set; }

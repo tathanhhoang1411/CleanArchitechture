@@ -79,6 +79,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 NewUser.CreatedAt = user.CreatedAt;
                 NewUser.PasswordHash = user.PasswordHash;
                 NewUser.UserId = user.UserId;
+                NewUser.Role = user.Role;
                 _userContext.Users.Add( NewUser );
                await  _userContext.SaveChangesAsync();
 

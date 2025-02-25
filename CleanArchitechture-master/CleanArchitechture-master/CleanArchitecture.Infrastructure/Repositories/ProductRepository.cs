@@ -23,7 +23,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public async Task<int> CreateProduct(Products createProduct)
         {
             _userContext.Add(createProduct);
-            return _userContext.SaveChanges();
+            return await  _userContext.SaveChangesAsync();
         }
 
         public async Task<List<ProductDto>> GetListProduct()

@@ -10,7 +10,7 @@ namespace CleanArchitecture.Entites.Dtos
 { 
 public class ProductDto: IProductDto
     {
-    public int ProductId { get; set; } // Nếu cần thiết, có thể bỏ qua trường này
+    public string ProductId { get; set; } // Nếu cần thiết, có thể bỏ qua trường này
     public string ProductName { get; set; }
     public string? ProductImage1 { get; set; }
     public string? ProductImage2 { get; set; }

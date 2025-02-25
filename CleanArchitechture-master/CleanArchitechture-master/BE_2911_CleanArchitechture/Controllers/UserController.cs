@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -42,10 +43,12 @@ namespace BE_2911_CleanArchitecture.Controllers
                 if (userList == "")
                 {
                     this._logger.LogWarning("--------------------------Login failed for user: {Username}", query.Username);
-                    return Unauthorized("--------------------------Invalid username or password.");
+                    var errors = new List<string> { "Invalid username or password." };
+                    return Unauthorized(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    
                 }
-
-                return Ok(userList);
+                var stringResult = new List<string> { userList };
+                return Ok(new ApiResponse<List<string>>(stringResult));
             }
             catch (Exception ex)
             {
@@ -53,7 +56,8 @@ namespace BE_2911_CleanArchitecture.Controllers
                 this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
         [Authorize(Policy = "RequireAdminRole")]
@@ -65,14 +69,15 @@ namespace BE_2911_CleanArchitecture.Controllers
                 //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 _logger.LogInformation("Log   ||GetAllUser");
                 var list = await _mediator.Send(new GetAllProductsQuery());
-                return Ok(list);
+                return Ok(new ApiResponse<List<ProductDto>>(list));
 
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
                 this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
-                return StatusCode(401, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
 
@@ -92,13 +97,17 @@ namespace BE_2911_CleanArchitecture.Controllers
                     userDto.Password = UserCommand.Password;
                     if (userDto == null)
                     {
-                        return StatusCode(200, "The username or Email already exists.");
+                        var errors = new List<string> { "The username or Email already exists." };
+                        return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
                     }
                     return Ok(userDto);
                 }
                 catch (Exception ex)
                 {
-                    return StatusCode(200, "The username or Email already exists.");
+
+                    var errors = new List<string> { "The username or Email already exists." };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
 
             }
@@ -106,7 +115,8 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                 // Ghi log lỗi
                 this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
-                return StatusCode(401, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
     }

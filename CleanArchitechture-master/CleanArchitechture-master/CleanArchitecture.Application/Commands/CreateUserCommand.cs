@@ -43,6 +43,7 @@ namespace CleanArchitecture.Application.Commands
                 user.Email = command.Email;
                 user.UserId = timestamp;
                 user.CreatedAt = dateTime;
+                user.Role = "User";
                 Boolean isExistUser= await _userRepository.CheckExistUser(user);
                 if (isExistUser)//Nếu đăng kí tài khoản đã tồn tại
                 {

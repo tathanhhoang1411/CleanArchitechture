@@ -36,7 +36,10 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
     options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    options.AddPolicy("RequireAdminOrUserRole", policy =>
+    policy.RequireRole("Admin", "User"));
 });
+
 // Thêm dịch vụ xác thực JWT
 builder.Services.AddAuthentication(options =>
 {

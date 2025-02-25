@@ -1,11 +1,16 @@
 ﻿using CleanArchitecture.Application.Commands;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
+using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Entites.Entites;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Data;
 
 namespace BE_2911_CleanArchitechture.Controllers
 {
@@ -33,14 +38,14 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         [HttpGet("GetListProduct")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetListProduct()
         {
             try
             {
                 this._logger.LogInformation("Log   ||GetListProduct");
                 var list = await _mediator.Send(new GetAllProductsQuery());
-                return Ok(list);
+                return Ok(new ApiResponse<List<ProductDto>>(list));
             }
             catch (Exception ex)
             {
@@ -48,17 +53,21 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
             }
         }
 
         [HttpPost("CreateProduct")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         public async Task<IActionResult> Create(CreateProductCommand command)
         {
             try
             {
             this._logger.LogInformation("Log   ||CreateProduct");
-            return Ok(await _mediator.Send(command));
+                var list = await _mediator.Send(command);
+            return Ok(new ApiResponse<Products>(list));
 
             }
             catch (Exception ex)
@@ -67,7 +76,8 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
 
         }
@@ -137,7 +147,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 }
                 this._logger.LogInformation("----------------------------Log   ||UploadImage||True");
-                return Ok(Results);
+                return Ok(new ApiResponse<Boolean>(Results));
             }
             catch (Exception ex)
             {
@@ -145,7 +155,8 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
 

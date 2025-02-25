@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands
 {
 
-    public class CreateProductCommand : IRequest<int>
+    public class CreateProductCommand : IRequest<Products>
     {
         public string ProductName { get; set; }
         public string? ProductImg1 { get; set; }
@@ -19,16 +19,17 @@ namespace CleanArchitecture.Application.Commands
         public string? ProductImg4 { get; set; }
         public string? ProductImg5 { get; set; }
         public decimal Price { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
+        public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Products>
         {
             private readonly IProductRepository _productRepository;
             public CreateProductCommandHandler(IProductRepository productRepository)
             {
                 _productRepository = productRepository;
             }
-            public async Task<int> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+            public async Task<Products> Handle(CreateProductCommand command, CancellationToken cancellationToken)
             {
+                DateTime dateTime = DateTime.UtcNow;
+                long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
                 var product = new Products();
                 product.ProductName = command.ProductName;
                 product.ProductImage1 = command.ProductImg1;
@@ -36,12 +37,12 @@ namespace CleanArchitecture.Application.Commands
                 product.ProductImage3 = command.ProductImg3;
                 product.ProductImage4 = command.ProductImg4;
                 product.ProductImage5 = command.ProductImg5;
-                //product.ProductId = CreateNumber();
+                product.ProductId = timestamp.ToString();
                 product.Price = command.Price;
-                product.CreatedAt = command.CreatedAt;
+                product.CreatedAt = dateTime;
                 await _productRepository.CreateProduct(product);
 
-                return product.ProductId;
+                return product;
             }
             public int CreateNumber()
             {
