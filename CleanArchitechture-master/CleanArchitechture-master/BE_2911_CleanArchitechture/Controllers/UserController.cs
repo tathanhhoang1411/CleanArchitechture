@@ -20,7 +20,7 @@ namespace BE_2911_CleanArchitecture.Controllers
     {
         private readonly IWebHostEnvironment _environment;
         private readonly IMediator _mediator;
-        private readonly ILogger<UserController> _logger; // Đổi tên từ ProductController sang UserController
+        private readonly ILogger<UserController> _logger; 
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
 
@@ -62,14 +62,14 @@ namespace BE_2911_CleanArchitecture.Controllers
         }
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("GetAllUser")]
-        public async Task<IActionResult> GetAllUser()
+        public async Task<IActionResult> GetAllUser([FromBody] ApiRequest<string> request)
         {
             try
             {
                 //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 _logger.LogInformation("Log   ||GetAllUser");
-                var list = await _mediator.Send(new GetAllProductsQuery());
-                return Ok(new ApiResponse<List<ProductDto>>(list));
+                var list = await _mediator.Send(new GetAllUserQuery(request.Skip, request.Take,request.RequestData));
+                return Ok(new ApiResponse<List<UserDto>>(list));
 
             }
             catch (Exception ex)

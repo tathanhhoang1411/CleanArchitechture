@@ -26,9 +26,14 @@ namespace CleanArchitecture.Infrastructure.Repositories
             return await  _userContext.SaveChangesAsync();
         }
 
-        public async Task<List<ProductDto>> GetListProduct()
+        public async Task<List<ProductDto>> GetListProducts(int skip, int take, string data)
         {
-            var products = await _userContext.Products.ToListAsync();
+            var products = await _userContext.Products
+                .Where(p => p.ProductName.Contains(data))
+                .Take(take)
+                .Skip(skip)
+                .AsNoTracking()
+                .ToListAsync();
             return _mapper.Map<List<ProductDto>>(products);
 
 

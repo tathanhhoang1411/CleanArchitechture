@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+using CleanArchitecture.Entites.Dtos;
 namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
@@ -98,6 +99,10 @@ namespace CleanArchitecture.Application.Services
                 // Token không hợp lệ
                 return null;
             }
+        }
+        public Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
+        {
+            return _userRepository.GetListUsers(skip, take,data);
         }
     }
 }

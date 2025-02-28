@@ -19,9 +19,9 @@ namespace CleanArchitecture.Application.Repository
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         }
 
-        public Task<List<ProductDto>> Products_GetList()
+        public Task<List<ProductDto>> GetList_Products(int skip, int take, string data)
         {
-            return _productRepository.GetListProduct();
+            return _productRepository.GetListProducts(skip,take, data);
         }
 
         public Task<int> Product_InsertUpdate(Products product)

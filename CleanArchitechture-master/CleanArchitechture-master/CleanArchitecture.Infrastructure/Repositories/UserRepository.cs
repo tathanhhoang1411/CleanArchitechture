@@ -29,7 +29,14 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 // Lấy thông tin người dùng từ cơ sở dữ liệu
                 user = await _userContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Username == userDto.Username && u.Email == userDto.Email);
+                    .FirstOrDefaultAsync(
+                    u => u.Username 
+                    == 
+                    userDto.Username 
+                    &&
+                    u.Email 
+                    ==
+                    userDto.Email);
                 if (user==null)
                 {
                     return null;
@@ -52,7 +59,14 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 userDB = await _userContext.Users
-                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.PasswordHash == user.PasswordHash);
+                    .FirstOrDefaultAsync(
+                    u => u.Username 
+                    ==
+                    user.Username 
+                    && 
+                    u.PasswordHash
+                    ==
+                    user.PasswordHash);
                 if (userDB == null)
                 {
                     return false;
@@ -95,8 +109,16 @@ namespace CleanArchitecture.Infrastructure.Repositories
             Users userDB = new Users();
             try
             {
-                userDB = await _userContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email);
+                userDB = await _userContext.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                    u => u.Username 
+                    ==
+                    user.Username 
+                    &&
+                    u.Email
+                    == 
+                    user.Email);
                 if (userDB == null)
                 {
                     return false;
@@ -109,5 +131,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return false;
             }
         }
+
+        public async Task<List<UserDto>> GetListUsers(int skip, int take,string data)
+        {
+                var users = await _userContext.Users
+                .Where(u => u.Username.Contains(data))
+                .Take(take)
+                .Skip(skip)
+                .AsNoTracking()
+                .ToListAsync();
+                return _mapper.Map<List<UserDto>>(users);
+        }
     }
 }
+

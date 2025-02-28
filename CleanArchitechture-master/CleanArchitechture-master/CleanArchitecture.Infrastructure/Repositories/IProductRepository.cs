@@ -11,6 +11,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public interface IProductRepository
     {
         Task<int> CreateProduct(Products createProduct);
-        Task<List<ProductDto>> GetListProduct();
+        Task<List<ProductDto>> GetListProducts(int skip, int take,string data);
     }
 }

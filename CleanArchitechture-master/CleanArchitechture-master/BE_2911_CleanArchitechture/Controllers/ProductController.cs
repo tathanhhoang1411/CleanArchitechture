@@ -18,33 +18,34 @@ namespace BE_2911_CleanArchitechture.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        //private IProductServices _productServices;
         //public ProductController(IProductServices productServices)
         //{
         //    _productServices = productServices;
         //}
         private readonly IWebHostEnvironment _environment;
 
+        private readonly IProductServices _productServices;
         private readonly IMediator _mediator;
         private readonly ILogger<ProductController> _logger;
         private readonly IConfiguration _configuration;
 
-        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration)
+        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration, IProductServices productServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
         }
 
         [HttpGet("GetListProduct")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListProduct()
+        public async Task<IActionResult> GetListProduct([FromBody] ApiRequest<string> request)
         {
             try
             {
                 this._logger.LogInformation("Log   ||GetListProduct");
-                var list = await _mediator.Send(new GetAllProductsQuery());
+                var list = await _mediator.Send(new GetAllProductsQuery(request.Skip, request.Take, request.RequestData));
                 return Ok(new ApiResponse<List<ProductDto>>(list));
             }
             catch (Exception ex)
