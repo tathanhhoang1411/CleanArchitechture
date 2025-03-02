@@ -138,6 +138,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .Where(u => u.Username.Contains(data))
                 .Take(take)
                 .Skip(skip)
+                .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
                 return _mapper.Map<List<UserDto>>(users);
