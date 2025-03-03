@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -32,8 +33,9 @@ namespace BE_2911_CleanArchitecture.Controllers
             _logger = logger;
             _mapper = mapper;
         }
-
         [HttpPost("Login")]
+        [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
+                      Description = "Sử dụng tên đăng nhập,email và mật khẩu để xác thực.")]
         public async Task<IActionResult> Login([FromBody] LoginQuery query)
         {
             try
