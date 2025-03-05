@@ -10,11 +10,6 @@ namespace CleanArchitecture.Entites.Interfaces
     {
         public string ProductId { get; set; } // Nếu cần thiết, có thể bỏ qua trường này
         public string ProductName { get; set; }
-        public string? ProductImage1 { get; set; }
-        public string? ProductImage2 { get; set; }
-        public string? ProductImage3 { get; set; }
-        public string? ProductImage4 { get; set; }
-        public string? ProductImage5 { get; set; }
         public decimal Price { get; set; }
     }
 }

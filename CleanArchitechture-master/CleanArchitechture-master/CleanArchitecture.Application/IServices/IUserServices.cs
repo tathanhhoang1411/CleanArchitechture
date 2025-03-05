@@ -13,6 +13,7 @@ namespace CleanArchitecture.Application.IRepository
     {
         string MakeToken(Users user);
         Task<Boolean> SaveToken(Users user, string accessToken);
+        long GetUserIDInTokenFromRequest(string tokenJWT);
         ClaimsPrincipal ValidateToken( string accessToken);
         Task<List<UserDto>> GetList_Users(int skip, int take, string data);
 

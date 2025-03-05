@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.IRepository
 {
-    public interface IProductServices
+    public interface IimageServices
     {
-        Task<List<ProductDto>> GetList_Products(int skip, int take,string str);
-        Task<int> Product_Create(Products product);
+        Task<string> Image_Update();
     }
 }

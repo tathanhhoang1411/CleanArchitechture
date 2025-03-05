@@ -2,6 +2,7 @@
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Services;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BE_2911_CleanArchitechture.Controllers
 {
@@ -26,17 +28,19 @@ namespace BE_2911_CleanArchitechture.Controllers
         private readonly IWebHostEnvironment _environment;
 
         private readonly IProductServices _productServices;
+        private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
         private readonly ILogger<ProductController> _logger;
         private readonly IConfiguration _configuration;
 
-        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration, IProductServices productServices)
+        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
+            this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
 
         [HttpGet("GetListProduct")]
@@ -63,16 +67,33 @@ namespace BE_2911_CleanArchitechture.Controllers
 
             }
         }
-
+        //Tạo bài viết review sản phẩm:
+        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
+        //Tạo bài viết
         [HttpPost("CreateProduct")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
         public async Task<IActionResult> Create(ProductCommand command)
         {
             try
             {
-            this._logger.LogInformation("Log   ||CreateProduct");
+                this._logger.LogInformation("Log   ||CheckUserID in TokenJWT");
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                long UserID = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                if (UserID==0)
+                {
+                    this._logger.LogInformation("Result: UserId not exist");
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation("Log   ||CreateProduct");
+                //Tạo sản phẩm review
+                command.OwnerID = UserID;
                 var list = await _mediator.Send(command);
-            return Ok(new ApiResponse<Products>(list));
+                //Tạo bài review
+                //Lưu ảnh review
+                var _uploadedfiles = Request.Form.Files;
+
+                return Ok(new ApiResponse<Products>(list));
 
             }
             catch (Exception ex)

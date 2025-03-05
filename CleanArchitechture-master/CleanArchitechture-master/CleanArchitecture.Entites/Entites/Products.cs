@@ -19,6 +19,7 @@ namespace CleanArchitecture.Entites.Entites
         public string? ProductImage4 { get; set; }
         public string? ProductImage5 { get; set; }
         public decimal Price { get; set; }
+        public long OwnerID { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

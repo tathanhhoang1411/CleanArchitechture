@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Entites.Entites;
+﻿using CleanArchitecture.Application.IRepository;
+using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
 using MediatR;
 using System;
@@ -14,12 +15,13 @@ namespace CleanArchitecture.Application.Commands
     {
         public string ProductName { get; set; }
         public decimal Price { get; set; }
+        public long OwnerID { get; set; }
         public class CreateProductCommandHandler : IRequestHandler<ProductCommand, Products>
         {
-            private readonly IProductRepository _productRepository;
-            public CreateProductCommandHandler(IProductRepository productRepository)
+            private readonly IProductServices _productServices;
+            public CreateProductCommandHandler(IProductServices productServices)
             {
-                _productRepository = productRepository;
+                _productServices = productServices;
             }
             public async Task<Products> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
@@ -30,7 +32,8 @@ namespace CleanArchitecture.Application.Commands
                 product.ProductId = timestamp.ToString();
                 product.Price = command.Price;
                 product.CreatedAt = dateTime;
-                await _productRepository.CreateProduct(product);
+                product.OwnerID = command.OwnerID;
+                await _productServices.Product_Create(product);
 
                 return product;
             }

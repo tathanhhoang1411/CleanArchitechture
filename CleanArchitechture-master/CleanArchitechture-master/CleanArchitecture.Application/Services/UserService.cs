@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using CleanArchitecture.Entites.Dtos;
+using Org.BouncyCastle.Asn1.Ocsp;
 namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
@@ -66,6 +67,24 @@ namespace CleanArchitecture.Application.Services
         {
 
             return _userRepository.SaveToken(user, accessToken);
+        }     
+        public long GetUserIDInTokenFromRequest(string tokenJWT)
+        {
+            long result=0;
+            try
+            {
+                // Giải mã token
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(tokenJWT);
+
+                // Lấy ID từ payload
+                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value; // Thay "id" bằng tên trường bạn sử dụng
+                return long.Parse(userId);
+            }
+            catch (Exception ex)
+            {
+                return result;
+            }
         }
         public ClaimsPrincipal ValidateToken(string token)
         {

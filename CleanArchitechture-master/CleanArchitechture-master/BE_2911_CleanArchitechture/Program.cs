@@ -36,6 +36,7 @@ builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserService>();
+builder.Services.AddTransient<IimageServices, ImageServices>();
 builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthorization(options =>

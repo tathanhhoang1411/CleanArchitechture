@@ -21,13 +21,11 @@ namespace CleanArchitecture.Application.Commands
         public string Email { get; set; }
         public class CreateUserCommandHandler : IRequestHandler<UserCommand, Users>
         {
-            private readonly IProductRepository _productRepository;
             private readonly IUserServices _userServices;
             private readonly IUserRepository _userRepository;
             private readonly IMapper _mapper;
-            public CreateUserCommandHandler(IProductRepository productRepository, IUserServices userServices, IUserRepository userRepository,IMapper mapper)
+            public CreateUserCommandHandler( IUserServices userServices, IUserRepository userRepository,IMapper mapper)
             {
-                _productRepository = productRepository;
                 _userServices = userServices;
                 _userRepository = userRepository;
                 _mapper = mapper;
