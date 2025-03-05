@@ -84,7 +84,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         }
 
         [HttpPost("RegisterUser")]
-        public async Task<IActionResult> RegisterUser([FromBody] CreateUserCommand UserCommand)
+        public async Task<IActionResult> RegisterUser([FromBody] UserCommand UserCommand)
         {
             try
             {

@@ -14,12 +14,12 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands
 {
 
-    public class CreateUserCommand : IRequest<Users>
+    public class UserCommand : IRequest<Users>
     {
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
-        public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Users>
+        public class CreateUserCommandHandler : IRequestHandler<UserCommand, Users>
         {
             private readonly IProductRepository _productRepository;
             private readonly IUserServices _userServices;
@@ -33,7 +33,7 @@ namespace CleanArchitecture.Application.Commands
                 _mapper = mapper;
 
             }
-            public async Task<Users> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+            public async Task<Users> Handle(UserCommand command, CancellationToken cancellationToken)
             {
                 DateTime dateTime = DateTime.UtcNow;
                 long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();

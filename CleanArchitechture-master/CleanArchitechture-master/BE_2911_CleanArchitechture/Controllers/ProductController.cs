@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Data;
 
@@ -40,6 +41,9 @@ namespace BE_2911_CleanArchitechture.Controllers
 
         [HttpGet("GetListProduct")]
         [AllowAnonymous]
+        [SwaggerOperation(Summary = "Lấy danh sách bài viết ",
+                      Description = "")]
+
         public async Task<IActionResult> GetListProduct([FromBody] ApiRequest<string> request)
         {
             try
@@ -62,7 +66,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
         [HttpPost("CreateProduct")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
-        public async Task<IActionResult> Create(CreateProductCommand command)
+        public async Task<IActionResult> Create(ProductCommand command)
         {
             try
             {

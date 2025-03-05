@@ -10,33 +10,23 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands
 {
 
-    public class CreateProductCommand : IRequest<Products>
+    public class ProductCommand : IRequest<Products>
     {
         public string ProductName { get; set; }
-        public string? ProductImg1 { get; set; }
-        public string? ProductImg2 { get; set; }
-        public string? ProductImg3 { get; set; }
-        public string? ProductImg4 { get; set; }
-        public string? ProductImg5 { get; set; }
         public decimal Price { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Products>
+        public class CreateProductCommandHandler : IRequestHandler<ProductCommand, Products>
         {
             private readonly IProductRepository _productRepository;
             public CreateProductCommandHandler(IProductRepository productRepository)
             {
                 _productRepository = productRepository;
             }
-            public async Task<Products> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+            public async Task<Products> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
                 DateTime dateTime = DateTime.UtcNow;
                 long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
                 var product = new Products();
                 product.ProductName = command.ProductName;
-                product.ProductImage1 = command.ProductImg1;
-                product.ProductImage2 = command.ProductImg2;
-                product.ProductImage3 = command.ProductImg3;
-                product.ProductImage4 = command.ProductImg4;
-                product.ProductImage5 = command.ProductImg5;
                 product.ProductId = timestamp.ToString();
                 product.Price = command.Price;
                 product.CreatedAt = dateTime;
