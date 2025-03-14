@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Application.Commands;
+﻿using BE_2911_CleanArchitechture.Logging;
+using CleanArchitecture.Application.Commands;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
@@ -30,10 +31,9 @@ namespace BE_2911_CleanArchitechture.Controllers
         private readonly IProductServices _productServices;
         private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
-        private readonly ILogger<ProductController> _logger;
         private readonly IConfiguration _configuration;
-
-        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
+        private readonly ICustomLogger _logger;
+        public ProductController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
@@ -43,7 +43,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
 
-        [HttpGet("GetListProduct")]
+        [HttpPost("GetListProduct")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách bài viết ",
                       Description = "")]
@@ -52,14 +52,12 @@ namespace BE_2911_CleanArchitechture.Controllers
         {
             try
             {
-                this._logger.LogInformation("Log   ||GetListProduct");
+                
                 var list = await _mediator.Send(new GetAllProductsQuery(request.Skip, request.Take, request.RequestData));
                 return Ok(new ApiResponse<List<ProductDto>>(list));
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 var errors = new List<string> { "Internal server error. Please try again later." };
@@ -74,21 +72,31 @@ namespace BE_2911_CleanArchitechture.Controllers
         [Authorize(Policy = "RequireAdminOrUserRole")]
         public async Task<IActionResult> Create(ProductCommand command)
         {
+            long UserID = 0;
             try
             {
-                this._logger.LogInformation("Log   ||CheckUserID in TokenJWT");
+                //Check user ID 
+                #region
                 string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                long UserID = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                if (UserID==0)
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
                 {
-                    this._logger.LogInformation("Result: UserId not exist");
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
                     var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
-                this._logger.LogInformation("Log   ||CreateProduct");
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                this._logger.LogInformation(UserID.ToString(), "CreateProduct");
                 //Tạo sản phẩm review
                 command.OwnerID = UserID;
                 var list = await _mediator.Send(command);
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
                 //Tạo bài review
                 //Lưu ảnh review
                 var _uploadedfiles = Request.Form.Files;
@@ -99,7 +107,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
+                this._logger.LogError(UserID.ToString(), "Internal server error", ex);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 var errors = new List<string> { "Internal server error. Please try again later." };
@@ -141,12 +149,31 @@ namespace BE_2911_CleanArchitechture.Controllers
         //}
 
         [HttpPost("UploadImage")]//method upload ảnh 
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         public async Task<ActionResult> UploadImage()
         {
-            this._logger.LogInformation("----------------------------Log   ||UploadImage");
             bool Results = false;
+            long UserID = 0;
             try
             {
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                this._logger.LogInformation(UserID.ToString(),"UploadImage");
                 var _uploadedfiles = Request.Form.Files;
                 foreach (IFormFile source in _uploadedfiles)
                 {
@@ -172,13 +199,13 @@ namespace BE_2911_CleanArchitechture.Controllers
 
 
                 }
-                this._logger.LogInformation("----------------------------Log   ||UploadImage||True");
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<Boolean>(Results));
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
+                this._logger.LogError(UserID.ToString(), "Internal server error: ", ex);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 var errors = new List<string> { "Internal server error. Please try again later." };

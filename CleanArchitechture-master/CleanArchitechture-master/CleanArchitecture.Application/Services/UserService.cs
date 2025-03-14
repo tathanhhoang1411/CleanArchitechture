@@ -50,6 +50,7 @@ namespace CleanArchitecture.Application.Services
         new Claim(JwtRegisteredClaimNames.Sub, user.Username),
         new Claim(JwtRegisteredClaimNames.NameId, user.UserId.ToString()), // Sử dụng NameId cho ID
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(JwtRegisteredClaimNames.UniqueName,user.Email),
         new Claim(ClaimTypes.Role, user.Role.Trim()) // Gán vai trò từ đối tượng user
     };
 
@@ -68,7 +69,7 @@ namespace CleanArchitecture.Application.Services
 
             return _userRepository.SaveToken(user, accessToken);
         }     
-        public long GetUserIDInTokenFromRequest(string tokenJWT)
+        public async Task<long> GetUserIDInTokenFromRequest(string tokenJWT)
         {
             long result=0;
             try
@@ -79,7 +80,21 @@ namespace CleanArchitecture.Application.Services
 
                 // Lấy ID từ payload
                 var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value; // Thay "id" bằng tên trường bạn sử dụng
-                return long.Parse(userId);
+                var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value; // Thay "id" bằng tên trường bạn sử dụng
+                var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value; // Thay "id" bằng tên trường bạn sử dụng
+                Users users = new Users();
+                users.Username = userName;
+                users.UserId = long.Parse(userId);
+                users.Email = email;
+                Task<bool> checkUser=_userRepository.CheckExistUser(users);
+                // Đợi để lấy giá trị bool từ Task
+                bool resultFromTask = await checkUser;
+                if (!resultFromTask)
+                {
+                    return result;
+                }
+                result = long.Parse(userId);
+                return result;
             }
             catch (Exception ex)
             {

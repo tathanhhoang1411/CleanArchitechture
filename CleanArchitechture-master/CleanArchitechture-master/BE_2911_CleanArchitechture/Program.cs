@@ -16,6 +16,7 @@ using AutoMapper;
 using CleanArchitecture.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using BE_2911_CleanArchitechture.Logging;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -37,6 +38,7 @@ builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserService>();
 builder.Services.AddTransient<IimageServices, ImageServices>();
+builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger
 builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthorization(options =>
@@ -98,19 +100,24 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     .AllowCredentials()
     .Build()
 ));
+// Cấu hình Serilog
 var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
 if (!Directory.Exists(logDirectory))
 {
     Directory.CreateDirectory(logDirectory);
 }
 
-var _logger = new LoggerConfiguration()
+
+Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.File(Path.Combine(logDirectory, "ApiLog-.log"), rollingInterval: RollingInterval.Day)
+    .WriteTo.Console()
     .CreateLogger();
 
-builder.Logging.AddSerilog(_logger);
+builder.Logging.ClearProviders(); // Xóa các logger mặc định
+builder.Logging.AddSerilog(); // Thêm Serilog
+
+
 
 var app = builder.Build();
 

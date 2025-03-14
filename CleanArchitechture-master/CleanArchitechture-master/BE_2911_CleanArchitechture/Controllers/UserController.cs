@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Commands;
+using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Services;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
@@ -21,17 +24,18 @@ namespace BE_2911_CleanArchitecture.Controllers
     {
         private readonly IWebHostEnvironment _environment;
         private readonly IMediator _mediator;
-        private readonly ILogger<UserController> _logger; 
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
-
-        public UserController(IMediator mediator, IWebHostEnvironment environment, ILogger<UserController> logger, IConfiguration configuration, IMapper mapper)
+        private readonly ICustomLogger _logger;
+        private readonly IUserServices _userServices;
+        public UserController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IMapper mapper, IUserServices userServices)
         {
-            _mediator = mediator;
-            _environment = environment;
-            _configuration = configuration;
-            _logger = logger;
-            _mapper = mapper;
+            this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
+            this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         [HttpPost("Login")]
         [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
@@ -40,11 +44,9 @@ namespace BE_2911_CleanArchitecture.Controllers
         {
             try
             {
-                _logger.LogInformation("Log   ||Login");
                 var userList = await _mediator.Send(query);
                 if (userList == "")
                 {
-                    this._logger.LogWarning("--------------------------Login failed for user: {Username}", query.Username);
                     var errors = new List<string> { "Invalid username or password." };
                     return Unauthorized(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                     
@@ -54,8 +56,6 @@ namespace BE_2911_CleanArchitecture.Controllers
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error: " + ex.Message);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
                 var errors = new List<string> { "Internal server error. Please try again later." };
@@ -66,18 +66,36 @@ namespace BE_2911_CleanArchitecture.Controllers
         [HttpGet("GetAllUser")]
         public async Task<IActionResult> GetAllUser([FromBody] ApiRequest<string> request)
         {
+            long UserID =0;
             try
             {
-                //var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                _logger.LogInformation("Log   ||GetAllUser");
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID= await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                _logger.LogInformation(UserID.ToString(), "GetAllUser");
                 var list = await _mediator.Send(new GetAllUserQuery(request.Skip, request.Take,request.RequestData));
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<UserDto>>(list));
 
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
+                _logger.LogError(UserID.ToString(), "GetAllUser", ex);
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
@@ -90,7 +108,6 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("Log   ||RegisterUser");
                     Users user = await _mediator.Send(UserCommand);
 
                     //Mapper che giấu thuộc tính
@@ -115,8 +132,6 @@ namespace BE_2911_CleanArchitecture.Controllers
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi
-                this._logger.LogError(ex, "--------------------------Internal server error : " + ex.Message);
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
