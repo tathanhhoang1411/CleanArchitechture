@@ -22,12 +22,10 @@ namespace CleanArchitecture.Application.Commands
         public class CreateUserCommandHandler : IRequestHandler<UserCommand, Users>
         {
             private readonly IUserServices _userServices;
-            private readonly IUserRepository _userRepository;
             private readonly IMapper _mapper;
             public CreateUserCommandHandler( IUserServices userServices, IUserRepository userRepository,IMapper mapper)
             {
                 _userServices = userServices;
-                _userRepository = userRepository;
                 _mapper = mapper;
 
             }
@@ -42,12 +40,12 @@ namespace CleanArchitecture.Application.Commands
                 user.UserId = timestamp;
                 user.CreatedAt = dateTime;
                 user.Role = "User";
-                Boolean isExistUser= await _userRepository.CheckExistUser(user);
+                Boolean isExistUser= await _userServices.CheckExistUser(user);
                 if (isExistUser)//Nếu đăng kí tài khoản đã tồn tại
                 {
                     return null;
                 }
-                Users resultCreateUser = await _userRepository.CreateUser(user);
+                Users resultCreateUser = await _userServices.CreateUser(user);
                 string accessToken = _userServices.MakeToken(user);
                 if(accessToken==null || accessToken == "")
                 {

@@ -138,5 +138,14 @@ namespace CleanArchitecture.Application.Services
         {
             return _userRepository.GetListUsers(skip, take,data);
         }
+        public Task<Boolean> CheckExistUser(Users user)
+        {
+            return _userRepository.CheckExistUser(user);
+        }
+        public Task<Users> CreateUser(Users user)
+        {
+            return _userRepository.CreateUser(user);
+        }
+
     }
 }

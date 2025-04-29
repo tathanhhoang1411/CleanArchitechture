@@ -26,7 +26,6 @@ namespace CleanArchitecture.Application.Query
             private readonly IUserServices _userServices;
             public LoginQueryHandler(IUserRepository userRepository,IMapper mapper,IUserServices userServices)
             {
-                _userRepository = userRepository;
                 _mapper = mapper;
                 _userServices = userServices;
             }
