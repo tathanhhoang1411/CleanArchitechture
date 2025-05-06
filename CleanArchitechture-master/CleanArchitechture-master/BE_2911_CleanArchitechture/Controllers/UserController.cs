@@ -51,8 +51,15 @@ namespace BE_2911_CleanArchitecture.Controllers
                     return Unauthorized(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                     
                 }
-                var stringResult = new List<string> { userList };
-                return Ok(new ApiResponse<List<string>>(stringResult));
+                var token = userList; // Giả sử userList chứa token
+
+                // Tạo đối tượng với key "AccessToken"
+                var result = new
+                {
+                    AccessToken = token
+                };
+
+                return Ok(new ApiResponse<object>(result));
             }
             catch (Exception ex)
             {

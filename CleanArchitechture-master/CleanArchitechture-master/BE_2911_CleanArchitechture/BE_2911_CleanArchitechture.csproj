@@ -22,4 +22,8 @@
     <ProjectReference Include="..\CleanArchitecture.Application\CleanArchitecture.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Logs\" />
+  </ItemGroup>
+
 </Project>

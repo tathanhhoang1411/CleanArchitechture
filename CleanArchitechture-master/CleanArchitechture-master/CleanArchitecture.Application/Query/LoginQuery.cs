@@ -28,6 +28,7 @@ namespace CleanArchitecture.Application.Query
             {
                 _mapper = mapper;
                 _userServices = userServices;
+                _userRepository = userRepository;
             }
             public async Task<string> Handle(LoginQuery query, CancellationToken cancellationToken)
             {
