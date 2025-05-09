@@ -12,20 +12,20 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands
 {
 
-    public class ProductCommand : IRequest<Products, ProductImg>
+    public class ProductCommand : IRequest<Products>
     {
-        public string ProductName { get; set; }
+        public string? ProductName { get; set; }
         public decimal Price { get; set; }
         public long OwnerID { get; set; }
         public int ReviewID { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<ProductCommand, Products, ProductImg>
+        public class CreateProductCommandHandler : IRequestHandler<ProductCommand, Products>
         {
             private readonly IProductServices _productServices;
             public CreateProductCommandHandler(IProductServices productServices)
             {
                 _productServices = productServices;
             }
-            public async Task<Products> Handle(ProductCommand command, ProductImg prodImg, CancellationToken cancellationToken)
+            public async Task<Products> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
                 DateTime dateTime = DateTime.Now;
                 long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
