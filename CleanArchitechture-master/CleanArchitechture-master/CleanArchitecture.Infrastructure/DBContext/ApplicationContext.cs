@@ -21,5 +21,6 @@ namespace CleanArchitecture.Infrastructure.DBContext
 
         public DbSet<Products> Products { get; set; }
         public DbSet<Users> Users { get; set; }
+        public DbSet<Reviews> Reviews { get; set; }
     }
 }

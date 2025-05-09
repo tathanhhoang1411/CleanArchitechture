@@ -21,5 +21,6 @@ namespace CleanArchitecture.Entites.Entites
         public decimal Price { get; set; }
         public long OwnerID { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int ReviewID { get; set; }
     }
 }

@@ -11,5 +11,6 @@ namespace CleanArchitecture.Entites.Interfaces
         public string ProductId { get; set; } // Nếu cần thiết, có thể bỏ qua trường này
         public string ProductName { get; set; }
         public decimal Price { get; set; }
+        public int ReviewId { get; set; }
     }
 }

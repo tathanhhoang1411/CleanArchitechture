@@ -33,6 +33,8 @@ builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServe
                             builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
 
 builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
+builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
+builder.Services.AddTransient<IReviewServices, ReviewServices>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
