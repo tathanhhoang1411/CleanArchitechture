@@ -28,5 +28,13 @@ namespace CleanArchitecture.Application.Repository
         {
             return _productRepository.CreateProduct(product);
         }
+        public Task<ProductDto> GetA_Products(int reviewId)
+        {
+            return _productRepository.GetAProducts(reviewId);
+        }
+        public Task<ProductDto> Product_Update(Products product)
+        {
+            return _productRepository.ProductUpdate(product);
+        }
     }
 }

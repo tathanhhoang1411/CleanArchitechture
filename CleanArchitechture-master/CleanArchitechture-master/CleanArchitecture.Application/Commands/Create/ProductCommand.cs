@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.Application.Commands
+namespace CleanArchitecture.Application.Commands.Create
 {
 
     public class ProductCommand : IRequest<Products>
@@ -29,18 +29,21 @@ namespace CleanArchitecture.Application.Commands
             {
                 DateTime dateTime = DateTime.Now;
                 long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
-                var product = new Products();
-                product.ProductName = command.ProductName;
-                product.ProductId = timestamp.ToString();
-                product.Price = command.Price;
-                product.CreatedAt = dateTime;
-                product.OwnerID = command.OwnerID;
-                product.ReviewID = command.ReviewID;
-                await _productServices.Product_Create(product);
+                var product = new Products
+                {
+                    ProductName = command.ProductName,
+                    ProductId = timestamp.ToString(),
+                    Price = command.Price,
+                    CreatedAt = dateTime,
+                    OwnerID = command.OwnerID,
+                    ReviewID = command.ReviewID
+                };
 
+                await _productServices.Product_Create(product);
                 return product;
             }
+
         }
     }
 }
-    
+

@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace CleanArchitecture.Application.Commands
+namespace CleanArchitecture.Application.Commands.Create
 {
 
     public class UserCommand : IRequest<Users>
@@ -23,7 +23,7 @@ namespace CleanArchitecture.Application.Commands
         {
             private readonly IUserServices _userServices;
             private readonly IMapper _mapper;
-            public CreateUserCommandHandler( IUserServices userServices, IUserRepository userRepository,IMapper mapper)
+            public CreateUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
             {
                 _userServices = userServices;
                 _mapper = mapper;
@@ -40,19 +40,19 @@ namespace CleanArchitecture.Application.Commands
                 user.UserId = timestamp;
                 user.CreatedAt = dateTime;
                 user.Role = "User";
-                Boolean isExistUser= await _userServices.CheckExistUser(user);
+                bool isExistUser = await _userServices.CheckExistUser(user);
                 if (isExistUser)//Nếu đăng kí tài khoản đã tồn tại
                 {
                     return null;
                 }
                 Users resultCreateUser = await _userServices.CreateUser(user);
                 string accessToken = _userServices.MakeToken(user);
-                if(accessToken==null || accessToken == "")
+                if (accessToken == null || accessToken == "")
                 {
                     return null;
                 }
                 user.Token = accessToken;
-                Boolean resultSaveToken = await _userServices.SaveToken(user,accessToken);
+                bool resultSaveToken = await _userServices.SaveToken(user, accessToken);
                 if (resultSaveToken == false)
                 {
                     return null;
@@ -63,4 +63,4 @@ namespace CleanArchitecture.Application.Commands
         }
     }
 }
-    
+

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE_2911_CleanArchitechture.Logging;
-using CleanArchitecture.Application.Commands;
+using CleanArchitecture.Application.Commands.Create;
+using CleanArchitecture.Application.Commands.Update;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
@@ -81,7 +82,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 Products aProduct = await _mediator.Send(command);
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 //ở trên là tạo bài nhưng chưa có ảnh sản phẩm
-                //B2: Lưu ảnh (chỉ cho người dùng có thể upload tối đa 5 ảnh)
+                //B2:Update tạo bài =>lưu ảnh (chỉ cho người dùng có thể upload tối đa 5 ảnh)
                 int temp = 1;
                 List<string> listRootImage = new List<string>();
                 var _uploadedfiles = Request.Form.Files;
@@ -115,14 +116,30 @@ namespace BE_2911_CleanArchitechture.Controllers
                     temp++;
                 }
                 #endregion
-                //B1: Lưu ảnh review,chỉ cho người dùng có thể upload tối đa 5 ảnh
+                //B3: Cập nhật đường dẫn ảnh lên server
+                this._logger.LogInformation(UserID.ToString(), "UpDateImgProduct");
                 aProduct.ProductImage1  = listRootImage[0];
                 aProduct.ProductImage2 = listRootImage[1];
                 aProduct.ProductImage3  = listRootImage[2];
                 aProduct.ProductImage4  = listRootImage[3];
                 aProduct.ProductImage5  = listRootImage[4];
+                //Update 
+                ProductcommandUpdate productcommandUpdate = new ProductcommandUpdate();
+                productcommandUpdate.ProductId = aProduct.ProductId;
+                productcommandUpdate.ReviewID= aProduct.ReviewID;
+                productcommandUpdate.ProductName= aProduct.ProductName;
+                productcommandUpdate.OwnerID= aProduct.OwnerID;
+                productcommandUpdate.Price= aProduct.Price;
+                productcommandUpdate.ProductImage1=aProduct.ProductImage1;
+                productcommandUpdate.ProductImage2 = aProduct.ProductImage2;
+                productcommandUpdate.ProductImage3=aProduct.ProductImage3;
+                productcommandUpdate.ProductImage4=aProduct.ProductImage4;
+                productcommandUpdate.ProductImage5=aProduct.ProductImage5;
 
-                ProductDto aProductdto = _mapper.Map<ProductDto>(aProduct);
+                Products aProductUpdate = await _mediator.Send(productcommandUpdate);
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+
+                ProductDto aProductdto = _mapper.Map<ProductDto>(aProductUpdate);
                 return Ok(new ApiResponse<ProductDto>(aProductdto));
 
             }

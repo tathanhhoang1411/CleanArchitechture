@@ -12,5 +12,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
     {
         Task<int> CreateProduct(Products createProduct);
         Task<List<ProductDto>> GetListProducts(int skip, int take,string data);
+        Task<ProductDto> GetAProducts(int reviewId);
+        Task<ProductDto> ProductUpdate(Products product);
     }
 }

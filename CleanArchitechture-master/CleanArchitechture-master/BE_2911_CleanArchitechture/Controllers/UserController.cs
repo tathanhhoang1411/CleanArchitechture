@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using BE_2911_CleanArchitechture.Logging;
-using CleanArchitecture.Application.Commands;
+using CleanArchitecture.Application.Commands.Create;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;

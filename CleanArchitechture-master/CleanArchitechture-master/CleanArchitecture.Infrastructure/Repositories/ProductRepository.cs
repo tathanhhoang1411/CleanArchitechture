@@ -36,23 +36,40 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
             return _mapper.Map<List<ProductDto>>(products);
-
-
-
-            //return await _userContext.Products
-            // .Select(p => new Produ
-            // {
-
-            //     ProductId = p.ProductId, // Có thể bỏ qua nếu không cần
-            //     ProductName = p.ProductName,
-            //     ProductImage1 = p.ProductImage1,
-            //     ProductImage2 = p.ProductImage2,
-            //     ProductImage3 = p.ProductImage3,
-            //     ProductImage4 = p.ProductImage4,
-            //     ProductImage5 = p.ProductImage5,
-            //     Price = p.Price
-            // })
-            // .ToListAsync();
         }
-    }
+        public async Task<ProductDto> GetAProducts(int reviewId)
+        {
+            var product = await _userContext.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.ReviewID == reviewId);
+
+            return _mapper.Map<ProductDto>(product);
+        }
+        public async Task<ProductDto> ProductUpdate(Products product)
+        {
+            // Tìm sản phẩm trong cơ sở dữ liệu
+            var existingProduct = await _userContext.Products.FindAsync(product.ProductId);
+            if (existingProduct == null)
+            {
+                throw new Exception("Product not found.");
+            }
+            // Cập nhật các thuộc tính của sản phẩm
+            existingProduct.ProductName = product.ProductName;
+    existingProduct.ProductImage1 = product.ProductImage1;
+    existingProduct.ProductImage2 = product.ProductImage2;
+    existingProduct.ProductImage3 = product.ProductImage3;
+    existingProduct.ProductImage4 = product.ProductImage4;
+    existingProduct.ProductImage5 = product.ProductImage5;
+    existingProduct.Price = product.Price;
+    existingProduct.OwnerID = product.OwnerID;
+    existingProduct.ReviewID = product.ReviewID;
+    existingProduct.ProductId = product.ProductId;
+
+    // Lưu thay đổi vào cơ sở dữ liệu
+    await _userContext.SaveChangesAsync();
+
+    // Chuyển đổi và trả về DTO
+    return _mapper.Map<ProductDto>(existingProduct);
+        }
+}
 }

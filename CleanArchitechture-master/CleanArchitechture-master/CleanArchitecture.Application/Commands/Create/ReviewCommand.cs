@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.Application.Commands
+namespace CleanArchitecture.Application.Commands.Create
 {
 
     public class ReviewCommand : IRequest<Reviews>
@@ -40,4 +40,4 @@ namespace CleanArchitecture.Application.Commands
         }
     }
 }
-    
+
