@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CleanArchitecture.Application.IRepository;
+using CleanArchitecture.Application.Query.Utilities;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
@@ -19,14 +20,15 @@ namespace CleanArchitecture.Application.Repository
             _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
         }
 
-        public Task<List<ReviewDto>> GetList_Reviews(int skip, int take, string data)
+        public Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID)
         {
-            return _reviewRepository.GetListReviews(skip,take, data);
+            return _reviewRepository.GetListReviews(skip,take, str, userID);
         }
 
         public Task<int> Review_Create(Reviews review)
         {
             return _reviewRepository.CreateReview(review);
         }
+
     }
 }

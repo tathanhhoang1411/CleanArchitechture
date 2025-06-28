@@ -23,7 +23,7 @@ namespace CleanArchitecture.Application.Commands.Create
             private readonly IProductServices _productServices;
             public CreateProductCommandHandler(IProductServices productServices)
             {
-                _productServices = productServices;
+                _productServices = productServices??throw new ArgumentNullException(nameof(productServices));
             }
             public async Task<Products> Handle(ProductCommand command, CancellationToken cancellationToken)
             {

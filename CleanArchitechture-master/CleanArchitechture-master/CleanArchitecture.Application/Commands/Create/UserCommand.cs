@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CleanArchitecture.Application.IRepository;
+using CleanArchitecture.Application.Repository;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
@@ -25,8 +26,8 @@ namespace CleanArchitecture.Application.Commands.Create
             private readonly IMapper _mapper;
             public CreateUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
             {
-                _userServices = userServices;
-                _mapper = mapper;
+                _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
+                _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
             }
             public async Task<Users> Handle(UserCommand command, CancellationToken cancellationToken)

@@ -11,6 +11,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public interface IReviewRepository
     {
         Task<int> CreateReview(Reviews createReview);
-        Task<List<ReviewDto>> GetListReviews(int skip, int take,string data);
+        Task<List<object>> GetListReviews(int skip, int take, string str , long userID);
     }
 }
