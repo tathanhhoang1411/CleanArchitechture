@@ -391,9 +391,4 @@ obj/
 # Bỏ qua file backup
 *.backup.json
 
-# Bỏ qua các thư mục log
-Logs/
-# Bỏ qua các thư mục log
-Logs/
-Logging/
 Uploads/
