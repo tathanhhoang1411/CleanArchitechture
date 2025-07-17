@@ -1,10 +1,22 @@
-﻿using CleanArchitecture.Application.Commands;
+﻿using AutoMapper;
+using BE_2911_CleanArchitechture.Logging;
+using CleanArchitecture.Application.Commands.Create;
+using CleanArchitecture.Application.Commands.Update;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
+using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Services;
+using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Entites.Entites;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Collections.Generic;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BE_2911_CleanArchitechture.Controllers
 {
@@ -12,115 +24,89 @@ namespace BE_2911_CleanArchitechture.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        //private IProductServices _productServices;
         //public ProductController(IProductServices productServices)
         //{
         //    _productServices = productServices;
         //}
         private readonly IWebHostEnvironment _environment;
 
+        private readonly IProductServices _productServices;
+        private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
-        private readonly ILogger<ProductController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ICustomLogger _logger;
+        private readonly IMapper _mapper;
 
-        public ProductController(IMediator mediator, IWebHostEnvironment environment, ILogger<ProductController> logger, IConfiguration configuration)
+        public ProductController(IMapper mapper,IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
+            this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
+            this._mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-
-        [HttpGet("GetListProduct")]
-        public async Task<IActionResult> GetListProduct()
+        //Tạo sản phẩm:
+        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
+        //Tạo sản phẩm
+        [HttpPost("CreateAProductReview")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+                [SwaggerOperation(Summary = "Tạo các thông tin review sản phẩm+ảnh",
+                      Description = "")]
+        public async Task<IActionResult> CreateAProductReview([FromForm]  ProductCommand command)
         {
+            long UserID = 0;
             try
             {
-                this._logger.LogInformation("-------------Log   ||GetListProduct");
-                var list = await _mediator.Send(new GetAllProductsQuery());
-                return Ok(list);
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                //Kiểm tra userID có tồn tại không 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                #region
 
-                // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
-        }
+                //B1: Tạo sản phẩm 
 
-        [HttpPost("CreateProduct")]
-        public async Task<IActionResult> Create(CreateProductCommand command)
-        {
-            try
-            {
-            this._logger.LogInformation("-------------Log   ||CreateProduct");
-            return Ok(await _mediator.Send(command));
-
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
-
-                // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
-
-        }
-        //
-        //[HttpGet("GetAll")]
-        //public async Task<List<ProductEntity>> GetAll()
-        //{
-        //    var productlist = await this._container.Getall();
-        //    if (productlist != null && productlist.Count > 0)
-        //    {
-        //        productlist.ForEach(item =>
-        //        {
-        //            item.productImage = GetImagebyProduct(item.Code);
-        //        });
-        //    }
-        //    else
-        //    {
-        //        return new List<ProductEntity>();
-        //    }
-        //    return productlist;
-
-        //}
-        //[HttpGet("GetByCode")]
-        //public async Task<ProductEntity> GetByCode(string Code)
-        //{
-        //    return await this._container.Getbycode(Code);
-
-        //}
-
-        //[HttpGet("Getbycategory")]
-        //public async Task<List<ProductEntity>> Getbycategory(int Code)
-        //{
-        //    return await this._container.Getbycategory(Code);
-
-        //}
-
-        [HttpPost("UploadImage")]//method upload ảnh 
-        public async Task<ActionResult> UploadImage()
-        {
-            this._logger.LogInformation("----------------------------Log   ||UploadImage");
-            bool Results = false;
-            try
-            {
+                this._logger.LogInformation(UserID.ToString(), "CreateProduct");
+                command.OwnerID = UserID;
+                Products aProduct = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aProduct == null)
+                {
+                    var errors = new List<string> { "Create product error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                //ở trên là tạo bài nhưng chưa có ảnh sản phẩm
+                //B2:Update tạo bài =>lưu ảnh (chỉ cho người dùng có thể upload tối đa 5 ảnh)
+                int temp = 1;
+                List<string> listRootImage = new List<string>();
                 var _uploadedfiles = Request.Form.Files;
                 foreach (IFormFile source in _uploadedfiles)
                 {
-                    string Filename = source.FileName;
-                    string Filepath = GetFilePath(Filename);
+                    //string Filename = source.FileName;
+                    string Filename = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds().ToString();
+                    string Filepath = GetFilePath(UserID.ToString(), "Post", command.ReviewID);
 
                     if (!System.IO.Directory.Exists(Filepath))
                     {
                         System.IO.Directory.CreateDirectory(Filepath);
                     }
 
-                    string imagepath = Filepath + "\\image.png";
+                    string imagepath = Filepath + "\\" + temp + ".jpg";
 
                     if (System.IO.File.Exists(imagepath))
                     {
@@ -129,92 +115,70 @@ namespace BE_2911_CleanArchitechture.Controllers
                     using (FileStream stream = System.IO.File.Create(imagepath))
                     {
                         await source.CopyToAsync(stream);
-                        Results = true;
                     }
-
-
+                    listRootImage.Add(imagepath);
+                    //Chỉ cho người dùng upload 5 ảnh
+                    if (temp == 5)
+                    {
+                        break;
+                    }
+                    temp++;
                 }
-                this._logger.LogInformation("----------------------------Log   ||UploadImage||True");
-                return Ok(Results);
+                #endregion
+                //B3: Cập nhật đường dẫn ảnh lên server
+                this._logger.LogInformation(UserID.ToString(), "UpDateImgProduct");
+                aProduct.ProductImage1  = listRootImage[0];
+                aProduct.ProductImage2 = listRootImage[1];
+                aProduct.ProductImage3  = listRootImage[2];
+                aProduct.ProductImage4  = listRootImage[3];
+                aProduct.ProductImage5  = listRootImage[4];
+                //Update 
+                ProductcommandUpdate productcommandUpdate = new ProductcommandUpdate();
+                productcommandUpdate.ProductId = aProduct.ProductId;
+                productcommandUpdate.ReviewID= aProduct.ReviewID;
+                productcommandUpdate.ProductName= aProduct.ProductName;
+                productcommandUpdate.OwnerID= aProduct.OwnerID;
+                productcommandUpdate.Price= aProduct.Price;
+                productcommandUpdate.ProductImage1=aProduct.ProductImage1;
+                productcommandUpdate.ProductImage2 = aProduct.ProductImage2;
+                productcommandUpdate.ProductImage3=aProduct.ProductImage3;
+                productcommandUpdate.ProductImage4=aProduct.ProductImage4;
+                productcommandUpdate.ProductImage5=aProduct.ProductImage5;
+
+                Products aProductUpdate = await _mediator.Send(productcommandUpdate);
+                // Kiểm tra xem việc update có thành công không
+                if (aProductUpdate == null)
+                {
+                    var errors = new List<string> { "Update product error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+
+                ProductDto aProductdto = _mapper.Map<ProductDto>(aProductUpdate);
+
+                return Ok(new ApiResponse<ProductDto>(aProductdto));
+
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                this._logger.LogError(ex, "An error occurred while getting the product list.");
+                this._logger.LogError(UserID.ToString(), "Internal server error", ex);
 
                 // Trả về mã lỗi 500 với thông điệp chi tiết
-                return StatusCode(500, "Internal server error. Please try again later.");
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
-        }
 
-        //[HttpGet("get-image/{filename}")]//mothed nhận ảnh
-        //public IActionResult GetImage(string filename)
-        //{
-        //    // Xác định đường dẫn đầy đủ của tệp ảnh
-        //    string Filepath = GetFilePath(filename);
-        //    string imagePath = Path.Combine(Filepath + "\\image.png");
-
-        //    // Kiểm tra xem tệp ảnh có tồn tại không
-        //    if (!System.IO.File.Exists(imagePath))
-        //        return NotFound($"Image '{filename}' not found.");
-
-        //    // Đọc dữ liệu ảnh từ tệp
-        //    byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
-
-        //    // Trả về ảnh như phản hồi, nếu có yêu cầu resize ảnh, tệp ảnh nhỏ, cần thao tác header,xử lý ảnh
-        //    //return new FileContentResult(imageBytes, $"image/{Path.GetExtension(filename).TrimStart('.')}");
-        //    return new PhysicalFileResult(imagePath, $"image/{Path.GetExtension(filename).TrimStart('.')}");
-        //}
-        //[HttpGet("RemoveImage/{code}")]
-        //public ResponseType RemoveImage(string code)
-        //{
-        //    string Filepath = GetFilePath(code);
-        //    string Imagepath = Filepath + "\\image.png";
-        //    try
-        //    {
-        //        if (System.IO.File.Exists(Imagepath))
-        //        {
-        //            System.IO.File.Delete(Imagepath);
-        //        }
-        //        return new ResponseType { Result = "pass", KyValue = code };
-        //    }
-        //    catch (Exception ext)
-        //    {
-        //        throw ext;
-        //    }
-        //}
-
-        //[HttpPost("SaveProduct")]
-        //public async Task<ResponseType> SaveProduct([FromBody] ProductEntity _product)
-        //{
-        //    return await this._container.SaveProduct(_product);
-        //}
-
-
-        [NonAction]
-        private string GetFilePath(string ProductCode)
-        {
-            return this._environment.ContentRootPath + "\\Uploads\\Product\\" + ProductCode;
         }
         [NonAction]
-        private string GetImagebyProduct(string productcode)
+        private string GetFilePath(string userID,string flag,int reviewId)
         {
-            string ImageUrl = string.Empty;
-            string HostUrl = "https://localhost:7118/";
-            string Filepath = GetFilePath(productcode);
-            string Imagepath = Filepath + "\\image.png";
-            if (!System.IO.File.Exists(Imagepath))
+            if (flag!="Post")
             {
-                ImageUrl = HostUrl + "/uploads/common/noimage.png";
-            }
-            else
-            {
-                ImageUrl = HostUrl + "/uploads/Product/" + productcode + "/image.png";
-            }
-            return ImageUrl;
+            return this._environment.ContentRootPath + "\\Uploads\\UserID_" + userID+"\\Comment_"+ reviewId;
 
+            }
+            return this._environment.ContentRootPath + "\\Uploads\\UserID_" + userID+"\\Review_"+ reviewId;
         }
-
-        //
     }
 }

@@ -13,6 +13,10 @@ using System.Text;
 //using CleanArchitecture.Application.IServices;
 //using CleanArchitecture.Application.Services;
 using AutoMapper;
+using CleanArchitecture.Application.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
+using BE_2911_CleanArchitechture.Logging;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,28 +24,63 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TATHANHHOANG API", Version = "v1", Description= "tathanhhoang.work@gmail.com" });
+    c.EnableAnnotations(); // Kích hoạt Annotations
+});
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(
                             builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
+builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
+builder.Services.AddTransient<IReviewServices, ReviewServices>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserServices, UserService>();
+builder.Services.AddTransient<IimageServices, ImageServices>();
+builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger
 builder.Services.AddApplicationMediaR();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorization(options =>
+{
+    //Role admin
+    options.AddPolicy("RequireAdminRole", policy => 
+    policy.RequireRole("Admin"));
+    //Role User
+    options.AddPolicy("RequireUserRole", policy => 
+    policy.RequireRole("User"));
+    //Role admin, user
+    options.AddPolicy("RequireAdminOrUserRole", policy =>
+    policy.RequireRole("Admin", "User"));
+});
+
+// Thêm dịch vụ xác thực JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
+        options.IncludeErrorDetails = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
+
             ValidateIssuerSigningKey = true,
+            ValidateIssuer = true, // Có thể cấu hình theo nhu cầu
+            ValidateAudience = true, // Có thể cấu hình theo nhu cầu
+            ClockSkew = TimeSpan.Zero, // Không cho phép thời gian trễ
+            ValidateLifetime = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
+
 builder.Services.AddMvc();
 var automapper = new MapperConfiguration(item => item.AddProfile(new MappingProfile()));
 IMapper mapper = automapper.CreateMapper();
@@ -64,34 +103,44 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     .AllowCredentials()
     .Build()
 ));
+// Cấu hình Serilog
 var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
 if (!Directory.Exists(logDirectory))
 {
     Directory.CreateDirectory(logDirectory);
 }
 
-var _logger = new LoggerConfiguration()
+
+Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.File(Path.Combine(logDirectory, "ApiLog-.log"), rollingInterval: RollingInterval.Day)
+    .WriteTo.Console()
     .CreateLogger();
 
-builder.Logging.AddSerilog(_logger);
+builder.Logging.ClearProviders(); // Xóa các logger mặc định
+builder.Logging.AddSerilog(); // Thêm Serilog
+
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaThanhHoang API V1");
+    });
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
-
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
 app.Run();

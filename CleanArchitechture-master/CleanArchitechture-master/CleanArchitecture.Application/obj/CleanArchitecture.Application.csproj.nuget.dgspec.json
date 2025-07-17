@@ -61,9 +61,17 @@
               "target": "Package",
               "version": "[6.0.2, )"
             },
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.2.0, )"
+            },
+            "Portable.BouncyCastle": {
+              "target": "Package",
+              "version": "[1.9.0, )"
             }
           },
           "imports": [
@@ -204,6 +212,10 @@
             "AutoMapper": {
               "target": "Package",
               "version": "[6.0.2, )"
+            },
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",

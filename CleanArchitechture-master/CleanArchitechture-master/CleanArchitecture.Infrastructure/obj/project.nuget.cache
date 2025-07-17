@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "lNFsyuS4+bg=",
+  "dgSpecHash": "U2xOafeO+mA=",
   "success": true,
   "projectFilePath": "D:\\WORK\\CleanArchitechture\\CleanArchitechture-master\\CleanArchitechture-master\\CleanArchitecture.Infrastructure\\CleanArchitecture.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cahoi\\.nuget\\packages\\automapper\\6.0.2\\automapper.6.0.2.nupkg.sha512",
+    "C:\\Users\\cahoi\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\cahoi\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\cahoi\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
     "C:\\Users\\cahoi\\.nuget\\packages\\microsoft.data.sqlclient\\2.1.4\\microsoft.data.sqlclient.2.1.4.nupkg.sha512",

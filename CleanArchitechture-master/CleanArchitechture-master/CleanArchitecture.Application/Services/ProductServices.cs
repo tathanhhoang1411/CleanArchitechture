@@ -2,6 +2,7 @@
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Infrastructure.DBContext;
 using CleanArchitecture.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
@@ -14,20 +15,30 @@ namespace CleanArchitecture.Application.Repository
     public class ProductServices : IProductServices
     {
         private readonly IProductRepository _productRepository;
-        private readonly IMapper _mapper;
-        public ProductServices(IProductRepository productRepository)
+        public ProductServices(IProductRepository productRepository, IUnitOfWork unitOfWork)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         }
 
-        public Task<List<ProductDto>> Products_GetList()
+        public Task<List<ProductDto>> GetList_Products(int skip, int take, string data)
         {
-            return _productRepository.GetListProduct();
+            return _productRepository.GetListProducts(skip,take, data);
         }
 
-        public Task<int> Product_InsertUpdate(Products product)
+        public async Task Product_Create(Products product)
         {
-            return _productRepository.CreateProduct(product);
+            await _productRepository.CreateProduct(product);
+            return ;
+
+        }
+        public Task<ProductDto> GetA_Products(int reviewId)
+        {
+            return _productRepository.GetAProducts(reviewId);
+        }
+        public Task<ProductDto> Product_Update(Products product)
+        {
+             var result=_productRepository.ProductUpdate(product);
+            return result;
         }
     }
 }
