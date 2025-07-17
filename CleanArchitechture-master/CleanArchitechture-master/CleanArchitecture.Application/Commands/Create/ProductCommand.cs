@@ -27,20 +27,27 @@ namespace CleanArchitecture.Application.Commands.Create
             }
             public async Task<Products> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
-                DateTime dateTime = DateTime.Now;
-                long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
-                var product = new Products
+                try
                 {
-                    ProductName = command.ProductName,
-                    ProductId = timestamp.ToString(),
-                    Price = command.Price,
-                    CreatedAt = dateTime,
-                    OwnerID = command.OwnerID,
-                    ReviewID = command.ReviewID
-                };
+                    DateTime dateTime = DateTime.Now;
+                    long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
+                    var product = new Products
+                    {
+                        ProductName = command.ProductName,
+                        ProductId = timestamp.ToString(),
+                        Price = command.Price,
+                        CreatedAt = dateTime,
+                        OwnerID = command.OwnerID,
+                        ReviewID = command.ReviewID
+                    };
 
-                await _productServices.Product_Create(product);
-                return product;
+                    await _productServices.Product_Create(product);
+                    return product;
+                }
+                catch  
+                {
+                    return null;
+                }
             }
 
         }

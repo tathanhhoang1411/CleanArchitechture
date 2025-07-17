@@ -27,16 +27,23 @@ namespace CleanArchitecture.Application.Commands.Create
             }
             public async Task<Reviews> Handle(ReviewCommand command, CancellationToken cancellationToken)
             {
-                DateTime dateTime = DateTime.Now;
-                long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
-                var review = new Reviews();
-                review.OwnerID = command.OwnerID;
-                review.Rating = command.Rating;
-                review.ReviewText = command.ReviewText;
-                review.CreatedAt = dateTime;
-                await _reviewServices.Review_Create(review);
+                try
+                {
+                    DateTime dateTime = DateTime.Now;
+                    long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
+                    var review = new Reviews();
+                    review.OwnerID = command.OwnerID;
+                    review.Rating = command.Rating;
+                    review.ReviewText = command.ReviewText;
+                    review.CreatedAt = dateTime;
+                    await _reviewServices.Review_Create(review);
 
-                return review;
+                    return review;
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
     }

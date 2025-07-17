@@ -33,13 +33,8 @@ namespace CleanArchitecture.Application.Commands.Update
             }
             public async Task<Products> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
             {
-                //kiểm tra sản phẩm có tồn tại hay chưa
-                var productDto = await _productServices.GetA_Products(command.ReviewID);
-                if (productDto == null)
-                {
-                    return null;
-                }
-                else// có thì mới update được
+
+                try
                 {
                     var product = new Products
                     {
@@ -52,11 +47,15 @@ namespace CleanArchitecture.Application.Commands.Update
                         ProductImage3 = command.ProductImage3,
                         ProductImage4 = command.ProductImage4,
                         ProductImage5 = command.ProductImage5,
-                        ProductId= command.ProductId
+                        ProductId = command.ProductId
                     };
 
                     await _productServices.Product_Update(product);
                     return product;
+                }
+                catch
+                {
+                    return new Products();
                 }
             }
 

@@ -142,6 +142,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
                 return _mapper.Map<List<UserDto>>(users);
+        }    
+        public async Task<Boolean> DeleteUser(Users user)
+        {
+                var users  = await _userContext.Users
+    .Where(u => u.Username == user.Username && u.Email == user.Email)
+    .FirstOrDefaultAsync();
+            _userContext.Users.Remove(users); // Xóa người dùng
+            await _userContext.SaveChangesAsync(); // Lưu thay đổi vào database
+
+            return true; // Trả về true khi xóa thành công
+
         }
     }
 }

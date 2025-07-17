@@ -36,6 +36,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
         private readonly IMapper _mapper;
+
         public ProductController(IMapper mapper,IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -51,6 +52,8 @@ namespace BE_2911_CleanArchitechture.Controllers
         //Tạo sản phẩm
         [HttpPost("CreateAProductReview")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
+                [SwaggerOperation(Summary = "Tạo các thông tin review sản phẩm+ảnh",
+                      Description = "")]
         public async Task<IActionResult> CreateAProductReview([FromForm]  ProductCommand command)
         {
             long UserID = 0;
@@ -80,6 +83,12 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogInformation(UserID.ToString(), "CreateProduct");
                 command.OwnerID = UserID;
                 Products aProduct = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aProduct == null)
+                {
+                    var errors = new List<string> { "Create product error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 //ở trên là tạo bài nhưng chưa có ảnh sản phẩm
                 //B2:Update tạo bài =>lưu ảnh (chỉ cho người dùng có thể upload tối đa 5 ảnh)
@@ -137,9 +146,16 @@ namespace BE_2911_CleanArchitechture.Controllers
                 productcommandUpdate.ProductImage5=aProduct.ProductImage5;
 
                 Products aProductUpdate = await _mediator.Send(productcommandUpdate);
+                // Kiểm tra xem việc update có thành công không
+                if (aProductUpdate == null)
+                {
+                    var errors = new List<string> { "Update product error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
 
                 ProductDto aProductdto = _mapper.Map<ProductDto>(aProductUpdate);
+
                 return Ok(new ApiResponse<ProductDto>(aProductdto));
 
             }

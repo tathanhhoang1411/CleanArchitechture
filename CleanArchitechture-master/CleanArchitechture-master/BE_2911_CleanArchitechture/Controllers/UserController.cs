@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Commands.Create;
+using CleanArchitecture.Application.Commands.Delete;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
@@ -69,6 +70,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        //Lấy danh sách tài khoản
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("GetAllUser")]
         public async Task<IActionResult> GetAllUser([FromBody] ApiRequest<string> request)
@@ -88,10 +90,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     var errors = new List<string> { "UserId not exist" };
                     return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
-                else
-                {
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "GetAllUser");
                 var list = await _mediator.Send(new GetAllUserQuery(request.Skip, request.Take,request.RequestData));
@@ -107,7 +106,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
-
+        //Đăng ký tài khoản
         [HttpPost("RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody] UserCommand UserCommand)
         {
@@ -139,6 +138,54 @@ namespace BE_2911_CleanArchitecture.Controllers
             }
             catch (Exception ex)
             {
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        //Xóa tài khoản user
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("DeleteUser")]
+        public async Task<IActionResult> DeleteAUser([FromBody] DelUserCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                _logger.LogInformation(UserID.ToString(), "DeleteAUser");
+                Users user = await _mediator.Send(command);
+                // Kiểm tra xem việc xóa có thành công không
+                if (user==null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "User not found", null);
+                    var errors = new List<string> { "User not found" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<Users>>(new List<Users> { user }));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                _logger.LogError(UserID.ToString(), "GetAllUser", ex);
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }

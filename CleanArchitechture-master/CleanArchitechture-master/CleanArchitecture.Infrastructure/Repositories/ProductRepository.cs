@@ -19,11 +19,11 @@ namespace CleanArchitecture.Infrastructure.Repositories
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-
-        public async Task<int> CreateProduct(Products createProduct)
+        public async Task CreateProduct(Products createProduct)
         {
-            _userContext.Add(createProduct);
-            return await  _userContext.SaveChangesAsync();
+             await _userContext.AddAsync(createProduct);
+            await _userContext.SaveChangesAsync();
+            return ;
         }
 
         public async Task<List<ProductDto>> GetListProducts(int skip, int take, string data)
@@ -47,29 +47,27 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<ProductDto> ProductUpdate(Products product)
         {
+            var existingProduct = new Products();
             // Tìm sản phẩm trong cơ sở dữ liệu
-            var existingProduct = await _userContext.Products.FindAsync(product.ProductId);
-            if (existingProduct == null)
-            {
-                throw new Exception("Product not found.");
-            }
-            // Cập nhật các thuộc tính của sản phẩm
-            existingProduct.ProductName = product.ProductName;
-    existingProduct.ProductImage1 = product.ProductImage1;
-    existingProduct.ProductImage2 = product.ProductImage2;
-    existingProduct.ProductImage3 = product.ProductImage3;
-    existingProduct.ProductImage4 = product.ProductImage4;
-    existingProduct.ProductImage5 = product.ProductImage5;
-    existingProduct.Price = product.Price;
-    existingProduct.OwnerID = product.OwnerID;
-    existingProduct.ReviewID = product.ReviewID;
-    existingProduct.ProductId = product.ProductId;
+             existingProduct = await _userContext.Products.FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
+  if (existingProduct != null)
+    {
+        existingProduct.ProductName = product.ProductName;
+        existingProduct.ProductImage1 = product.ProductImage1;
+        existingProduct.ProductImage2 = product.ProductImage2;
+        existingProduct.ProductImage3 = product.ProductImage3;
+        existingProduct.ProductImage4 = product.ProductImage4;
+        existingProduct.ProductImage5 = product.ProductImage5;
+        existingProduct.Price = product.Price;
+        existingProduct.OwnerID = product.OwnerID;
+        existingProduct.ReviewID = product.ReviewID;
 
-    // Lưu thay đổi vào cơ sở dữ liệu
-    await _userContext.SaveChangesAsync();
-
-    // Chuyển đổi và trả về DTO
-    return _mapper.Map<ProductDto>(existingProduct);
+        // Cập nhật đối tượng trong ngữ cảnh
+        _userContext.Products.Update(existingProduct);
+        await _userContext.SaveChangesAsync();
+    }
+            // Chuyển đổi và trả về DTO
+            return _mapper.Map<ProductDto>(existingProduct);
         }
 }
 }

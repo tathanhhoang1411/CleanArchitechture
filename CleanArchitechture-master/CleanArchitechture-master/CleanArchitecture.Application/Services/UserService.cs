@@ -145,6 +145,10 @@ namespace CleanArchitecture.Application.Services
         public Task<Users> CreateUser(Users user)
         {
             return _userRepository.CreateUser(user);
+        }      
+        public Task<Boolean> DelUser(Users user)
+        {
+            return _userRepository.DeleteUser(user);
         }
 
     }

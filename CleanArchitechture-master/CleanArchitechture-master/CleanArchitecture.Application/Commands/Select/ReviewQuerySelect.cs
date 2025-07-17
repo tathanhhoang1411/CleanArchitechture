@@ -36,9 +36,16 @@ namespace CleanArchitecture.Application.Commands.Select
             }
             public async Task<List<object>> Handle(ReviewQuerySelect query, CancellationToken cancellationToken)
             {
-                var ReviewDtoList = await _reviewServices.GetList_Reviews(query.Skip, query.Take, query.Data.str, query.Data.userID);
+                try
+                {
+                    var ReviewDtoList = await _reviewServices.GetList_Reviews(query.Skip, query.Take, query.Data.str, query.Data.userID);
 
-                return ReviewDtoList ?? new List<object>(); // Trả về danh sách rỗng nếu không có bài review
+                    return ReviewDtoList ?? new List<object>(); // Trả về danh sách rỗng nếu không có bài review
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
     }
