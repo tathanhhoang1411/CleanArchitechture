@@ -361,3 +361,17 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Bỏ qua file .suo
+*.suo
+
+# Bỏ qua file .dll
+*.dll
+
+# Bỏ qua file .log
+*.log
+
+# Bỏ qua thư mục Logs
+Logs/
+
+# Bỏ qua các file thực thi
+*.exe
