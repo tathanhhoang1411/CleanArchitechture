@@ -375,3 +375,25 @@ Logs/
 
 # Bỏ qua các file thực thi
 *.exe
+# Bỏ qua các thư mục được tạo ra bởi IDE
+.vs/
+bin/
+obj/
+
+# Bỏ qua file cấu hình của Visual Studio
+*.suo
+*.user
+
+# Bỏ qua file nhị phân
+*.dll
+*.exe
+
+# Bỏ qua file backup
+*.backup.json
+
+# Bỏ qua các thư mục log
+Logs/
+# Bỏ qua các thư mục log
+Logs/
+Logging/
+Uploads/
