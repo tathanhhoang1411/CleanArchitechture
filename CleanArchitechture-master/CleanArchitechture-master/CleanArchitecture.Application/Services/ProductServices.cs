@@ -15,30 +15,44 @@ namespace CleanArchitecture.Application.Repository
     public class ProductServices : IProductServices
     {
         private readonly IProductRepository _productRepository;
-        public ProductServices(IProductRepository productRepository, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        public ProductServices(IProductRepository productRepository, IUnitOfWork unitOfWork,IMapper mapper)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public Task<List<ProductDto>> GetList_Products(int skip, int take, string data)
+        public async Task<List<ProductDto>> GetList_Products(int skip, int take, string data)
         {
-            return _productRepository.GetListProducts(skip,take, data);
+            List<Products> listProduct   =await _productRepository.GetListProducts(skip, take, data);
+            return  _mapper.Map<List<ProductDto>>(listProduct);
         }
 
-        public async Task Product_Create(Products product)
+        public async Task<ProductDto> Product_Create(Products product)
         {
-            await _productRepository.CreateProduct(product);
-            return ;
+            try
+            {
+                await _unitOfWork.Products.CreateProduct(product);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<ProductDto>(product);
 
+            }
+            catch
+            {
+                return new ProductDto();
+            }
         }
-        public Task<ProductDto> GetA_Products(int reviewId)
+        public async Task<ProductDto> GetA_Products(int reviewId)
         {
-            return _productRepository.GetAProducts(reviewId);
+            Products prod=await _productRepository.GetAProducts(reviewId);
+            return _mapper.Map<ProductDto>(prod);
         }
-        public Task<ProductDto> Product_Update(Products product)
+        public async Task<ProductDto> Product_Update(Products product)
         {
-             var result=_productRepository.ProductUpdate(product);
-            return result;
+            Products prod = await _productRepository.ProductUpdate(product);
+            return _mapper.Map<ProductDto>(prod);
         }
     }
 }

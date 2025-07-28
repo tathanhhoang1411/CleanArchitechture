@@ -13,20 +13,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public class ProductRepository : IProductRepository
     {
         private ApplicationContext _userContext;
-        private readonly IMapper _mapper;
-        public ProductRepository(ApplicationContext userContext, IMapper mapper)
+        public ProductRepository(ApplicationContext userContext)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         public async Task CreateProduct(Products createProduct)
         {
              await _userContext.AddAsync(createProduct);
-            await _userContext.SaveChangesAsync();
             return ;
         }
 
-        public async Task<List<ProductDto>> GetListProducts(int skip, int take, string data)
+        public async Task<List<Products>> GetListProducts(int skip, int take, string data)
         {
             var products = await _userContext.Products
                 .Where(p => p.ProductName.Contains(data))
@@ -35,17 +32,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
-            return _mapper.Map<List<ProductDto>>(products);
+            return products;
         }
-        public async Task<ProductDto> GetAProducts(int reviewId)
+        public async Task<Products> GetAProducts(int reviewId)
         {
             var product = await _userContext.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.ReviewID == reviewId);
 
-            return _mapper.Map<ProductDto>(product);
+            return product;
         }
-        public async Task<ProductDto> ProductUpdate(Products product)
+        public async Task<Products> ProductUpdate(Products product)
         {
             var existingProduct = new Products();
             // Tìm sản phẩm trong cơ sở dữ liệu
@@ -64,10 +61,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         // Cập nhật đối tượng trong ngữ cảnh
         _userContext.Products.Update(existingProduct);
-        await _userContext.SaveChangesAsync();
     }
             // Chuyển đổi và trả về DTO
-            return _mapper.Map<ProductDto>(existingProduct);
+            return existingProduct;
         }
 }
 }
