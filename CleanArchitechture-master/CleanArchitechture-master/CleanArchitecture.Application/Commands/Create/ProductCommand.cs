@@ -33,6 +33,7 @@ namespace CleanArchitecture.Application.Commands.Create
             }
             public async Task<ProductDto> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
+                    ProductDto prodDto=null;
                 try
                 {
                     DateTime dateTime = DateTime.Now;
@@ -52,17 +53,12 @@ namespace CleanArchitecture.Application.Commands.Create
                         ProductImage5 = command.ProductImage5,
                     };
 
-                    ProductDto prodDto;
                     prodDto = await _productServices.Product_Create(product);
-                    if (prodDto == null)
-                    {
-                        return new ProductDto();
-                    }
                     return prodDto;
                 }
                 catch  
                 {
-                    return new ProductDto();
+                    return prodDto;
                 }
             }
 

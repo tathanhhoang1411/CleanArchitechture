@@ -17,10 +17,20 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
-        public async Task CreateProduct(Products createProduct)
+        public async Task<Products> CreateProduct(Products createProduct)
         {
-             await _userContext.AddAsync(createProduct);
-            return ;
+            Products prod=null;
+            try
+            {
+                await _userContext.AddAsync(createProduct);
+                prod = createProduct;
+                return prod;
+            }
+            catch
+            {
+            return prod;
+            }
+
         }
 
         public async Task<List<Products>> GetListProducts(int skip, int take, string data)

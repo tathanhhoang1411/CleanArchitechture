@@ -21,22 +21,14 @@ namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
     {
-        //public string HashPassword(string password)
-        //{
-        //    return BCrypt.Net.BCrypt.HashPassword(password);
-        //}
-
-        //public void RegisterUser(string password)
-        //{
-        //    string hashedPassword = HashPassword(password);
-        //    // Lưu hashedPassword vào cơ sở dữ liệua
-        //}
         private  IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
-        public UserService(IConfiguration configuration, IUserRepository userRepository)
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _userRepository = userRepository;
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public string MakeToken(Users user)
@@ -64,10 +56,20 @@ namespace CleanArchitecture.Application.Services
             var encodeToken = new JwtSecurityTokenHandler().WriteToken(token);
             return encodeToken;
         }
-        public Task<Boolean> SaveToken(Users user, string accessToken)
+        public async Task<Boolean> SaveToken(Users user, string accessToken)
         {
-
-            return _userRepository.SaveToken(user, accessToken);
+            Boolean result= false;
+            try
+            {
+                result=await _unitOfWork.Users.SaveToken(user, accessToken);
+                if (!result) { }
+                await _unitOfWork.CompleteAsync();
+                return result;
+            }
+            catch
+            {
+                return result;
+            }
         }     
         public async Task<long> GetUserIDInTokenFromRequest(string tokenJWT)
         {
@@ -86,7 +88,7 @@ namespace CleanArchitecture.Application.Services
                 users.Username = userName;
                 users.UserId = long.Parse(userId);
                 users.Email = email;
-                Task<bool> checkUser=_userRepository.CheckExistUser(users);
+                Task<bool> checkUser= _unitOfWork.Users.CheckExistUser(users);
                 // Đợi để lấy giá trị bool từ Task
                 bool resultFromTask = await checkUser;
                 if (!resultFromTask)
@@ -136,19 +138,41 @@ namespace CleanArchitecture.Application.Services
         }
         public Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
         {
-            return _userRepository.GetListUsers(skip, take,data);
+            return _unitOfWork.Users.GetListUsers(skip, take,data);
         }
         public Task<Boolean> CheckExistUser(Users user)
         {
-            return _userRepository.CheckExistUser(user);
+            return _unitOfWork.Users.CheckExistUser(user);
         }
-        public Task<Users> CreateUser(Users user)
+        public async Task<UserDto> CreateUser(Users user)
         {
-            return _userRepository.CreateUser(user);
+
+            UserDto userDto = null;
+            try
+            {
+                 await _unitOfWork.Users.CreateUser(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UserDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
         }      
-        public Task<Boolean> DelUser(Users user)
+        public async Task<UserDto> DelUser(Users user)
         {
-            return _userRepository.DeleteUser(user);
+            UserDto userDto = null;
+            try
+            {
+                await _unitOfWork.Users.DeleteUser(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UserDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+            
         }
 
     }

@@ -15,11 +15,11 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Delete
 {
 
-    public class DelUserCommand : IRequest<Users>
+    public class DelUserCommand : IRequest<UserDto>
     {
         public string? Username { get; set; }
         public string? Email { get; set; }
-        public class DelUserCommandHandler : IRequestHandler<DelUserCommand, Users>
+        public class DelUserCommandHandler : IRequestHandler<DelUserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
             private readonly IMapper _mapper;
@@ -29,8 +29,9 @@ namespace CleanArchitecture.Application.Commands.Delete
                 _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
             }
-            public async Task<Users> Handle(DelUserCommand command, CancellationToken cancellationToken)
+            public async Task<UserDto> Handle(DelUserCommand command, CancellationToken cancellationToken)
             {
+                UserDto resultDelUser = null;
                 try
                 {
                     Users user = new Users();
@@ -41,12 +42,12 @@ namespace CleanArchitecture.Application.Commands.Delete
                     {
                         return null;
                     }
-                    Boolean resultDelUser = await _userServices.DelUser(user);
-                    return user;
+                    resultDelUser = await _userServices.DelUser(user);
+                    return resultDelUser;
                 }
                 catch
                 {
-                    return null ;
+                    return resultDelUser;
                 }
             }
 

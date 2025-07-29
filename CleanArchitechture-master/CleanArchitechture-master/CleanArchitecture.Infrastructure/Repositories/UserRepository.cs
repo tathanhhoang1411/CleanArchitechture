@@ -16,15 +16,15 @@ namespace CleanArchitecture.Infrastructure.Repositories
     {
         private readonly ApplicationContext _userContext;
         private readonly IMapper _mapper;
-        public UserRepository(ApplicationContext userContext, IMapper mapper)
+        public UserRepository(ApplicationContext userContext)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            
         }
         //Trả về 1 user
         public async Task<Users> Login(UserDto userDto)
         {
-            var user = new Users();
+            Users user = null;
             try
             {
                 // Lấy thông tin người dùng từ cơ sở dữ liệu
@@ -44,7 +44,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 Boolean checkPass= BCrypt.Net.BCrypt.Verify(userDto.Password, user.PasswordHash);
                 if (checkPass==false)
                 {
-                    return null;
+                    return user;
                 }
                 return user;
             }
@@ -55,7 +55,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Boolean> SaveToken(Users user, string accessToken)
         {
-            Users userDB = new Users();
+            Users userDB = null;
             try
             {
                 userDB = await _userContext.Users
@@ -73,9 +73,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 }
                 // Cập nhật các thuộc tính của đối tượng
                 userDB.Token = accessToken;
-
-                // Lưu thay đổi vào cơ sở dữ liệu
-                await _userContext.SaveChangesAsync();
                 return true;
             }
             catch
@@ -95,7 +92,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 NewUser.UserId = user.UserId;
                 NewUser.Role = user.Role;
                 _userContext.Users.Add( NewUser );
-               await  _userContext.SaveChangesAsync();
 
                     return user;
             }

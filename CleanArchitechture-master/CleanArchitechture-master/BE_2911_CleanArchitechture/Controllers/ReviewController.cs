@@ -77,7 +77,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 queryReview.str= request.RequestData;
                 queryReview.userID = UserID;
                 var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
-                // Kiểm tra xem việc tạo có thành công không
+                // Kiểm tra xem việc lấy danh sách có thành công không
                 if (list.Count()==0)
                 {
                     // Ghi log lỗi
@@ -128,9 +128,9 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 this._logger.LogInformation(UserID.ToString(), "CreateAReview");
                 command.OwnerID = UserID;
-                Reviews aReview = await _mediator.Send(command);
+                ReviewDto aReviewDto = await _mediator.Send(command);
                 // Kiểm tra xem việc tạo có thành công không
-                if (aReview == null)
+                if (aReviewDto == null)
                 {
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "Review list error",null);
@@ -138,7 +138,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<Reviews>(aReview));
+                return Ok(new ApiResponse<ReviewDto>(aReviewDto));
 
             }
             catch (Exception ex)

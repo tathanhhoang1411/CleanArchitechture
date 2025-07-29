@@ -14,17 +14,24 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public class ReviewRepository : IReviewRepository
     {
         private ApplicationContext _userContext;
-        private readonly IMapper _mapper;
-        public ReviewRepository(ApplicationContext userContext, IMapper mapper)
+        public ReviewRepository(ApplicationContext userContext)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<int> CreateReview(Reviews createReview)
+        public async Task<Reviews> CreateReview(Reviews createReview)
         {
-            _userContext.Add(createReview);
-            return await _userContext.SaveChangesAsync();
+            Reviews reviews = null;
+            try
+            {
+                await _userContext.AddAsync(createReview);
+                return createReview;
+            }
+            catch
+            {
+                return reviews;
+
+            }
         }
 
         public class QueryReview
@@ -34,8 +41,10 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<List<object>> GetListReviews(int skip, int take, string str, long userID)
         {
-
-            var reviewList = await (
+            List<object> list = null;
+            try
+            {
+                var reviewList = await (
                 from review in _userContext.Reviews
                 where review.ReviewText.Contains(str) && review.OwnerID == userID  // Lọc trước khi join
                 join product in _userContext.Products on review.ReviewId equals product.ReviewID // Đảm bảo dùng đúng khóa
@@ -60,27 +69,32 @@ namespace CleanArchitecture.Infrastructure.Repositories
             .AsNoTracking()
             .ToListAsync();
 
-            // Ánh xạ qua ExpandoObject
-            var mappedReviewList = reviewList.Select(r =>
+                // Ánh xạ qua ExpandoObject
+                var mappedReviewList = reviewList.Select(r =>
+                {
+                    dynamic expando = new ExpandoObject();
+                    expando.ReviewId = r.ReviewId;
+                    expando.Rating = r.Rating;
+                    expando.ReviewText = r.ReviewText;
+                    expando.CreatedAt = r.CreatedAt;
+                    expando.ProductName = r.ProductName;
+                    expando.Price = r.Price;
+                    expando.ProductImage1 = r.ProductImage1;
+                    expando.ProductImage2 = r.ProductImage2;
+                    expando.ProductImage3 = r.ProductImage3;
+                    expando.ProductImage4 = r.ProductImage4;
+                    expando.ProductImage5 = r.ProductImage5;
+
+                    return expando;
+                }).ToList();
+
+                // Trả về danh sách đã ánh xạ
+                return mappedReviewList;
+            }
+            catch
             {
-                dynamic expando = new ExpandoObject();
-                expando.ReviewId = r.ReviewId;
-                expando.Rating = r.Rating;
-                expando.ReviewText = r.ReviewText;
-                expando.CreatedAt = r.CreatedAt;
-                expando.ProductName = r.ProductName;
-                expando.Price = r.Price;
-                expando.ProductImage1 = r.ProductImage1;
-                expando.ProductImage2 = r.ProductImage2;
-                expando.ProductImage3 = r.ProductImage3;
-                expando.ProductImage4 = r.ProductImage4;
-                expando.ProductImage5 = r.ProductImage5;
-
-                return expando;
-            }).ToList();
-
-            // Trả về danh sách đã ánh xạ
-            return mappedReviewList;
+                return list;
+            }
         }
     }
 }

@@ -15,12 +15,12 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Create
 {
 
-    public class UserCommand : IRequest<Users>
+    public class UserCommand : IRequest<UserDto>
     {
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
-        public class CreateUserCommandHandler : IRequestHandler<UserCommand, Users>
+        public class CreateUserCommandHandler : IRequestHandler<UserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
             private readonly IMapper _mapper;
@@ -30,7 +30,7 @@ namespace CleanArchitecture.Application.Commands.Create
                 _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
             }
-            public async Task<Users> Handle(UserCommand command, CancellationToken cancellationToken)
+            public async Task<UserDto> Handle(UserCommand command, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -48,7 +48,7 @@ namespace CleanArchitecture.Application.Commands.Create
                     {
                         return null;
                     }
-                    Users resultCreateUser = await _userServices.CreateUser(user);
+                    UserDto resultCreateUser = await _userServices.CreateUser(user);
                     string accessToken = _userServices.MakeToken(user);
                     if (accessToken == null || accessToken == "")
                     {

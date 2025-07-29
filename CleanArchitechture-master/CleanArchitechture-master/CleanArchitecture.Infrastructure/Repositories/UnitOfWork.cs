@@ -16,9 +16,13 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             Products = new ProductRepository(_context);
+            Reviews = new ReviewRepository(_context);
+            Users = new UserRepository(_context);
         }
 
         public IProductRepository Products { get; private set; }
+        public IReviewRepository Reviews { get; private set; }
+        public IUserRepository Users{ get; private set; }
 
         public async Task<int> CompleteAsync()
         {

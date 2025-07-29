@@ -11,6 +11,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public interface IUnitOfWork : IDisposable
     {
         IProductRepository Products { get; }
+        IReviewRepository Reviews { get; }
+        IUserRepository Users { get; }
 
         Task<int> CompleteAsync();
     }

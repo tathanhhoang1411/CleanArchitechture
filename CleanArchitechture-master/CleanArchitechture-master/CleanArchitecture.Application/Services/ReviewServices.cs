@@ -14,20 +14,41 @@ namespace CleanArchitecture.Application.Repository
 {
     public class ReviewServices : IReviewServices
     {
-        private readonly IReviewRepository _reviewRepository;
-        public ReviewServices(IReviewRepository reviewRepository)
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        public ReviewServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID)
+        public async Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID)
         {
-            return _reviewRepository.GetListReviews(skip,take, str, userID);
+            List<object> reviews=null;
+            try
+            {
+                reviews = await _unitOfWork.Reviews.GetListReviews(skip,take, str, userID);
+                return reviews;
+            }
+            catch
+            {
+                return reviews;
+            }
         }
 
-        public Task<int> Review_Create(Reviews review)
+        public async Task<ReviewDto> Review_Create(Reviews review)
         {
-            return _reviewRepository.CreateReview(review);
+            ReviewDto reviewDto = null;
+            try
+            {
+                await _unitOfWork.Reviews.CreateReview(review);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<ReviewDto>(review);
+            }
+            catch
+            {
+                return reviewDto;
+            }
         }
 
     }

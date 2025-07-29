@@ -26,7 +26,6 @@ namespace BE_2911_CleanArchitecture.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly IMediator _mediator;
         private readonly IConfiguration _configuration;
-        private readonly IMapper _mapper;
         private readonly ICustomLogger _logger;
         private readonly IUserServices _userServices;
         public UserController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IMapper mapper, IUserServices userServices)
@@ -36,7 +35,6 @@ namespace BE_2911_CleanArchitecture.Controllers
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         [HttpPost("Login")]
         [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
@@ -114,18 +112,15 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                 try
                 {
-                    Users user = await _mediator.Send(UserCommand);
+                    UserDto userDto = await _mediator.Send(UserCommand);
 
-                    //Mapper che giấu thuộc tính
-                    // Ánh xạ Users thành UserDto và lưu vào biến
-                    UserDto userDto = _mapper.Map<UserDto>(user);
-                    userDto.Password = UserCommand.Password;
                     if (userDto == null)
                     {
                         var errors = new List<string> { "The username or Email already exists." };
                         return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
 
                     }
+                    userDto.Password = UserCommand.Password;
                     return Ok(new ApiResponse<UserDto>(userDto));
                 }
                 catch (Exception ex)
@@ -168,9 +163,9 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "DeleteAUser");
-                Users user = await _mediator.Send(command);
+                UserDto userDto = await _mediator.Send(command);
                 // Kiểm tra xem việc xóa có thành công không
-                if (user==null)
+                if (userDto == null)
                 {
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "User not found", null);
@@ -179,13 +174,13 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<Users>>(new List<Users> { user }));
+                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
 
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi
-                _logger.LogError(UserID.ToString(), "GetAllUser", ex);
+                _logger.LogError(UserID.ToString(), "DeleteAUser", ex);
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
