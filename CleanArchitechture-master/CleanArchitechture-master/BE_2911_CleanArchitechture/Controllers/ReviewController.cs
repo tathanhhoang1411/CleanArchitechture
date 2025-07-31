@@ -157,7 +157,9 @@ namespace BE_2911_CleanArchitechture.Controllers
         //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết cần xóa này có phải của tài khoản này không
         //Xóa bài viết
         [HttpPost("DeleteAReview")]
-        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [SwaggerOperation(Summary = "Xóa bài review của tài khoản user",
+                      Description = "")]
+        [Authorize(Policy = "RequireUserRole")]
         public async Task<IActionResult> DeleteAReview([FromBody] DelReviewCommand command)
         {
             long UserID = 0;
