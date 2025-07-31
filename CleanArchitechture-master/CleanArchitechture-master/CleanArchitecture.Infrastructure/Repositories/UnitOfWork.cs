@@ -12,17 +12,19 @@ namespace CleanArchitecture.Infrastructure.Repositories
         private readonly ApplicationContext _context;
         private bool _disposed = false;
 
+        public IProductRepository Products { get; private set; }
+        public IReviewRepository Reviews { get; private set; }
+        public IUserRepository Users{ get; private set; }
+        public ICommentRepository Comments { get; private set; }
         public UnitOfWork(ApplicationContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             Products = new ProductRepository(_context);
             Reviews = new ReviewRepository(_context);
             Users = new UserRepository(_context);
+            Comments = new CommentRepository(_context);
         }
 
-        public IProductRepository Products { get; private set; }
-        public IReviewRepository Reviews { get; private set; }
-        public IUserRepository Users{ get; private set; }
 
         public async Task<int> CompleteAsync()
         {

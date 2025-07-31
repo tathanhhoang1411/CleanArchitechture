@@ -1,5 +1,6 @@
 ﻿using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Commands.Create;
+using CleanArchitecture.Application.Commands.Delete;
 using CleanArchitecture.Application.Commands.Select;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
@@ -135,6 +136,61 @@ namespace BE_2911_CleanArchitechture.Controllers
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "Review list error",null);
                     var errors = new List<string> { "Review list error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<ReviewDto>(aReviewDto));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                this._logger.LogError(UserID.ToString(), "Internal server error", ex);
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+
+        }
+        //Xóa  review 
+        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết cần xóa này có phải của tài khoản này không
+        //Xóa bài viết
+        [HttpPost("DeleteAReview")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        public async Task<IActionResult> DeleteAReview([FromBody] DelReviewCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Kiểm tra userID có tồn tại không 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                //Xóa review
+                //Bước đầu phải xác minh bài review đó có phải của tài khoản này hay không
+                this._logger.LogInformation(UserID.ToString(), "DeleteAReview");
+                command.UserID = UserID;
+                ReviewDto aReviewDto = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aReviewDto == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "Delete Review error", null);
+                    var errors = new List<string> { "Delete Review error" };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");

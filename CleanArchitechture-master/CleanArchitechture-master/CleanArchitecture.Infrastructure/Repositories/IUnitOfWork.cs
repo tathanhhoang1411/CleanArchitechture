@@ -13,6 +13,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         IProductRepository Products { get; }
         IReviewRepository Reviews { get; }
         IUserRepository Users { get; }
+        ICommentRepository Comments { get; }
 
         Task<int> CompleteAsync();
     }

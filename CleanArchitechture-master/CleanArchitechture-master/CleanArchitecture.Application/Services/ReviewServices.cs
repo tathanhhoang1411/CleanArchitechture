@@ -35,6 +35,19 @@ namespace CleanArchitecture.Application.Repository
                 return reviews;
             }
         }
+        public async Task<List<object>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
+        {
+            List<object> aReview = null;
+            try
+            {
+                aReview = await _unitOfWork.Reviews.GetListReviewsByOwnerID(reviewID, ownerID);
+                return aReview;
+            }
+            catch
+            {
+                return aReview;
+            }
+        }
 
         public async Task<ReviewDto> Review_Create(Reviews review)
         {
@@ -42,6 +55,31 @@ namespace CleanArchitecture.Application.Repository
             try
             {
                 await _unitOfWork.Reviews.CreateReview(review);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<ReviewDto>(review);
+            }
+            catch
+            {
+                return reviewDto;
+            }
+        }
+        public async Task<ReviewDto> Review_Del(Reviews review)
+        {
+            ReviewDto reviewDto = null;
+            try
+            {
+                //Check xem bài review cần xóa đó có phải là bài review của tài khoản này không
+                List<object> list=await GetList_Reviews_ByOwner(review.ReviewId, review.OwnerID);
+                if(list.Count == 0)
+                {
+                    return reviewDto;
+                }
+                //Xóa product
+                await _unitOfWork.Products.DelListProduct(review.ReviewId);
+                //Xóa comment
+                await _unitOfWork.Comments.DelListComment(review.ReviewId);
+                //Xóa review
+                await _unitOfWork.Reviews.DelReview(review.ReviewId);
                 await _unitOfWork.CompleteAsync();
                 return _mapper.Map<ReviewDto>(review);
             }

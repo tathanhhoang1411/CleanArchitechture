@@ -51,6 +51,24 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.ReviewID == reviewId);
 
             return product;
+        }    
+        public async Task<List<Products>> DelListProduct(int reviewId)
+        {
+            // Lấy danh sách các sản phẩm có ReviewID tương ứng
+            var productsToDelete = await _userContext.Products
+                .Where(p => p.ReviewID == reviewId)
+                .ToListAsync();
+
+            if (productsToDelete.Count == 0)
+            {
+                // Có thể ném ra ngoại lệ hoặc trả về danh sách rỗng tùy theo yêu cầu của bạn
+                return null; // Hoặc throw new Exception("No products found");
+            }
+
+            // Xóa tất cả các sản phẩm trong danh sách
+            _userContext.Products.RemoveRange(productsToDelete);
+
+            return productsToDelete; // Trả về danh sách sản phẩm đã xóa
         }
         public async Task<Products> ProductUpdate(Products product)
         {

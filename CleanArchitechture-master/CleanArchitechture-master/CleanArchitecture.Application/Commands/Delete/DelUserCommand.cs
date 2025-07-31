@@ -26,7 +26,6 @@ namespace CleanArchitecture.Application.Commands.Delete
             public DelUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
             {
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
-                _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
             }
             public async Task<UserDto> Handle(DelUserCommand command, CancellationToken cancellationToken)

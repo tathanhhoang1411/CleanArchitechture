@@ -14,5 +14,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
         Task<List<Products>> GetListProducts(int skip, int take,string data);
         Task<Products> GetAProducts(int reviewId);
         Task<Products> ProductUpdate(Products product);
+        Task<List<Products>> DelListProduct(int reviewId);
     }
 }

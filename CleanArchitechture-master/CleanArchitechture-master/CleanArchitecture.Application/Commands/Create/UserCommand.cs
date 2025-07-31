@@ -23,11 +23,9 @@ namespace CleanArchitecture.Application.Commands.Create
         public class CreateUserCommandHandler : IRequestHandler<UserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
-            private readonly IMapper _mapper;
-            public CreateUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
+            public CreateUserCommandHandler(IUserServices userServices, IUserRepository userRepository)
             {
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
-                _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
             }
             public async Task<UserDto> Handle(UserCommand command, CancellationToken cancellationToken)

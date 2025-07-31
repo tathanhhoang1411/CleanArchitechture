@@ -13,5 +13,7 @@ namespace CleanArchitecture.Application.IRepository
     {
         Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID);
         Task<ReviewDto> Review_Create(Reviews review);
+        Task<ReviewDto> Review_Del(Reviews review);
+        Task<List<object>> GetList_Reviews_ByOwner(int reviewID, long userID);
     }
 }
