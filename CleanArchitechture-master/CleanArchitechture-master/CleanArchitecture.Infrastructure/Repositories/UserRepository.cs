@@ -24,7 +24,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         //Trả về 1 user
         public async Task<Users> Login(UserDto userDto)
         {
-            Users user = null;
+            Users? user = null;
             try
             {
                 // Lấy thông tin người dùng từ cơ sở dữ liệu
@@ -36,7 +36,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     &&
                     u.Email 
                     ==
-                    userDto.Email);
+                    userDto.Email
+                    &&
+                    u.Status==true);
                 if (user==null)
                 {
                     return null;
@@ -55,7 +57,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Boolean> SaveToken(Users user, string accessToken)
         {
-            Users userDB = null;
+            Users? userDB = null;
             try
             {
                 userDB = await _userContext.Users
@@ -66,7 +68,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     && 
                     u.PasswordHash
                     ==
-                    user.PasswordHash);
+                    user.PasswordHash );
                 if (userDB == null)
                 {
                     return false;
@@ -91,6 +93,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 NewUser.PasswordHash = user.PasswordHash;
                 NewUser.UserId = user.UserId;
                 NewUser.Role = user.Role;
+                NewUser.Status = true;
                 _userContext.Users.Add( NewUser );
 
                     return user;
@@ -102,19 +105,21 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Boolean> CheckExistUser(Users user)
         {
-            Users userDB = new Users();
+            Users? userDB = new Users();
             try
             {
                 userDB = await _userContext.Users
                     .AsNoTracking()
                     .FirstOrDefaultAsync(
-                    u => u.Username 
+                    u => u.Username
                     ==
-                    user.Username 
+                    user.Username
                     &&
                     u.Email
-                    == 
-                    user.Email);
+                    ==
+                    user.Email
+                    &&
+                    u.Status == true);
                 if (userDB == null)
                 {
                     return false;
@@ -130,7 +135,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         public async Task<List<UserDto>> GetListUsers(int skip, int take,string data)
         {
-                var users = await _userContext.Users
+            try
+            {
+                                var users = await _userContext.Users
                 .Where(u => u.Username.Contains(data))
                 .Take(take)
                 .Skip(skip)
@@ -138,17 +145,45 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
                 return _mapper.Map<List<UserDto>>(users);
+            }
+            catch
+            {
+                return null;
+            }
         }    
+        //Thật chất là thay đổi trạng thái user
         public async Task<Boolean> DeleteUser(Users user)
         {
-                var users  = await _userContext.Users
-    .Where(u => u.Username == user.Username && u.Email == user.Email)
-    .FirstOrDefaultAsync();
-            _userContext.Users.Remove(users); // Xóa người dùng
-            await _userContext.SaveChangesAsync(); // Lưu thay đổi vào database
+            try
+            {
+                                var users = await _userContext.Users
+                .Where(u => u.Username == user.Username && u.Email == user.Email)
+                .FirstOrDefaultAsync();
+                users.Status = false;
 
-            return true; // Trả về true khi xóa thành công
+                return true; // Trả về true khi xóa thành công
+            }
+            catch
+            {
+                return false;
+            }
+        } 
+        //Thật chất là thay đổi trạng thái user
+        public async Task<Boolean> ActiveUser(Users user)
+        {
+            try
+            {
+                        var users  = await _userContext.Users
+            .Where(u => u.Username == user.Username && u.Email == user.Email)
+            .FirstOrDefaultAsync();
+            users.Status = true;
 
+            return true; // Trả về true khi active thành công
+        }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

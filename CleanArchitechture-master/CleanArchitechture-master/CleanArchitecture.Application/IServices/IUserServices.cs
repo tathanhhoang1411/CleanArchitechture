@@ -16,6 +16,7 @@ namespace CleanArchitecture.Application.IRepository
         Task<Boolean> CheckExistUser(Users user);
         Task<UserDto> CreateUser(Users user);
         Task<UserDto> DelUser(Users user);
+        Task<UserDto> ActiveUser(Users user);
         Task<long> GetUserIDInTokenFromRequest(string tokenJWT);
         ClaimsPrincipal ValidateToken( string accessToken);
         Task<List<UserDto>> GetList_Users(int skip, int take, string data);

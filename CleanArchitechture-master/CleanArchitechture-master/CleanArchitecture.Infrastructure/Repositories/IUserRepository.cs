@@ -14,6 +14,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         Task<Boolean> SaveToken(Users user,string accessToken);
         Task<Users> CreateUser(Users user);
         Task<Boolean> DeleteUser(Users user);
+        Task<Boolean> ActiveUser(Users user);
         Task<Boolean> CheckExistUser(Users user);
         Task<List<UserDto>> GetListUsers(int skip, int take, string data);
     }

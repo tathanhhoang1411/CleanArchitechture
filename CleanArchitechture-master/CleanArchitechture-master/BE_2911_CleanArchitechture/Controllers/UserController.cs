@@ -120,13 +120,19 @@ namespace BE_2911_CleanArchitecture.Controllers
                         return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
 
                     }
+                    if (userDto.Username == null)
+                    {
+                        var errors = new List<string> { "Created successfully, but error created or saved token. Please login" };
+                        return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
+                    }
                     userDto.Password = UserCommand.Password;
                     return Ok(new ApiResponse<UserDto>(userDto));
                 }
                 catch (Exception ex)
                 {
 
-                    var errors = new List<string> { "The username or Email already exists." };
+                    var errors = new List<string> { "Internal server error. Please try again later." };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
 
@@ -137,10 +143,12 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
-        //Xóa tài khoản user
+        //Tắt tài khoản user
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("DeleteUser")]
-        public async Task<IActionResult> DeleteAUser([FromBody] DelUserCommand command)
+        [SwaggerOperation(Summary = "Xóa tài khoản người dùng, chỉ admin mới có quyền",
+                      Description = "")]
+        public async Task<IActionResult> DeleteAUser([FromBody] UpdStatusUserCommand command)
         {
             long UserID = 0;
             try
@@ -164,15 +172,63 @@ namespace BE_2911_CleanArchitecture.Controllers
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "DeleteAUser");
                 UserDto userDto = await _mediator.Send(command);
-                // Kiểm tra xem việc xóa có thành công không
-                if (userDto == null)
+                // Kiểm tra xem tài khoản có tồn tại hay không
+                if (userDto.Email == null)
                 {
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "User not found", null);
                     var errors = new List<string> { "User not found" };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
-                
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                _logger.LogError(UserID.ToString(), "DeleteAUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        //Kích hoạt lại tài khoản user
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("ActivateUser")]
+        [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng, chỉ admin mới có quyền",
+                      Description = "")]
+        public async Task<IActionResult> ActiveAUser([FromBody] UpdStatusUserCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                _logger.LogInformation(UserID.ToString(), "DeleteAUser");
+                UserDto userDto = await _mediator.Send(command);
+                // Kiểm tra xem tài khoản có tồn tại hay không
+                if (userDto.Email == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "User not found", null);
+                    var errors = new List<string> { "User not found" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
 

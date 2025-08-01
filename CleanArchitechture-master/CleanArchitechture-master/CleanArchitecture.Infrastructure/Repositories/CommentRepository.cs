@@ -16,21 +16,28 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<List<Comments>> DelListComment(int reviewId)
         {
-            // Lấy danh sách các sản phẩm có ReviewID tương ứng
-            var CommentToDelete = await _userContext.Comments
-                .Where(p => p.ReviewId == reviewId)
-                .ToListAsync();
-
-            if (CommentToDelete.Count == 0)
+            try
             {
-                // Có thể ném ra ngoại lệ hoặc trả về danh sách rỗng tùy theo yêu cầu của bạn
-                return null; // Hoặc throw new Exception("No products found");
+                // Lấy danh sách các sản phẩm có ReviewID tương ứng
+                var CommentToDelete = await _userContext.Comments
+                    .Where(p => p.ReviewId == reviewId)
+                    .ToListAsync();
+
+                if (CommentToDelete.Count == 0)
+                {
+                    // Có thể ném ra ngoại lệ hoặc trả về danh sách rỗng tùy theo yêu cầu của bạn
+                    return null; // Hoặc throw new Exception("No products found");
+                }
+
+                // Xóa tất cả các sản phẩm trong danh sách
+                _userContext.Comments.RemoveRange(CommentToDelete);
+
+                return CommentToDelete; // Trả về danh sách sản phẩm đã xóa
             }
-
-            // Xóa tất cả các sản phẩm trong danh sách
-            _userContext.Comments.RemoveRange(CommentToDelete);
-
-            return CommentToDelete; // Trả về danh sách sản phẩm đã xóa
+            catch
+            {
+                return null;
+            }
         }
     }
 }

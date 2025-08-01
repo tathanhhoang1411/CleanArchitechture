@@ -15,29 +15,33 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Delete
 {
 
-    public class DelReviewCommand : IRequest<ReviewDto>
+    public class DelReviewCommand : IRequest<int>
     {
-        public long ReviewID { get; set; }
+        public int ReviewID { get; set; }
         public long UserID { get; set; }
-        public class DelReviewCommandHandler : IRequestHandler<DelReviewCommand, ReviewDto>
+        public class DelReviewCommandHandler : IRequestHandler<DelReviewCommand, int>
         {
-            private readonly IUserServices _userServices;
-            public DelReviewCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
+            private readonly IReviewServices _reviewServices;
+            public DelReviewCommandHandler(IReviewServices reviewServices, IMapper mapper)
             {
-                _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
+                _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
 
             }
-            public async Task<ReviewDto> Handle(DelReviewCommand command, CancellationToken cancellationToken)
+            public async Task<int> Handle(DelReviewCommand command, CancellationToken cancellationToken)
             {
-                ReviewDto DelreviewDto = null;
+                int reviewID = -1;
                 try
                 {
-
-                    return DelreviewDto;
+                    reviewID = await _reviewServices.Review_Del(command.ReviewID,command.UserID);
+                    if (reviewID == 0)
+                    {
+                        return -1;
+                    }
+                    return reviewID;
                 }
                 catch
                 {
-                    return DelreviewDto;
+                    return -1;
                 }
             }
 

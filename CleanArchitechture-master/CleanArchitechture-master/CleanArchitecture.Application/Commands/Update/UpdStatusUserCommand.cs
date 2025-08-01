@@ -12,18 +12,18 @@ using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace CleanArchitecture.Application.Commands.Delete
+namespace CleanArchitecture.Application.Commands.Update
 {
 
     public class UpdStatusUserCommand : IRequest<UserDto>
     {
         public string? Username { get; set; }
         public string? Email { get; set; }
-        public class DelUserCommandHandler : IRequestHandler<UpdStatusUserCommand, UserDto>
+        public class UpdStatusUserCommandHandler : IRequestHandler<UpdStatusUserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
             private readonly IMapper _mapper;
-            public DelUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
+            public UpdStatusUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
             {
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 
@@ -41,7 +41,7 @@ namespace CleanArchitecture.Application.Commands.Delete
                     {
                         return new UserDto();
                     }
-                    resultDelUser = await _userServices.DelUser(user);
+                    resultDelUser = await _userServices.ActiveUser(user);
                     return resultDelUser;
                 }
                 catch

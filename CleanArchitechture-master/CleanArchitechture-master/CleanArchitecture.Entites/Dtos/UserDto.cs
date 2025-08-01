@@ -18,5 +18,6 @@ namespace CleanArchitecture.Entites.Dtos
         public string Password { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
+        public Boolean Status { get; set; }
     }
 }

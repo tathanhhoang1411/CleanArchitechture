@@ -62,7 +62,7 @@ namespace CleanArchitecture.Application.Services
             try
             {
                 result=await _unitOfWork.Users.SaveToken(user, accessToken);
-                if (!result) { }
+                if (!result) { return result; }
                 await _unitOfWork.CompleteAsync();
                 return result;
             }
@@ -165,6 +165,21 @@ namespace CleanArchitecture.Application.Services
             try
             {
                 await _unitOfWork.Users.DeleteUser(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UserDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+            
+        }
+        public async Task<UserDto> ActiveUser(Users user)
+        {
+            UserDto userDto = null;
+            try
+            {
+                await _unitOfWork.Users.ActiveUser(user);
                 await _unitOfWork.CompleteAsync();
                 return _mapper.Map<UserDto>(user);
             }

@@ -35,9 +35,9 @@ namespace CleanArchitecture.Application.Repository
                 return reviews;
             }
         }
-        public async Task<List<object>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
+        public async Task<List<Reviews>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
         {
-            List<object> aReview = null;
+            List<Reviews> aReview = null;
             try
             {
                 aReview = await _unitOfWork.Reviews.GetListReviewsByOwnerID(reviewID, ownerID);
@@ -63,29 +63,29 @@ namespace CleanArchitecture.Application.Repository
                 return reviewDto;
             }
         }
-        public async Task<ReviewDto> Review_Del(Reviews review)
+        public async Task<int> Review_Del(int reviewID, long ownerID)
         {
-            ReviewDto reviewDto = null;
+            int reviewIDDel = -1;
             try
             {
                 //Check xem bài review cần xóa đó có phải là bài review của tài khoản này không
-                List<object> list=await GetList_Reviews_ByOwner(review.ReviewId, review.OwnerID);
+                List<Reviews> list=await GetList_Reviews_ByOwner(reviewID, ownerID);
                 if(list.Count == 0)
                 {
-                    return reviewDto;
+                    return reviewIDDel;
                 }
                 //Xóa product
-                await _unitOfWork.Products.DelListProduct(review.ReviewId);
+                await _unitOfWork.Products.DelListProduct(reviewID);
                 //Xóa comment
-                await _unitOfWork.Comments.DelListComment(review.ReviewId);
+                await _unitOfWork.Comments.DelListComment(reviewID);
                 //Xóa review
-                await _unitOfWork.Reviews.DelReview(review.ReviewId);
+                reviewIDDel=await _unitOfWork.Reviews.DelReview(reviewID);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<ReviewDto>(review);
+                return reviewIDDel;
             }
             catch
             {
-                return reviewDto;
+                return reviewIDDel;
             }
         }
 

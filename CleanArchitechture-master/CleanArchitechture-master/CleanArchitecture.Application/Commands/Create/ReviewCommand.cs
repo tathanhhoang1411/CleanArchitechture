@@ -16,7 +16,6 @@ namespace CleanArchitecture.Application.Commands.Create
     public class ReviewCommand : IRequest<ReviewDto>
     {
         public long OwnerID { get; set; }
-        public string? ProductId { get; set; }
         public double Rating { get; set; }
         public string? ReviewText { get; set; }
         public class CreateReviewCommandHandler : IRequestHandler<ReviewCommand, ReviewDto>

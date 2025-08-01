@@ -50,13 +50,13 @@ namespace CleanArchitecture.Application.Commands.Create
                     string accessToken = _userServices.MakeToken(user);
                     if (accessToken == null || accessToken == "")
                     {
-                        return null;
+                        return new UserDto();
                     }
                     user.Token = accessToken;
                     bool resultSaveToken = await _userServices.SaveToken(user, accessToken);
                     if (resultSaveToken == false)
                     {
-                        return null;
+                        return new UserDto();
                     }
                     return resultCreateUser;
                 }

@@ -186,9 +186,9 @@ namespace BE_2911_CleanArchitechture.Controllers
                 //Bước đầu phải xác minh bài review đó có phải của tài khoản này hay không
                 this._logger.LogInformation(UserID.ToString(), "DeleteAReview");
                 command.UserID = UserID;
-                ReviewDto aReviewDto = await _mediator.Send(command);
+                int ReviewId = await _mediator.Send(command);
                 // Kiểm tra xem việc tạo có thành công không
-                if (aReviewDto == null)
+                if (ReviewId == -1)
                 {
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "Delete Review error", null);
@@ -196,7 +196,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<ReviewDto>(aReviewDto));
+                return Ok(new ApiResponse<int>(ReviewId));
 
             }
             catch (Exception ex)

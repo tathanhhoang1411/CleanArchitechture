@@ -18,21 +18,28 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
-        public async Task<Reviews> DelReview(int reviewId)
+        public async Task<int> DelReview(int reviewId)
         {
-            var aReview = await _userContext.Reviews
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.ReviewId == reviewId);
-
-            if (aReview == null)
+            try
             {
-                // Có thể ném ra ngoại lệ hoặc trả về null tùy theo yêu cầu của bạn
-                return null; // hoặc throw new Exception("Product not found");
+                var aReview = await _userContext.Reviews
+    .AsNoTracking()
+    .FirstOrDefaultAsync(p => p.ReviewId == reviewId);
+
+                if (aReview.ReviewId <= 0)
+                {
+                    // Có thể ném ra ngoại lệ hoặc trả về null tùy theo yêu cầu của bạn
+                    return -1; // hoặc throw new Exception("Product not found");
+                }
+
+                _userContext.Reviews.Remove(aReview);
+
+                return aReview.ReviewId;
             }
-
-            _userContext.Reviews.Remove(aReview);
-
-            return aReview;
+            catch
+            {
+                return -1;
+            }
         }
         public async Task<Reviews> CreateReview(Reviews createReview)
         {
@@ -111,55 +118,20 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return list;
             }
         }
-        public async Task<List<object>> GetListReviewsByOwnerID(int reviewID, long ownerID)
+        public async Task<List<Reviews>> GetListReviewsByOwnerID(int reviewID, long ownerID)
         {
-            List<object> list = null;
+            List<Reviews> list = null;
             try
             {
-                var reviewList = await (
+                 list = await (
                 from review in _userContext.Reviews
                 where review.ReviewId == reviewID && review.OwnerID == ownerID  // Lọc trước khi join
-                join product in _userContext.Products on review.ReviewId equals product.ReviewID // Đảm bảo dùng đúng khóa
                 orderby review.CreatedAt descending
-                select new
-                {
-                    review.ReviewId,
-                    review.Rating,
-                    review.ReviewText,
-                    review.CreatedAt,
-                    ProductName = product.ProductName,
-                    product.Price,
-                    ProductImage1 = product.ProductImage1,
-                    ProductImage2 = product.ProductImage2,
-                    ProductImage3 = product.ProductImage3,
-                    ProductImage4 = product.ProductImage4,
-                    ProductImage5 = product.ProductImage5
-                }
-            )
-            .AsNoTracking()
+                select review) // Thêm select để lấy danh sách đánh giá)
+           .AsNoTracking()
             .ToListAsync();
-
-                // Ánh xạ qua ExpandoObject
-                var mappedReviewList = reviewList.Select(r =>
-                {
-                    dynamic expando = new ExpandoObject();
-                    expando.ReviewId = r.ReviewId;
-                    expando.Rating = r.Rating;
-                    expando.ReviewText = r.ReviewText;
-                    expando.CreatedAt = r.CreatedAt;
-                    expando.ProductName = r.ProductName;
-                    expando.Price = r.Price;
-                    expando.ProductImage1 = r.ProductImage1;
-                    expando.ProductImage2 = r.ProductImage2;
-                    expando.ProductImage3 = r.ProductImage3;
-                    expando.ProductImage4 = r.ProductImage4;
-                    expando.ProductImage5 = r.ProductImage5;
-
-                    return expando;
-                }).ToList();
-
                 // Trả về danh sách đã ánh xạ
-                return mappedReviewList;
+                return list;
             }
             catch
             {
