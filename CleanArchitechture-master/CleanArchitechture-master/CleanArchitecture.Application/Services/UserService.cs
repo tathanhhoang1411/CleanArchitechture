@@ -136,13 +136,38 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
+        public async Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
         {
-            return _unitOfWork.Users.GetListUsers(skip, take,data);
+            try
+            {
+                return await  _unitOfWork.Users.GetListUsers(skip, take, data);
+            }
+            catch
+            {
+                return null;
+            }
         }
-        public Task<Boolean> CheckExistUser(Users user)
+        public async Task<Boolean> CheckExistUser(Users user)
         {
-            return _unitOfWork.Users.CheckExistUser(user);
+            try
+            {
+                return await _unitOfWork.Users.CheckExistUser(user);
+            }
+            catch
+            {
+                return false;
+            }
+        }      
+        public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord)
+        {
+            try
+            {
+                return await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
+            }
+            catch
+            {
+                return null;
+            }
         }
         public async Task<UserDto> CreateUser(Users user)
         {
@@ -157,6 +182,21 @@ namespace CleanArchitecture.Application.Services
             catch
             {
                 return userDto;
+            }
+        }         
+        public async Task<UserDto> ChangePassw(Users user)
+        {
+
+            UserDto aUser = null;
+            try
+            {
+                await _unitOfWork.Users.ChangePassw(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UserDto>(user);
+            }
+            catch
+            {
+                return aUser;
             }
         }      
         public async Task<UserDto> DelUser(Users user)

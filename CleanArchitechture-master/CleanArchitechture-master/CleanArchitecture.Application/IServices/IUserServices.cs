@@ -20,6 +20,8 @@ namespace CleanArchitecture.Application.IRepository
         Task<long> GetUserIDInTokenFromRequest(string tokenJWT);
         ClaimsPrincipal ValidateToken( string accessToken);
         Task<List<UserDto>> GetList_Users(int skip, int take, string data);
+        Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
+        Task<UserDto> ChangePassw(Users user);
 
     }
 }

@@ -132,6 +132,42 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return false;
             }
         }
+        public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
+        {
+            Users? userDB = new Users();
+            try
+            {
+
+                userDB = await _userContext.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                    u => u.Username
+                    ==
+                    userName
+                    &&
+                    u.Email
+                    ==
+                    email
+                    &&
+                    u.Status == true);
+                if (userDB == null)
+                {
+                    return null;
+                }
+                Boolean flag = BCrypt.Net.BCrypt.Verify(oldPassWord, userDB.PasswordHash);
+                if (!flag)
+                {
+                    return null;
+                }
+                
+
+                return userDB;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public async Task<List<UserDto>> GetListUsers(int skip, int take,string data)
         {
@@ -145,6 +181,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
                 return _mapper.Map<List<UserDto>>(users);
+            }
+            catch
+            {
+                return null;
+            }
+        }         
+        public async Task<Users> ChangePassw(Users user)
+        {
+            try
+            {
+                return user;
             }
             catch
             {

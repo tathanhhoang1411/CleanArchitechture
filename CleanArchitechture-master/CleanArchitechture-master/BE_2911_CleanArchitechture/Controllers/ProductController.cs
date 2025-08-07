@@ -52,6 +52,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         [Authorize(Policy = "RequireAdminOrUserRole")]
                 [SwaggerOperation(Summary = "Tạo các thông tin review sản phẩm+ảnh",
                       Description = "")]
+        #region
         public async Task<IActionResult> CreateAProductReview([FromForm]  ProductCommand command)
         {
             long UserID = 0;
@@ -141,6 +142,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
 
         }
+        #endregion
         [NonAction]
         private string GetFilePath(string userID,string flag,int reviewId)
         {

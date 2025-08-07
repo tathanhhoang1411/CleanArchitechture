@@ -2,6 +2,7 @@
 using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Commands.Create;
 using CleanArchitecture.Application.Commands.Delete;
+using CleanArchitecture.Application.Commands.Update;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;
@@ -16,6 +17,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using UpdStatusUserCommand = CleanArchitecture.Application.Commands.Update.UpdStatusUserCommand;
 
 namespace BE_2911_CleanArchitecture.Controllers
 {
@@ -39,6 +41,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [HttpPost("Login")]
         [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
                       Description = "Sử dụng tên đăng nhập,email và mật khẩu để xác thực.")]
+        #region
         public async Task<IActionResult> Login([FromBody] LoginQuery query)
         {
             try
@@ -68,9 +71,11 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
         //Lấy danh sách tài khoản
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("GetAllUser")]
+        #region
         public async Task<IActionResult> GetAllUser([FromBody] ApiRequest<string> request)
         {
             long UserID =0;
@@ -104,8 +109,10 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
         //Đăng ký tài khoản
         [HttpPost("RegisterUser")]
+        #region
         public async Task<IActionResult> RegisterUser([FromBody] UserCommand UserCommand)
         {
             try
@@ -143,11 +150,13 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
         //Tắt tài khoản user
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("DeleteUser")]
         [SwaggerOperation(Summary = "Xóa tài khoản người dùng, chỉ admin mới có quyền",
                       Description = "")]
+        #region
         public async Task<IActionResult> DeleteAUser([FromBody] UpdStatusUserCommand command)
         {
             long UserID = 0;
@@ -192,11 +201,13 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
         //Kích hoạt lại tài khoản user
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("ActivateUser")]
         [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng, chỉ admin mới có quyền",
                       Description = "")]
+        #region
         public async Task<IActionResult> ActiveAUser([FromBody] UpdStatusUserCommand command)
         {
             long UserID = 0;
@@ -241,5 +252,57 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
+        //sửa password tài khoản user
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpPost("UpdPasswordUser")]
+        [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng, chỉ admin mới có quyền",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> UpdPasswordUser([FromBody] UpdPasswordUserCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                _logger.LogInformation(UserID.ToString(), "UpdPasswordUser");
+                UserDto userDto = await _mediator.Send(command);
+                // Kiểm tra xem tài khoản có tồn tại hay không
+                if (userDto.Email == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "User not found", null);
+                    var errors = new List<string> { "User not found" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                _logger.LogError(UserID.ToString(), "UpdPasswordUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
     }
 }

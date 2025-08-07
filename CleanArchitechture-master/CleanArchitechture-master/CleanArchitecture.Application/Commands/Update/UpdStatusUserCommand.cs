@@ -17,13 +17,12 @@ namespace CleanArchitecture.Application.Commands.Update
 
     public class UpdStatusUserCommand : IRequest<UserDto>
     {
-        public string? Username { get; set; }
-        public string? Email { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
         public class UpdStatusUserCommandHandler : IRequestHandler<UpdStatusUserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
-            private readonly IMapper _mapper;
-            public UpdStatusUserCommandHandler(IUserServices userServices, IUserRepository userRepository, IMapper mapper)
+            public UpdStatusUserCommandHandler(IUserServices userServices)
             {
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 

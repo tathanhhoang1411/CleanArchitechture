@@ -22,7 +22,7 @@ namespace CleanArchitecture.Application.Commands.Delete
         public class DelReviewCommandHandler : IRequestHandler<DelReviewCommand, int>
         {
             private readonly IReviewServices _reviewServices;
-            public DelReviewCommandHandler(IReviewServices reviewServices, IMapper mapper)
+            public DelReviewCommandHandler(IReviewServices reviewServices)
             {
                 _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
 

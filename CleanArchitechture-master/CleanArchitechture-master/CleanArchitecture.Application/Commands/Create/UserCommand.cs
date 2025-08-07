@@ -23,7 +23,7 @@ namespace CleanArchitecture.Application.Commands.Create
         public class CreateUserCommandHandler : IRequestHandler<UserCommand, UserDto>
         {
             private readonly IUserServices _userServices;
-            public CreateUserCommandHandler(IUserServices userServices, IUserRepository userRepository)
+            public CreateUserCommandHandler(IUserServices userServices)
             {
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 

@@ -50,6 +50,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         [SwaggerOperation(Summary = "Lấy danh sách review của tài khoản hiện tại",
                       Description = "")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
+        #region
         public async Task<IActionResult> GetListReview([FromBody] ApiRequest<string> request)
         {
             long UserID = 0;
@@ -98,11 +99,13 @@ namespace BE_2911_CleanArchitechture.Controllers
 
             }
         }
+        #endregion
         //Tạo review 
         //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
         //Tạo bài viết
         [HttpPost("CreateAReview")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
+        #region
         public async Task<IActionResult> CreateAReview([FromBody]  ReviewCommand command)
         {
             long UserID = 0;
@@ -153,6 +156,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
 
         }
+        #endregion
         //Xóa  review 
         //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết cần xóa này có phải của tài khoản này không
         //Xóa bài viết
@@ -160,6 +164,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         [SwaggerOperation(Summary = "Xóa bài review của tài khoản user",
                       Description = "")]
         [Authorize(Policy = "RequireUserRole")]
+        #region
         public async Task<IActionResult> DeleteAReview([FromBody] DelReviewCommand command)
         {
             long UserID = 0;
@@ -210,5 +215,6 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
 
         }
+        #endregion
     }
 }
