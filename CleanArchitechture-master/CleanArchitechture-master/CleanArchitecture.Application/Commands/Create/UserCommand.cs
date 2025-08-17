@@ -41,8 +41,8 @@ namespace CleanArchitecture.Application.Commands.Create
                     user.UserId = timestamp;
                     user.CreatedAt = dateTime;
                     user.Role = "User";
-                    bool isExistUser = await _userServices.CheckExistUser(user);
-                    if (isExistUser)//Nếu đăng kí tài khoản đã tồn tại
+                    Users isExistUser = await _userServices.CheckExistUser(user);
+                    if (isExistUser==null)//Nếu đăng kí tài khoản đã tồn tại
                     {
                         return null;
                     }

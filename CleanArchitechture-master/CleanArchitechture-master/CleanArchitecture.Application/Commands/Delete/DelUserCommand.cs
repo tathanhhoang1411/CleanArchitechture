@@ -35,8 +35,8 @@ namespace CleanArchitecture.Application.Commands.Delete
                     Users user = new Users();
                     user.Username = command.Username;
                     user.Email = command.Email;
-                    bool isExistUser = await _userServices.CheckExistUser(user);
-                    if (!isExistUser)//Nếu tài khoản cần xóa không tồn tại
+                    Users isExistUser = await _userServices.CheckExistUser(user);
+                    if (isExistUser == null)//Nếu tài khoản cần xóa không tồn tại
                     {
                         return new UserDto();
                     }

@@ -13,7 +13,7 @@ namespace CleanArchitecture.Application.IRepository
     {
         string MakeToken(Users user);
         Task<Boolean> SaveToken(Users user, string accessToken);
-        Task<Boolean> CheckExistUser(Users user);
+        Task<Users> CheckExistUser(Users user);
         Task<UserDto> CreateUser(Users user);
         Task<UserDto> DelUser(Users user);
         Task<UserDto> ActiveUser(Users user);

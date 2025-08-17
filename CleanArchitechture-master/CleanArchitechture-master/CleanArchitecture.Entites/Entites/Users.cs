@@ -18,6 +18,6 @@ namespace CleanArchitecture.Entites.Entites
         public DateTime CreatedAt { get; set; }
         public string? Token { get; set; }
         public string? Role { get; set; }
-        public bool Status { get; set; }
+        public Boolean Status { get; set; }
     }
 }

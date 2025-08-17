@@ -38,6 +38,7 @@ namespace BE_2911_CleanArchitecture.Controllers
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+        //Đăng nhập
         [HttpPost("Login")]
         [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
                       Description = "Sử dụng tên đăng nhập,email và mật khẩu để xác thực.")]
@@ -119,6 +120,9 @@ namespace BE_2911_CleanArchitecture.Controllers
             {
                 try
                 {
+                    UserCommand.Username.Trim();
+                    UserCommand.Password.Trim();
+                    UserCommand.Email.Trim();
                     UserDto userDto = await _mediator.Send(UserCommand);
 
                     if (userDto == null)

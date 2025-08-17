@@ -88,10 +88,10 @@ namespace CleanArchitecture.Application.Services
                 users.Username = userName;
                 users.UserId = long.Parse(userId);
                 users.Email = email;
-                Task<bool> checkUser= _unitOfWork.Users.CheckExistUser(users);
+                Task<Users> checkUser= _unitOfWork.Users.CheckExistUser(users);
                 // Đợi để lấy giá trị bool từ Task
-                bool resultFromTask = await checkUser;
-                if (!resultFromTask)
+                Users resultFromTask = await checkUser;
+                if (!resultFromTask.Status)
                 {
                     return result;
                 }
@@ -140,22 +140,29 @@ namespace CleanArchitecture.Application.Services
         {
             try
             {
-                return await  _unitOfWork.Users.GetListUsers(skip, take, data);
+                List<Users> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
+                return _mapper.Map<List<UserDto>>(listUser);
             }
             catch
             {
                 return null;
             }
         }
-        public async Task<Boolean> CheckExistUser(Users user)
+        public async Task<Users> CheckExistUser(Users user)
         {
+            Users aUser = null;
             try
             {
-                return await _unitOfWork.Users.CheckExistUser(user);
+                aUser = await _unitOfWork.Users.CheckExistUser(user);
+                if (aUser!= null)
+                {
+                    return aUser;
+                }
+                return null;
             }
             catch
             {
-                return false;
+                return null;
             }
         }      
         public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord)
@@ -205,6 +212,7 @@ namespace CleanArchitecture.Application.Services
             try
             {
                 await _unitOfWork.Users.DeleteUser(user);
+                user.Status = false;
                 await _unitOfWork.CompleteAsync();
                 return _mapper.Map<UserDto>(user);
             }
@@ -220,6 +228,7 @@ namespace CleanArchitecture.Application.Services
             try
             {
                 await _unitOfWork.Users.ActiveUser(user);
+                user.Status = true;
                 await _unitOfWork.CompleteAsync();
                 return _mapper.Map<UserDto>(user);
             }

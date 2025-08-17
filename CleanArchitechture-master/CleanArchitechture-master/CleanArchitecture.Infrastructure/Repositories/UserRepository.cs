@@ -15,7 +15,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationContext _userContext;
-        private readonly IMapper _mapper;
         public UserRepository(ApplicationContext userContext)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
@@ -46,7 +45,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 Boolean checkPass= BCrypt.Net.BCrypt.Verify(userDto.Password, user.PasswordHash);
                 if (checkPass==false)
                 {
-                    return user;
+                    return null;
                 }
                 return user;
             }
@@ -103,9 +102,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return user;
             }
         }
-        public async Task<Boolean> CheckExistUser(Users user)
+        public async Task<Users> CheckExistUser(Users user)
         {
-            Users? userDB = new Users();
+            Users? userDB = null;
             try
             {
                 userDB = await _userContext.Users
@@ -117,19 +116,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     &&
                     u.Email
                     ==
-                    user.Email
-                    &&
-                    u.Status == true);
+                    user.Email);
                 if (userDB == null)
                 {
-                    return false;
+                    return userDB;
                 }
 
-                return true;
+                return userDB;
             }
             catch
             {
-                return false;
+                return userDB;
             }
         }
         public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
@@ -169,18 +166,22 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<UserDto>> GetListUsers(int skip, int take,string data)
+        public async Task<List<Users>> GetListUsers(int skip, int take,string data)
         {
             try
             {
                                 var users = await _userContext.Users
-                .Where(u => u.Username.Contains(data))
+                .Where(u => u.Username.Trim().Contains(data))
                 .Take(take)
                 .Skip(skip)
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
-                return _mapper.Map<List<UserDto>>(users);
+                if (users.Count==0)
+                {
+                    return new List<Users>();
+                }
+                return new List<Users>(users);
             }
             catch
             {
@@ -191,7 +192,11 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             try
             {
-                return user;
+                var aUsers = await _userContext.Users
+.Where(u => u.Username == user.Username && u.Email == user.Email && u.Status ==true)
+.FirstOrDefaultAsync();
+                aUsers.PasswordHash = user.PasswordHash;
+                return aUsers;
             }
             catch
             {

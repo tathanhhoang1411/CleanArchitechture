@@ -35,12 +35,21 @@ namespace CleanArchitecture.Application.Commands.Update
                     Users user = new Users();
                     user.Username = command.Username;
                     user.Email = command.Email;
-                    bool isExistUser = await _userServices.CheckExistUser(user);
-                    if (!isExistUser)//Nếu tài khoản cần xóa không tồn tại
+                    Users isExistUser = await _userServices.CheckExistUser(user);
+                    if (isExistUser==null)//Nếu tài khoản cần xóa không tồn tại
                     {
                         return new UserDto();
                     }
+                    if (isExistUser.Status == true)//Nếu tài khoản đang được kích hoạt
+                    {
+                    resultDelUser = await _userServices.DelUser(user);
+
+                    }
+                    else//Nếu tài khoản đang được tắt dùng
+                    {
+
                     resultDelUser = await _userServices.ActiveUser(user);
+                    }
                     return resultDelUser;
                 }
                 catch
