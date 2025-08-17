@@ -67,29 +67,30 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 var reviewList = await (
-                from review in _userContext.Reviews
-                where review.ReviewText.Contains(str) && review.OwnerID == userID  // Lọc trước khi join
-                join product in _userContext.Products on review.ReviewId equals product.ReviewID // Đảm bảo dùng đúng khóa
-                orderby review.CreatedAt descending
-                select new
-                {
-                    review.ReviewId,
-                    review.Rating,
-                    review.ReviewText,
-                    review.CreatedAt,
-                    ProductName = product.ProductName,
-                    product.Price,
-                    ProductImage1 = product.ProductImage1,
-                    ProductImage2 = product.ProductImage2,
-                    ProductImage3 = product.ProductImage3,
-                    ProductImage4 = product.ProductImage4,
-                    ProductImage5 = product.ProductImage5
-                }
-            )
-            .Skip(skip)
-            .Take(take)
-            .AsNoTracking()
-            .ToListAsync();
+             from review in _userContext.Reviews
+             where review.ReviewText.Contains(str) && review.OwnerID == userID
+             join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
+             from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
+             orderby review.CreatedAt descending
+             select new
+             {
+                 review.ReviewId,
+                 review.Rating,
+                 review.ReviewText,
+                 review.CreatedAt,
+                 ProductName = product != null ? product.ProductName : null,
+                 Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
+                 ProductImage1 = product != null ? product.ProductImage1 : null,
+                 ProductImage2 = product != null ? product.ProductImage2 : null,
+                 ProductImage3 = product != null ? product.ProductImage3 : null,
+                 ProductImage4 = product != null ? product.ProductImage4 : null,
+                 ProductImage5 = product != null ? product.ProductImage5 : null
+             }
+         )
+         .Skip(skip)
+         .Take(take)
+         .AsNoTracking()
+         .ToListAsync();
 
                 // Ánh xạ qua ExpandoObject
                 var mappedReviewList = reviewList.Select(r =>
