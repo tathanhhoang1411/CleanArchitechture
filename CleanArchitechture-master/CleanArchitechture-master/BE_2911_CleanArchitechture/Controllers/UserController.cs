@@ -260,10 +260,61 @@ namespace BE_2911_CleanArchitecture.Controllers
         //sửa password tài khoản user
         [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("UpdPasswordUser")]
-        [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng, chỉ admin mới có quyền",
+        [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng",
                       Description = "")]
         #region
         public async Task<IActionResult> UpdPasswordUser([FromBody] UpdPasswordUserCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Check user ID 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                _logger.LogInformation(UserID.ToString(), "UpdPasswordUser");
+                UserDto userDto = await _mediator.Send(command);
+                // Kiểm tra xem tài khoản có tồn tại hay không
+                if (userDto.Email == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "User not found", null);
+                    var errors = new List<string> { "User not found" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                _logger.LogError(UserID.ToString(), "UpdPasswordUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
+        //Đặt lại password tài khoản 
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("ResetPasswordUser")]
+        [SwaggerOperation(Summary = "Đặt lại mật khẩu tài khoản người dùng, chỉ Admin mới có thể thao tác",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> ResetPasswordUser([FromBody] ResetPasswordUserCommand command)
         {
             long UserID = 0;
             try

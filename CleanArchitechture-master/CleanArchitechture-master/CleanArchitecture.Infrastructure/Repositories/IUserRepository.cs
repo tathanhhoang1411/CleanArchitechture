@@ -18,6 +18,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         Task<Users> CheckExistUser(Users user);
         Task<Users> ChangePassw(Users user);
         Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
+        Task<Users> Get_User_byUserNameEmail(string userName,string email);
         Task<List<Users>> GetListUsers(int skip, int take, string data);
     }
 }

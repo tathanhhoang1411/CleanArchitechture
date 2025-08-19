@@ -22,5 +22,6 @@ namespace CleanArchitecture.Entites.Entites
         public long OwnerID { get; set; }
         public DateTime CreatedAt { get; set; }
         public int ReviewID { get; set; }
+        public int Type { get; set; }
     }
 }

@@ -19,6 +19,7 @@ namespace CleanArchitecture.Application.Commands.Create
         public decimal Price { get; set; }
         public long OwnerID { get; set; }
         public int ReviewID { get; set; }
+        public int Type { get; set; }
         public string? ProductImage1 { get; set; }
         public string? ProductImage2 { get; set; }
         public string? ProductImage3 { get; set; }
@@ -51,6 +52,7 @@ namespace CleanArchitecture.Application.Commands.Create
                         ProductImage3 = command.ProductImage3,
                         ProductImage4 = command.ProductImage4,
                         ProductImage5 = command.ProductImage5,
+                        Type = command.Type,
                     };
 
                     prodDto = await _productServices.Product_Create(product);

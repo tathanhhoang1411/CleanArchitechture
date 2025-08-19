@@ -20,13 +20,14 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<int> DelReview(int reviewId)
         {
+            Reviews? aReview = null;
             try
             {
-                var aReview = await _userContext.Reviews
+                 aReview = await _userContext.Reviews
     .AsNoTracking()
     .FirstOrDefaultAsync(p => p.ReviewId == reviewId);
 
-                if (aReview.ReviewId <= 0)
+                if (aReview ==null)
                 {
                     // Có thể ném ra ngoại lệ hoặc trả về null tùy theo yêu cầu của bạn
                     return -1; // hoặc throw new Exception("Product not found");
@@ -43,7 +44,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Reviews> CreateReview(Reviews createReview)
         {
-            Reviews reviews = null;
+            Reviews? reviews = null;
             try
             {
                 await _userContext.AddAsync(createReview);
@@ -93,7 +94,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
          .ToListAsync();
 
                 // Ánh xạ qua ExpandoObject
-                var mappedReviewList = reviewList.Select(r =>
+                List<dynamic> mappedReviewList = null;
+                 mappedReviewList = reviewList.Select(r =>
                 {
                     dynamic expando = new ExpandoObject();
                     expando.ReviewId = r.ReviewId;
@@ -110,7 +112,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
                     return expando;
                 }).ToList();
-
                 // Trả về danh sách đã ánh xạ
                 return mappedReviewList;
             }
@@ -131,6 +132,10 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 select review) // Thêm select để lấy danh sách đánh giá)
            .AsNoTracking()
             .ToListAsync();
+                if (list.Count() == 0)
+                {
+                    return nll;
+                }
                 // Trả về danh sách đã ánh xạ
                 return list;
             }

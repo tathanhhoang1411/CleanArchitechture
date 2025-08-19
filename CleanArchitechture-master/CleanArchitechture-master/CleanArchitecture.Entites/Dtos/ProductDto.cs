@@ -19,5 +19,6 @@ public class ProductDto: IProductDto
     public string ProductImage4 { get; set; }
     public string ProductImage5 { get; set; }
     public int ReviewId { get; set; }
+    public int Type { get; set; }
 }
 }

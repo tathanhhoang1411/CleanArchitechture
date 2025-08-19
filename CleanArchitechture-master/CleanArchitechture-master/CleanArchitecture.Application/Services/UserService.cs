@@ -175,6 +175,17 @@ namespace CleanArchitecture.Application.Services
             {
                 return null;
             }
+        }     
+        public async Task<Users> Get_User_byUserNameEmail(string userName,string email)
+        {
+            try
+            {
+                return await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
+            }
+            catch
+            {
+                return null;
+            }
         }
         public async Task<UserDto> CreateUser(Users user)
         {

@@ -35,15 +35,20 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         public async Task<List<Products>> GetListProducts(int skip, int take, string data)
         {
+            List<Products>? products = null;
             try
             {
-                            var products = await _userContext.Products
+                             products = await _userContext.Products
                 .Where(p => p.ProductName.Contains(data))
                 .Take(take)
                 .Skip(skip)
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
+                if (products.Count() == 0)
+                {
+                    return null;
+                }
                 return products;
             }
             catch
@@ -53,13 +58,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Products> GetAProducts(int reviewId)
         {
+            Products? products = null;
             try
             {
-                            var product = await _userContext.Products
+                             products = await _userContext.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.ReviewID == reviewId);
-
-                return product;
+                if (products == null)
+                {
+                    return null;
+                }
+                return products;
             }
             catch
             {
@@ -93,9 +102,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Products> ProductUpdate(Products product)
         {
+                Products? existingProduct = null;
             try
             {
-                var existingProduct = new Products();
                 // Tìm sản phẩm trong cơ sở dữ liệu
                 existingProduct = await _userContext.Products.FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
                 if (existingProduct != null)

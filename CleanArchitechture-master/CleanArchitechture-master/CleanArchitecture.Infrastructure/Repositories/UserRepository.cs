@@ -4,6 +4,7 @@ using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.DBContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,7 +132,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
         {
-            Users? userDB = new Users();
+            Users? userDB = null;
             try
             {
 
@@ -164,6 +165,35 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 return null;
             }
+        }     
+        public async Task<Users> Get_User_byUserNameEmail(string userName,string email)
+        {
+            Users? userDB = null;
+            try
+            {
+
+                userDB = await _userContext.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                    u => u.Username
+                    ==
+                    userName
+                    &&
+                    u.Email
+                    ==
+                    email
+                    &&
+                    u.Status == true);
+                if (userDB == null)
+                {
+                    return null;
+                }
+                return userDB;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<List<Users>> GetListUsers(int skip, int take,string data)
@@ -190,11 +220,16 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }         
         public async Task<Users> ChangePassw(Users user)
         {
+            Users? aUsers = null;
             try
             {
-                var aUsers = await _userContext.Users
+                 aUsers = await _userContext.Users
 .Where(u => u.Username == user.Username && u.Email == user.Email && u.Status ==true)
 .FirstOrDefaultAsync();
+                if (aUsers == null)
+                {
+                    return null;
+                }
                 aUsers.PasswordHash = user.PasswordHash;
                 return aUsers;
             }
@@ -206,11 +241,16 @@ namespace CleanArchitecture.Infrastructure.Repositories
         //Thật chất là thay đổi trạng thái user
         public async Task<Boolean> DeleteUser(Users user)
         {
+            Users? users = null;
             try
             {
-                                var users = await _userContext.Users
+                                 users = await _userContext.Users
                 .Where(u => u.Username == user.Username && u.Email == user.Email)
                 .FirstOrDefaultAsync();
+                if (users == null)
+                {
+                    return false;
+                }
                 users.Status = false;
 
                 return true; // Trả về true khi xóa thành công
@@ -223,12 +263,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
         //Thật chất là thay đổi trạng thái user
         public async Task<Boolean> ActiveUser(Users user)
         {
+            Users? users = null;
             try
             {
-                        var users  = await _userContext.Users
+                         users  = await _userContext.Users
             .Where(u => u.Username == user.Username && u.Email == user.Email)
             .FirstOrDefaultAsync();
-            users.Status = true;
+                if (users == null)
+                {
+                    return false;
+                }
+                users.Status = true;
 
             return true; // Trả về true khi active thành công
         }

@@ -21,6 +21,7 @@ namespace CleanArchitecture.Application.IRepository
         ClaimsPrincipal ValidateToken( string accessToken);
         Task<List<UserDto>> GetList_Users(int skip, int take, string data);
         Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
+        Task<Users> Get_User_byUserNameEmail(string userName,string email);
         Task<UserDto> ChangePassw(Users user);
 
     }
