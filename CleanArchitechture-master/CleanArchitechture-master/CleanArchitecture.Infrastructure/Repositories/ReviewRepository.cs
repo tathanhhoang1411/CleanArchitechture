@@ -134,7 +134,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             .ToListAsync();
                 if (list.Count() == 0)
                 {
-                    return nll;
+                    return null;
                 }
                 // Trả về danh sách đã ánh xạ
                 return list;
