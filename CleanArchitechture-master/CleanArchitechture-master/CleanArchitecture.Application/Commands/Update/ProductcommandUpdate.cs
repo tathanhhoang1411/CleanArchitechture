@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Update
 {
 
-    public class ProductcommandUpdate : IRequest<ProductDto>
+    public class ProductcommandUpdate : IRequest<ProductsDto>
     {
         public string? ProductName { get; set; }
         public decimal Price { get; set; }
@@ -25,14 +25,14 @@ namespace CleanArchitecture.Application.Commands.Update
         public string? ProductImage3 { get; set; }
         public string? ProductImage4 { get; set; }
         public string? ProductImage5 { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<ProductcommandUpdate, ProductDto>
+        public class CreateProductCommandHandler : IRequestHandler<ProductcommandUpdate, ProductsDto>
         {
             private readonly IProductServices _productServices;
             public CreateProductCommandHandler(IProductServices productServices)
             {
                 _productServices = productServices;
             }
-            public async Task<ProductDto> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
+            public async Task<ProductsDto> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
             {
 
                 try
@@ -51,12 +51,12 @@ namespace CleanArchitecture.Application.Commands.Update
                         ProductId = command.ProductId
                     };
 
-                    ProductDto proddto=await _productServices.Product_Update(product);
+                    ProductsDto proddto=await _productServices.Product_Update(product);
                     return proddto;
                 }
                 catch
                 {
-                    return new ProductDto();
+                    return new ProductsDto();
                 }
             }
 

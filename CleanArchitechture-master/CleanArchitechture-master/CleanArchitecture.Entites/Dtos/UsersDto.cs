@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Entites.Dtos
 {
-    public class UserDto: IUserDto
+    public class UsersDto: IUserDto
     {
         [Required(ErrorMessage = "Username is required.")]
         [StringLength(5, ErrorMessage = "Username must be at least 5 and at most 100 characters long.", MinimumLength = 5)]

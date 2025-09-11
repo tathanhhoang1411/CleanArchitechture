@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Application.Query.Utilities;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Entites.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,9 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.IRepository
 {
-    public interface IReviewServices
+    public interface ICommentServices
     {
-        Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID);
-        Task<ReviewsDto> Review_Create(Reviews review);
-        Task<int> Review_Del(int reviewID, long userID);
-        Task<List<Reviews>> GetList_Reviews_ByOwner(int reviewID, long userID);
+
+        Task<List<CommentsDto>> GetList_Comment_ByOwner(int skip, int take, string str, long userID);
     }
 }

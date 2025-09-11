@@ -39,5 +39,25 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
+        public async Task<List<Comments>> GetListComment(int skip, int take, string str, long userID)
+        {
+            try
+            {
+                // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo userID
+                var listComment = await _userContext.Comments
+                    .Where(p => p.UserId == userID && (string.IsNullOrEmpty(str) || p.CommentText.Contains(str)))
+                    .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+
+
+                return listComment; // Trả về danh sách sản phẩm đã xóa
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

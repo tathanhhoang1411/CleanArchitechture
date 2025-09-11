@@ -22,13 +22,13 @@ namespace CleanArchitecture.Application.Repository
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public async Task<List<ProductDto>> GetList_Products(int skip, int take, string data)
+        public async Task<List<ProductsDto>> GetList_Products(int skip, int take, string data)
         {
-            List<ProductDto> listProductdto=null;
+            List<ProductsDto> listProductdto=null;
             try
             {
                 List<Products> listProduct = await _unitOfWork.Products.GetListProducts(skip, take, data);
-                return _mapper.Map<List<ProductDto>>(listProduct);
+                return _mapper.Map<List<ProductsDto>>(listProduct);
             }
             catch
             {
@@ -36,14 +36,14 @@ namespace CleanArchitecture.Application.Repository
             }
         }
 
-        public async Task<ProductDto> Product_Create(Products product)
+        public async Task<ProductsDto> Product_Create(Products product)
         {
-            ProductDto dto = null;
+            ProductsDto dto = null;
             try
             {
                 await _unitOfWork.Products.CreateProduct(product);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<ProductDto>(product);
+                return _mapper.Map<ProductsDto>(product);
 
             } 
             catch
@@ -51,27 +51,27 @@ namespace CleanArchitecture.Application.Repository
                 return dto;
             }
         }
-        public async Task<ProductDto> GetA_Products(int reviewId)
+        public async Task<ProductsDto> GetA_Products(int reviewId)
         {
-            ProductDto dto = null;
+            ProductsDto dto = null;
             try
             {
                 Products prod = await _unitOfWork.Products.GetAProducts(reviewId);
-                return _mapper.Map<ProductDto>(prod);
+                return _mapper.Map<ProductsDto>(prod);
             }
             catch
             {
                 return dto;
             }
         }
-        public async Task<ProductDto> Product_Update(Products product)
+        public async Task<ProductsDto> Product_Update(Products product)
         {
-            ProductDto dto = null;
+            ProductsDto dto = null;
             try
             {
                 Products prod = await _unitOfWork.Products.ProductUpdate(product);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<ProductDto>(prod);
+                return _mapper.Map<ProductsDto>(prod);
             }catch
             {
                 return dto;

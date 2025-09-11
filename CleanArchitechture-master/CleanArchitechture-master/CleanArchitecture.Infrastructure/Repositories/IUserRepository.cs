@@ -10,7 +10,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
 {
     public interface IUserRepository
     {
-        Task<Users> Login(UserDto user);
+        Task<Users> Login(UsersDto user);
         Task<Boolean> SaveToken(Users user,string accessToken);
         Task<Users> CreateUser(Users user);
         Task<Boolean> DeleteUser(Users user);

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Create
 {
 
-    public class ProductCommand : IRequest<ProductDto>
+    public class ProductCommand : IRequest<ProductsDto>
     {
         public string? ProductName { get; set; }
         public decimal Price { get; set; }
@@ -25,16 +25,16 @@ namespace CleanArchitecture.Application.Commands.Create
         public string? ProductImage3 { get; set; }
         public string? ProductImage4 { get; set; }
         public string? ProductImage5 { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<ProductCommand, ProductDto>
+        public class CreateProductCommandHandler : IRequestHandler<ProductCommand, ProductsDto>
         {
             private readonly IProductServices _productServices;
             public CreateProductCommandHandler(IProductServices productServices)
             {
                 _productServices = productServices??throw new ArgumentNullException(nameof(productServices));
             }
-            public async Task<ProductDto> Handle(ProductCommand command, CancellationToken cancellationToken)
+            public async Task<ProductsDto> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
-                    ProductDto prodDto=null;
+                    ProductsDto prodDto=null;
                 try
                 {
                     DateTime dateTime = DateTime.Now;

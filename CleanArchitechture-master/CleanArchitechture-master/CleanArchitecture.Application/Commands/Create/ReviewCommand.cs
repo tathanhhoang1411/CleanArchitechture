@@ -13,21 +13,21 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Create
 {
 
-    public class ReviewCommand : IRequest<ReviewDto>
+    public class ReviewCommand : IRequest<ReviewsDto>
     {
         public long OwnerID { get; set; }
         public double Rating { get; set; }
         public string? ReviewText { get; set; }
-        public class CreateReviewCommandHandler : IRequestHandler<ReviewCommand, ReviewDto>
+        public class CreateReviewCommandHandler : IRequestHandler<ReviewCommand, ReviewsDto>
         {
             private readonly IReviewServices _reviewServices;
             public CreateReviewCommandHandler(IReviewServices reviewServices)
             {
                 _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
             }
-            public async Task<ReviewDto> Handle(ReviewCommand command, CancellationToken cancellationToken)
+            public async Task<ReviewsDto> Handle(ReviewCommand command, CancellationToken cancellationToken)
             {
-                    ReviewDto Reviewdto=null;
+                    ReviewsDto Reviewdto=null;
                 try
                 {
                     DateTime dateTime = DateTime.Now;

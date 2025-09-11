@@ -49,14 +49,14 @@ namespace CleanArchitecture.Application.Repository
             }
         }
 
-        public async Task<ReviewDto> Review_Create(Reviews review)
+        public async Task<ReviewsDto> Review_Create(Reviews review)
         {
-            ReviewDto reviewDto = null;
+            ReviewsDto reviewDto = null;
             try
             {
                 await _unitOfWork.Reviews.CreateReview(review);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<ReviewDto>(review);
+                return _mapper.Map<ReviewsDto>(review);
             }
             catch
             {

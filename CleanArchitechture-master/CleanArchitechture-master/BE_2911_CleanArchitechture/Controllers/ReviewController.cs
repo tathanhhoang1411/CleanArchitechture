@@ -75,9 +75,9 @@ namespace BE_2911_CleanArchitechture.Controllers
                 #endregion
                 //Select review 
                 this._logger.LogInformation(UserID.ToString(), "Reviewlist");
-                QueryReview queryReview = new QueryReview();
+                QueryEF queryReview = new QueryEF();
                 queryReview.str= request.RequestData;
-                queryReview.userID = UserID;
+                queryReview.ID = UserID;
                 var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
                 // Kiểm tra xem việc lấy danh sách có thành công không
                 if (list.Count()==0)
@@ -132,7 +132,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 this._logger.LogInformation(UserID.ToString(), "CreateAReview");
                 command.OwnerID = UserID;
-                ReviewDto aReviewDto = await _mediator.Send(command);
+                ReviewsDto aReviewDto = await _mediator.Send(command);
                 // Kiểm tra xem việc tạo có thành công không
                 if (aReviewDto == null)
                 {
@@ -142,7 +142,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<ReviewDto>(aReviewDto));
+                return Ok(new ApiResponse<ReviewsDto>(aReviewDto));
 
             }
             catch (Exception ex)

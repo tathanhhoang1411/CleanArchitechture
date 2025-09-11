@@ -117,7 +117,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 command.ProductImage3= listRootImage[2];
                 command.ProductImage4= listRootImage[3];
                 command.ProductImage5= listRootImage[4];
-                ProductDto aProduct;
+                ProductsDto aProduct;
                     aProduct = await _mediator.Send(command);
                 // Kiểm tra xem việc tạo có thành công không
                 if (aProduct == null)
@@ -128,7 +128,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                
 
-                return Ok(new ApiResponse<ProductDto>(aProduct));
+                return Ok(new ApiResponse<ProductsDto>(aProduct));
 
             }
             catch (Exception ex)

@@ -10,10 +10,11 @@ namespace BE_2911_CleanArchitechture.Handler
         public MappingProfile()
         {
             //CreateMap<TblCustomer, CustomerEntity>().ForMember(item => item.StatusName, item => item.MapFrom(s => s.IsActive == true ? "Active" : "In Active"));
-            CreateMap<ProductDto, Products>().ReverseMap();
-            CreateMap<LoginQuery, UserDto>();
-            CreateMap<UserDto, Users>().ReverseMap();
-            CreateMap<ReviewDto, Reviews>().ReverseMap();
+            CreateMap<ProductsDto, Products>().ReverseMap();
+            CreateMap<LoginQuery, UsersDto>();
+            CreateMap<UsersDto, Users>().ReverseMap();
+            CreateMap<ReviewsDto, Reviews>().ReverseMap();
+            CreateMap<CommentsDto, Comments>().ReverseMap();
             //CreateMap<TblSalesProductInfo, InvoiceDetail>().ReverseMap();
             //CreateMap<TblProduct, ProductEntity>().ReverseMap();
             //CreateMap<TblProductvarinat, ProductVariantEntity>().ReverseMap();

@@ -11,5 +11,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
     public interface ICommentRepository
     {
         Task<List<Comments>> DelListComment(int reviewID);
+        Task<List<Comments>> GetListComment(int skip, int take, string str, long userID);
     }
 }

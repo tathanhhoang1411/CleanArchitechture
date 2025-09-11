@@ -15,12 +15,12 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Update
 {
 
-    public class ResetPasswordUserCommand : IRequest<UserDto>
+    public class ResetPasswordUserCommand : IRequest<UsersDto>
     {
         public string Username { get; set; }
         public string Email { get; set; }
         public string NewPassword { get; set; }
-        public class ResetPasswordUserCommandHandler : IRequestHandler<ResetPasswordUserCommand, UserDto>
+        public class ResetPasswordUserCommandHandler : IRequestHandler<ResetPasswordUserCommand, UsersDto>
         {
             private readonly IUserServices _userServices;
             public ResetPasswordUserCommandHandler(IUserServices userServices)
@@ -28,9 +28,9 @@ namespace CleanArchitecture.Application.Commands.Update
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 
             }
-            public async Task<UserDto> Handle(ResetPasswordUserCommand command, CancellationToken cancellationToken)
+            public async Task<UsersDto> Handle(ResetPasswordUserCommand command, CancellationToken cancellationToken)
             {
-                UserDto resultUpdpasswUser = null;
+                UsersDto resultUpdpasswUser = null;
                 try
                 {
                     Users user = new Users();
@@ -39,7 +39,7 @@ namespace CleanArchitecture.Application.Commands.Update
                     Users aUser = await _userServices.Get_User_byUserNameEmail(user.Username, user.Email);
                     if (aUser == null)//Nếu tài khoản không tồn tại
                     {
-                        return new UserDto();
+                        return new UsersDto();
                     }
                     aUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(command.NewPassword);
                     resultUpdpasswUser = await _userServices.ChangePassw(aUser);

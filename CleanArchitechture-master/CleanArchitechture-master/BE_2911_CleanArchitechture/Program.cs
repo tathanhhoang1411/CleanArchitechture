@@ -60,6 +60,7 @@ builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
 builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
 builder.Services.AddTransient<IReviewServices, ReviewServices>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<ICommentServices, CommentServices>();
 builder.Services.AddTransient<ICommentRepository, CommentRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();

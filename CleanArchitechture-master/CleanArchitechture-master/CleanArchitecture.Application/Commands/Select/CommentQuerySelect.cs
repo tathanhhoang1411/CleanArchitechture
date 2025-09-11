@@ -14,32 +14,34 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Select
 {
 
-    public class ReviewQuerySelect : IRequest<List<object>>
+    public class CommentQuerySelect : IRequest<List<CommentsDto>>
     {
         public int Skip { get; set; }
         public int Take { get; set; }
         public QueryEF Data { get; set; }
 
-        public ReviewQuerySelect(int skip, int take, QueryEF data)
+        public CommentQuerySelect(int skip, int take, QueryEF data)
         {
             Skip = skip;
             Take = take;
             Data = data;
         }
-        public class ReviewQuerySelectHandler : IRequestHandler<ReviewQuerySelect, List<object>>
+        public int ReviewID { get; set; }
+        public class CommentQuerySelectHandler : IRequestHandler<CommentQuerySelect, List<CommentsDto>>
         {
-            private readonly IReviewServices _reviewServices;
-            public ReviewQuerySelectHandler(IReviewServices reviewServices)
+            private readonly ICommentServices _commetServices;
+            public CommentQuerySelectHandler(ICommentServices commentServices)
             {
-                _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
+                _commetServices = commentServices ?? throw new ArgumentNullException(nameof(commentServices));
             }
-            public async Task<List<object>> Handle(ReviewQuerySelect query, CancellationToken cancellationToken)
+
+            public async Task<List<CommentsDto>> Handle(CommentQuerySelect query, CancellationToken cancellationToken)
             {
                 try
                 {
-                    var ReviewDtoList = await _reviewServices.GetList_Reviews(query.Skip, query.Take, query.Data.str, query.Data.ID);
+                    var CommentDtoList = await _commetServices.GetList_Comment_ByOwner(query.Skip, query.Take, query.Data.str, query.Data.ID);
 
-                    return ReviewDtoList ?? new List<object>(); // Trả về danh sách rỗng nếu không có bài review
+                    return CommentDtoList ?? new List<CommentsDto>(); // Trả về danh sách rỗng nếu không có bài review
                 }
                 catch
                 {

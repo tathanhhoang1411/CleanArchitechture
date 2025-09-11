@@ -136,12 +136,12 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public async Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
+        public async Task<List<UsersDto>> GetList_Users(int skip, int take,  string data)
         {
             try
             {
                 List<Users> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
-                return _mapper.Map<List<UserDto>>(listUser);
+                return _mapper.Map<List<UsersDto>>(listUser);
             }
             catch
             {
@@ -187,45 +187,45 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public async Task<UserDto> CreateUser(Users user)
+        public async Task<UsersDto> CreateUser(Users user)
         {
 
-            UserDto userDto = null;
+            UsersDto userDto = null;
             try
             {
                  await _unitOfWork.Users.CreateUser(user);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UsersDto>(user);
             }
             catch
             {
                 return userDto;
             }
         }         
-        public async Task<UserDto> ChangePassw(Users user)
+        public async Task<UsersDto> ChangePassw(Users user)
         {
 
-            UserDto aUser = null;
+            UsersDto aUser = null;
             try
             {
                 await _unitOfWork.Users.ChangePassw(user);
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UsersDto>(user);
             }
             catch
             {
                 return aUser;
             }
         }      
-        public async Task<UserDto> DelUser(Users user)
+        public async Task<UsersDto> DelUser(Users user)
         {
-            UserDto userDto = null;
+            UsersDto userDto = null;
             try
             {
                 await _unitOfWork.Users.DeleteUser(user);
                 user.Status = false;
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UsersDto>(user);
             }
             catch
             {
@@ -233,15 +233,15 @@ namespace CleanArchitecture.Application.Services
             }
             
         }
-        public async Task<UserDto> ActiveUser(Users user)
+        public async Task<UsersDto> ActiveUser(Users user)
         {
-            UserDto userDto = null;
+            UsersDto userDto = null;
             try
             {
                 await _unitOfWork.Users.ActiveUser(user);
                 user.Status = true;
                 await _unitOfWork.CompleteAsync();
-                return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UsersDto>(user);
             }
             catch
             {

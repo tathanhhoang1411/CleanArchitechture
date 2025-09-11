@@ -99,7 +99,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 _logger.LogInformation(UserID.ToString(), "GetAllUser");
                 var list = await _mediator.Send(new GetAllUserQuery(request.Skip, request.Take,request.RequestData));
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<UserDto>>(list));
+                return Ok(new ApiResponse<List<UsersDto>>(list));
 
             }
             catch (Exception ex)
@@ -123,7 +123,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     UserCommand.Username.Trim();
                     UserCommand.Password.Trim();
                     UserCommand.Email.Trim();
-                    UserDto userDto = await _mediator.Send(UserCommand);
+                    UsersDto userDto = await _mediator.Send(UserCommand);
 
                     if (userDto == null)
                     {
@@ -138,7 +138,7 @@ namespace BE_2911_CleanArchitecture.Controllers
 
                     }
                     userDto.Password = UserCommand.Password;
-                    return Ok(new ApiResponse<UserDto>(userDto));
+                    return Ok(new ApiResponse<UsersDto>(userDto));
                 }
                 catch (Exception ex)
                 {
@@ -184,7 +184,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "DeleteAUser");
-                UserDto userDto = await _mediator.Send(command);
+                UsersDto userDto = await _mediator.Send(command);
                 // Kiểm tra xem tài khoản có tồn tại hay không
                 if (userDto.Email == null)
                 {
@@ -194,7 +194,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+                return Ok(new ApiResponse<List<UsersDto>>(new List<UsersDto> { userDto }));
 
             }
             catch (Exception ex)
@@ -235,7 +235,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "DeleteAUser");
-                UserDto userDto = await _mediator.Send(command);
+                UsersDto userDto = await _mediator.Send(command);
                 // Kiểm tra xem tài khoản có tồn tại hay không
                 if (userDto.Email == null)
                 {
@@ -245,7 +245,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+                return Ok(new ApiResponse<List<UsersDto>>(new List<UsersDto> { userDto }));
 
             }
             catch (Exception ex)
@@ -286,7 +286,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "UpdPasswordUser");
-                UserDto userDto = await _mediator.Send(command);
+                UsersDto userDto = await _mediator.Send(command);
                 // Kiểm tra xem tài khoản có tồn tại hay không
                 if (userDto.Email == null)
                 {
@@ -296,7 +296,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+                return Ok(new ApiResponse<List<UsersDto>>(new List<UsersDto> { userDto }));
 
             }
             catch (Exception ex)
@@ -337,7 +337,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 }
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "UpdPasswordUser");
-                UserDto userDto = await _mediator.Send(command);
+                UsersDto userDto = await _mediator.Send(command);
                 // Kiểm tra xem tài khoản có tồn tại hay không
                 if (userDto.Email == null)
                 {
@@ -347,7 +347,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<UserDto>>(new List<UserDto> { userDto }));
+                return Ok(new ApiResponse<List<UsersDto>>(new List<UsersDto> { userDto }));
 
             }
             catch (Exception ex)

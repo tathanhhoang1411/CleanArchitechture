@@ -22,7 +22,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             
         }
         //Trả về 1 user
-        public async Task<Users> Login(UserDto userDto)
+        public async Task<Users> Login(UsersDto userDto)
         {
             Users? user = null;
             try

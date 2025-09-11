@@ -15,12 +15,12 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Create
 {
 
-    public class UserCommand : IRequest<UserDto>
+    public class UserCommand : IRequest<UsersDto>
     {
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
-        public class CreateUserCommandHandler : IRequestHandler<UserCommand, UserDto>
+        public class CreateUserCommandHandler : IRequestHandler<UserCommand, UsersDto>
         {
             private readonly IUserServices _userServices;
             public CreateUserCommandHandler(IUserServices userServices)
@@ -28,7 +28,7 @@ namespace CleanArchitecture.Application.Commands.Create
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 
             }
-            public async Task<UserDto> Handle(UserCommand command, CancellationToken cancellationToken)
+            public async Task<UsersDto> Handle(UserCommand command, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -46,17 +46,17 @@ namespace CleanArchitecture.Application.Commands.Create
                     {
                         return null;
                     }
-                    UserDto resultCreateUser = await _userServices.CreateUser(user);
+                    UsersDto resultCreateUser = await _userServices.CreateUser(user);
                     string accessToken = _userServices.MakeToken(user);
                     if (accessToken == null || accessToken == "")
                     {
-                        return new UserDto();
+                        return new UsersDto();
                     }
                     user.Token = accessToken;
                     bool resultSaveToken = await _userServices.SaveToken(user, accessToken);
                     if (resultSaveToken == false)
                     {
-                        return new UserDto();
+                        return new UsersDto();
                     }
                     return resultCreateUser;
                 }

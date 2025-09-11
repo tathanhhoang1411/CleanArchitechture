@@ -15,11 +15,11 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Application.Commands.Delete
 {
 
-    public class UpdStatusUserCommand : IRequest<UserDto>
+    public class UpdStatusUserCommand : IRequest<UsersDto>
     {
         public string Username { get; set; }
         public string Email { get; set; }
-        public class DelUserCommandHandler : IRequestHandler<UpdStatusUserCommand, UserDto>
+        public class DelUserCommandHandler : IRequestHandler<UpdStatusUserCommand, UsersDto>
         {
             private readonly IUserServices _userServices;
             public DelUserCommandHandler(IUserServices userServices)
@@ -27,9 +27,9 @@ namespace CleanArchitecture.Application.Commands.Delete
                 _userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
 
             }
-            public async Task<UserDto> Handle(UpdStatusUserCommand command, CancellationToken cancellationToken)
+            public async Task<UsersDto> Handle(UpdStatusUserCommand command, CancellationToken cancellationToken)
             {
-                UserDto resultDelUser = null;
+                UsersDto resultDelUser = null;
                 try
                 {
                     Users user = new Users();
@@ -38,7 +38,7 @@ namespace CleanArchitecture.Application.Commands.Delete
                     Users isExistUser = await _userServices.CheckExistUser(user);
                     if (isExistUser == null)//Nếu tài khoản cần xóa không tồn tại
                     {
-                        return new UserDto();
+                        return new UsersDto();
                     }
                     resultDelUser = await _userServices.DelUser(user);
                     return resultDelUser;
