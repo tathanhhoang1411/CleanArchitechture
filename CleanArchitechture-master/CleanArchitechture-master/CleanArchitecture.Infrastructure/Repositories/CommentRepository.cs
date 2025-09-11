@@ -45,7 +45,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo userID
                 var listComment = await _userContext.Comments
-                    .Where(p => p.UserId == userID && (string.IsNullOrEmpty(str) || p.CommentText.Contains(str)))
+                    .Where(p => p.UserId == userID && p.CommentText.Contains(str))
                     .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
                     .Skip(skip)
                     .Take(take)
@@ -57,6 +57,19 @@ namespace CleanArchitecture.Infrastructure.Repositories
             catch
             {
                 return null;
+            }
+        }      
+        public async Task<Comments> CreateAComment(Comments comment)
+        {
+            try
+            {
+                await _userContext.AddAsync(comment);
+                return comment;
+            }
+            catch
+            {
+                return null;
+
             }
         }
     }

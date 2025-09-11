@@ -10,7 +10,7 @@ namespace CleanArchitecture.Entites.Entites
     public class Comments
     {
         [Key]
-        public int CommentId { get; set; }
+        public long CommentId { get; set; }
         public int ReviewId { get; set; }
         public long UserId { get; set; }
         public string CommentText { get; set; }

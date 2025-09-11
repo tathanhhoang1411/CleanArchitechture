@@ -57,11 +57,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         }
 
-        public class QueryReview
-        {
-            public string? str { get; set; }
-            public int userID { get; set; }
-        }
         public async Task<List<object>> GetListReviews(int skip, int take, string str, long userID)
         {
             List<object> list = null;

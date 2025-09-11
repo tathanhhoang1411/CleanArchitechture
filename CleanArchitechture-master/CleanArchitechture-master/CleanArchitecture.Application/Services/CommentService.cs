@@ -35,6 +35,20 @@ namespace CleanArchitecture.Application.Repository
                 return null;
             }
         }
+        public async Task<CommentsDto> Comment_Create(Comments comments)
+        {
+            Comments comment=null;
+            try
+            {
+                comment = await _unitOfWork.Comments.CreateAComment(comments);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<CommentsDto>(comment);
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
     }
 }

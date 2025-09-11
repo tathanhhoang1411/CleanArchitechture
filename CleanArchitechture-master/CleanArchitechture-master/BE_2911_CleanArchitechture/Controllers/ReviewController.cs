@@ -85,7 +85,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "Review list error", null);
                     var errors = new List<string> { "Review list error" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<object>>(list));

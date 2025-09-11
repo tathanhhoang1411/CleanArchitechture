@@ -9,7 +9,7 @@ namespace CleanArchitecture.Entites.Dtos
 {
     public class CommentsDto: ICommentDto
     {
-        public int CommentId { get; set; }
+        public long CommentId { get; set; }
         public int ReviewId { get; set; }
         public string CommentText { get; set; }
         public DateTime CreatedAt { get; set; }

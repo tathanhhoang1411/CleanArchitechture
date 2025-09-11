@@ -123,7 +123,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 if (aProduct == null)
                 {
                     var errors = new List<string> { "Create product error" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                

@@ -96,6 +96,62 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
         }
         #endregion
+        //Tạo comment 
+        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
+        [HttpPost("CreateAComment")]
+        [Authorize(Policy = "RequireUserRole")]
+        #region
+        public async Task<IActionResult> CreateAComment([FromBody] CommentCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Kiểm tra userID có tồn tại không 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                //Tạo comment
+
+                this._logger.LogInformation(UserID.ToString(), "CreateAComment");
+                command.OwnerID = UserID;
+                CommentsDto aCommentDto = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aCommentDto == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "Create comment error", null);
+                    var errors = new List<string> { "Create comment error" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<CommentsDto>(aCommentDto));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                this._logger.LogError(UserID.ToString(), "Internal server error", ex);
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+
+        }
+        #endregion
 
     }
 }
