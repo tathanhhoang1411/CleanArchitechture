@@ -21,22 +21,14 @@ namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
     {
-        //public string HashPassword(string password)
-        //{
-        //    return BCrypt.Net.BCrypt.HashPassword(password);
-        //}
-
-        //public void RegisterUser(string password)
-        //{
-        //    string hashedPassword = HashPassword(password);
-        //    // Lưu hashedPassword vào cơ sở dữ liệua
-        //}
         private  IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
-        public UserService(IConfiguration configuration, IUserRepository userRepository)
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _userRepository = userRepository;
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public string MakeToken(Users user)
@@ -64,10 +56,20 @@ namespace CleanArchitecture.Application.Services
             var encodeToken = new JwtSecurityTokenHandler().WriteToken(token);
             return encodeToken;
         }
-        public Task<Boolean> SaveToken(Users user, string accessToken)
+        public async Task<Boolean> SaveToken(Users user, string accessToken)
         {
-
-            return _userRepository.SaveToken(user, accessToken);
+            Boolean result= false;
+            try
+            {
+                result=await _unitOfWork.Users.SaveToken(user, accessToken);
+                if (!result) { return result; }
+                await _unitOfWork.CompleteAsync();
+                return result;
+            }
+            catch
+            {
+                return result;
+            }
         }     
         public async Task<long> GetUserIDInTokenFromRequest(string tokenJWT)
         {
@@ -86,10 +88,10 @@ namespace CleanArchitecture.Application.Services
                 users.Username = userName;
                 users.UserId = long.Parse(userId);
                 users.Email = email;
-                Task<bool> checkUser=_userRepository.CheckExistUser(users);
+                Task<Users> checkUser= _unitOfWork.Users.CheckExistUser(users);
                 // Đợi để lấy giá trị bool từ Task
-                bool resultFromTask = await checkUser;
-                if (!resultFromTask)
+                Users resultFromTask = await checkUser;
+                if (!resultFromTask.Status)
                 {
                     return result;
                 }
@@ -134,21 +136,118 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public Task<List<UserDto>> GetList_Users(int skip, int take,  string data)
+        public async Task<List<UsersDto>> GetList_Users(int skip, int take,  string data)
         {
-            return _userRepository.GetListUsers(skip, take,data);
+            try
+            {
+                List<Users> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
+                return _mapper.Map<List<UsersDto>>(listUser);
+            }
+            catch
+            {
+                return null;
+            }
         }
-        public Task<Boolean> CheckExistUser(Users user)
+        public async Task<Users> CheckExistUser(Users user)
         {
-            return _userRepository.CheckExistUser(user);
-        }
-        public Task<Users> CreateUser(Users user)
-        {
-            return _userRepository.CreateUser(user);
+            Users aUser = null;
+            try
+            {
+                aUser = await _unitOfWork.Users.CheckExistUser(user);
+                if (aUser!= null)
+                {
+                    return aUser;
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }      
-        public Task<Boolean> DelUser(Users user)
+        public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord)
         {
-            return _userRepository.DeleteUser(user);
+            try
+            {
+                return await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
+            }
+            catch
+            {
+                return null;
+            }
+        }     
+        public async Task<Users> Get_User_byUserNameEmail(string userName,string email)
+        {
+            try
+            {
+                return await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<UsersDto> CreateUser(Users user)
+        {
+
+            UsersDto userDto = null;
+            try
+            {
+                 await _unitOfWork.Users.CreateUser(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UsersDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+        }         
+        public async Task<UsersDto> ChangePassw(Users user)
+        {
+
+            UsersDto aUser = null;
+            try
+            {
+                await _unitOfWork.Users.ChangePassw(user);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UsersDto>(user);
+            }
+            catch
+            {
+                return aUser;
+            }
+        }      
+        public async Task<UsersDto> DelUser(Users user)
+        {
+            UsersDto userDto = null;
+            try
+            {
+                await _unitOfWork.Users.DeleteUser(user);
+                user.Status = false;
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UsersDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+            
+        }
+        public async Task<UsersDto> ActiveUser(Users user)
+        {
+            UsersDto userDto = null;
+            try
+            {
+                await _unitOfWork.Users.ActiveUser(user);
+                user.Status = true;
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<UsersDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+            
         }
 
     }

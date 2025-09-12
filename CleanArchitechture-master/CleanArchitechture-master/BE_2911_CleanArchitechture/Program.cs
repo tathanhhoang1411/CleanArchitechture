@@ -28,6 +28,29 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TATHANHHOANG API", Version = "v1", Description= "tathanhhoang.work@gmail.com" });
     c.EnableAnnotations(); // Kích hoạt Annotations
+                           // Thêm cấu hình cho token
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter your token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
 });
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(
                             builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
@@ -37,6 +60,8 @@ builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
 builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
 builder.Services.AddTransient<IReviewServices, ReviewServices>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<ICommentServices, CommentServices>();
+builder.Services.AddTransient<ICommentRepository, CommentRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserService>();

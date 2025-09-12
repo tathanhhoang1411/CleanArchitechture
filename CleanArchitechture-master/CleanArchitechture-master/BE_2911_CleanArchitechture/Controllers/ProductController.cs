@@ -35,9 +35,8 @@ namespace BE_2911_CleanArchitechture.Controllers
         private readonly IMediator _mediator;
         private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
-        private readonly IMapper _mapper;
 
-        public ProductController(IMapper mapper,IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
+        public ProductController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
@@ -45,7 +44,6 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
-            this._mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         //Tạo sản phẩm:
         //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
@@ -54,6 +52,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         [Authorize(Policy = "RequireAdminOrUserRole")]
                 [SwaggerOperation(Summary = "Tạo các thông tin review sản phẩm+ảnh",
                       Description = "")]
+        #region
         public async Task<IActionResult> CreateAProductReview([FromForm]  ProductCommand command)
         {
             long UserID = 0;
@@ -76,22 +75,11 @@ namespace BE_2911_CleanArchitechture.Controllers
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
                 }
                 #endregion
-                #region
 
                 //B1: Tạo sản phẩm 
 
                 this._logger.LogInformation(UserID.ToString(), "CreateProduct");
                 command.OwnerID = UserID;
-                Products aProduct = await _mediator.Send(command);
-                // Kiểm tra xem việc tạo có thành công không
-                if (aProduct == null)
-                {
-                    var errors = new List<string> { "Create product error" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                this._logger.LogInformation(UserID.ToString(), "Result: true");
-                //ở trên là tạo bài nhưng chưa có ảnh sản phẩm
-                //B2:Update tạo bài =>lưu ảnh (chỉ cho người dùng có thể upload tối đa 5 ảnh)
                 int temp = 1;
                 List<string> listRootImage = new List<string>();
                 var _uploadedfiles = Request.Form.Files;
@@ -124,39 +112,23 @@ namespace BE_2911_CleanArchitechture.Controllers
                     }
                     temp++;
                 }
-                #endregion
-                //B3: Cập nhật đường dẫn ảnh lên server
-                this._logger.LogInformation(UserID.ToString(), "UpDateImgProduct");
-                aProduct.ProductImage1  = listRootImage[0];
-                aProduct.ProductImage2 = listRootImage[1];
-                aProduct.ProductImage3  = listRootImage[2];
-                aProduct.ProductImage4  = listRootImage[3];
-                aProduct.ProductImage5  = listRootImage[4];
-                //Update 
-                ProductcommandUpdate productcommandUpdate = new ProductcommandUpdate();
-                productcommandUpdate.ProductId = aProduct.ProductId;
-                productcommandUpdate.ReviewID= aProduct.ReviewID;
-                productcommandUpdate.ProductName= aProduct.ProductName;
-                productcommandUpdate.OwnerID= aProduct.OwnerID;
-                productcommandUpdate.Price= aProduct.Price;
-                productcommandUpdate.ProductImage1=aProduct.ProductImage1;
-                productcommandUpdate.ProductImage2 = aProduct.ProductImage2;
-                productcommandUpdate.ProductImage3=aProduct.ProductImage3;
-                productcommandUpdate.ProductImage4=aProduct.ProductImage4;
-                productcommandUpdate.ProductImage5=aProduct.ProductImage5;
-
-                Products aProductUpdate = await _mediator.Send(productcommandUpdate);
-                // Kiểm tra xem việc update có thành công không
-                if (aProductUpdate == null)
+                command.ProductImage1 = listRootImage[0];
+                command.ProductImage2= listRootImage[1];
+                command.ProductImage3= listRootImage[2];
+                command.ProductImage4= listRootImage[3];
+                command.ProductImage5= listRootImage[4];
+                ProductsDto aProduct;
+                    aProduct = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aProduct == null)
                 {
-                    var errors = new List<string> { "Update product error" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    var errors = new List<string> { "Create product error" };
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
+               
 
-                ProductDto aProductdto = _mapper.Map<ProductDto>(aProductUpdate);
-
-                return Ok(new ApiResponse<ProductDto>(aProductdto));
+                return Ok(new ApiResponse<ProductsDto>(aProduct));
 
             }
             catch (Exception ex)
@@ -170,6 +142,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
 
         }
+        #endregion
         [NonAction]
         private string GetFilePath(string userID,string flag,int reviewId)
         {

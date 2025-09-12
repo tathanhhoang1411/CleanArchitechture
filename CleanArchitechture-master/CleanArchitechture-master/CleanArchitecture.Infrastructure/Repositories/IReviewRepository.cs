@@ -10,7 +10,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
 {
     public interface IReviewRepository
     {
-        Task<int> CreateReview(Reviews createReview);
+        Task<Reviews> CreateReview(Reviews createReview);
+        Task<int> DelReview(int reviewID);
+        Task<List<Reviews>> GetListReviewsByOwnerID(int reviewID, long ownerID); 
         Task<List<object>> GetListReviews(int skip, int take, string str , long userID);
     }
 }

@@ -21,9 +21,9 @@ namespace CleanArchitecture.Application.Query.Utilities
             RequestData = requestData;
         }
     }
-    public class QueryReview
+    public class QueryEF
     {
         public string? str { get; set; }
-        public long userID { get; set; }
+        public long ID { get; set; }
     }
 }

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Query
 {
-    public class GetAllUserQuery : IRequest<List<UserDto>>
+    public class GetAllUserQuery : IRequest<List<UsersDto>>
     {
         public int Skip { get; set; }
         public int Take { get; set; }
@@ -22,7 +22,7 @@ namespace CleanArchitecture.Application.Query
             Take = take;
             Data = data;
         }
-        public class GetAllUserQueryHandler : IRequestHandler<GetAllUserQuery, List<UserDto>>
+        public class GetAllUserQueryHandler : IRequestHandler<GetAllUserQuery, List<UsersDto>>
         {
 
             private readonly IUserServices _userServices;
@@ -30,10 +30,10 @@ namespace CleanArchitecture.Application.Query
             {
                 _userServices = userServices;
             }
-            public async Task<List<UserDto>> Handle(GetAllUserQuery query, CancellationToken cancellationToken)
+            public async Task<List<UsersDto>> Handle(GetAllUserQuery query, CancellationToken cancellationToken)
             {
                 var userList = await _userServices.GetList_Users(query.Skip, query.Take,query.Data);
-                return userList ?? new List<UserDto>(); // Trả về danh sách rỗng nếu không có sản phẩm
+                return userList ?? new List<UsersDto>(); // Trả về danh sách rỗng nếu không có sản phẩm
             }
         }
     }

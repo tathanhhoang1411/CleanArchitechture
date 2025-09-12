@@ -10,9 +10,10 @@ namespace CleanArchitecture.Infrastructure.Repositories
 {
     public interface IProductRepository
     {
-        Task CreateProduct(Products createProduct);
-        Task<List<ProductDto>> GetListProducts(int skip, int take,string data);
-        Task<ProductDto> GetAProducts(int reviewId);
-        Task<ProductDto> ProductUpdate(Products product);
+        Task<Products> CreateProduct(Products createProduct);
+        Task<List<Products>> GetListProducts(int skip, int take,string data);
+        Task<Products> GetAProducts(int reviewId);
+        Task<Products> ProductUpdate(Products product);
+        Task<List<Products>> DelListProduct(int reviewId);
     }
 }

@@ -1,72 +1,59 @@
-﻿using CleanArchitecture.Infrastructure.DBContext;
+﻿using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Infrastructure.DBContext;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.Infrastructure.Repositories
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork,IDisposable
     {
         private readonly ApplicationContext _context;
-        private IDbContextTransaction _transaction;
+        private bool _disposed = false;
 
+        public IProductRepository Products { get; private set; }
+        public IReviewRepository Reviews { get; private set; }
+        public IUserRepository Users{ get; private set; }
+        public ICommentRepository Comments { get; private set; }
         public UnitOfWork(ApplicationContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            Products = new ProductRepository(_context);
+            Reviews = new ReviewRepository(_context);
+            Users = new UserRepository(_context);
+            Comments = new CommentRepository(_context);
         }
 
-        public async Task BeginTransactionAsync()
+
+        public async Task<int> CompleteAsync()
         {
             try
             {
-                _transaction = await _context.Database.BeginTransactionAsync();
+                return await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                // Log lỗi ở đây nếu cần
-                throw new InvalidOperationException("Could not begin transaction.", ex);
-            }
-        }
-
-        public async Task CommitAsync()
-        {
-            if (_transaction != null)
-            {
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    await _transaction.CommitAsync();
-                }
-                catch (Exception ex)
-                {
-                    // Log lỗi ở đây nếu cần
-                    throw new InvalidOperationException("Could not commit transaction.", ex);
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Transaction has not been started.");
+                // Xử lý lỗi nếu cần thiết
+                throw new Exception("An error occurred while saving changes.", ex);
             }
         }
 
-        public async Task RollbackAsync()
+        public void Dispose()
         {
-            if (_transaction != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                try
+                if (disposing)
                 {
-                    await _transaction.RollbackAsync();
+                    _context.Dispose();
                 }
-                catch (Exception ex)
-                {
-                    // Log lỗi ở đây nếu cần
-                    throw new InvalidOperationException("Could not rollback transaction.", ex);
-                }
-                finally
-                {
-                    _transaction.Dispose(); // Giải phóng tài nguyên
-                    _transaction = null; // Đặt lại biến
-                }
+                _disposed = true;
             }
         }
     }

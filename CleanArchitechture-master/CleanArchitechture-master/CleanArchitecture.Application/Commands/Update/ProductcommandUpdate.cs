@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
 using MediatR;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Update
 {
 
-    public class ProductcommandUpdate : IRequest<Products>
+    public class ProductcommandUpdate : IRequest<ProductsDto>
     {
         public string? ProductName { get; set; }
         public decimal Price { get; set; }
@@ -24,14 +25,14 @@ namespace CleanArchitecture.Application.Commands.Update
         public string? ProductImage3 { get; set; }
         public string? ProductImage4 { get; set; }
         public string? ProductImage5 { get; set; }
-        public class CreateProductCommandHandler : IRequestHandler<ProductcommandUpdate, Products>
+        public class CreateProductCommandHandler : IRequestHandler<ProductcommandUpdate, ProductsDto>
         {
             private readonly IProductServices _productServices;
             public CreateProductCommandHandler(IProductServices productServices)
             {
                 _productServices = productServices;
             }
-            public async Task<Products> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
+            public async Task<ProductsDto> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
             {
 
                 try
@@ -50,12 +51,12 @@ namespace CleanArchitecture.Application.Commands.Update
                         ProductId = command.ProductId
                     };
 
-                    await _productServices.Product_Update(product);
-                    return product;
+                    ProductsDto proddto=await _productServices.Product_Update(product);
+                    return proddto;
                 }
                 catch
                 {
-                    return new Products();
+                    return new ProductsDto();
                 }
             }
 

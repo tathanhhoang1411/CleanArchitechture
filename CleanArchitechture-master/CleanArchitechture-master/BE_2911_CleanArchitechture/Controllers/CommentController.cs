@@ -22,150 +22,32 @@ namespace BE_2911_CleanArchitechture.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewController : ControllerBase
+    public class CommentController : ControllerBase
     {
-        //public ProductController(IProductServices productServices)
-        //{
-        //    _productServices = productServices;
-        //}
         private readonly IWebHostEnvironment _environment;
 
-        private readonly IProductServices _productServices;
+        private readonly ICommentServices _commentServices;
         private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
         private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
-        public ReviewController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
+        public CommentController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, ICommentServices commentServices, IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
+            this._commentServices = commentServices ?? throw new ArgumentNullException(nameof(commentServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
 
-        [HttpPost("GetListReview")]
+        [HttpPost("GetListCommentByOwner")]
         [AllowAnonymous]
-        [SwaggerOperation(Summary = "Lấy danh sách review của tài khoản hiện tại",
-                      Description = "")]
-        [Authorize(Policy = "RequireAdminOrUserRole")]
-        #region
-        public async Task<IActionResult> GetListReview([FromBody] ApiRequest<string> request)
-        {
-            long UserID = 0;
-            try
-            {
-                //Kiểm tra userID có tồn tại không 
-                #region
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
-                if (UserID == 0)
-                {
-                    this._logger.LogError(UserID.ToString(), "Result: false", null);
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                else
-                {
-                    this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
-                #endregion
-                //Select review 
-                this._logger.LogInformation(UserID.ToString(), "Reviewlist");
-                QueryEF queryReview = new QueryEF();
-                queryReview.str= request.RequestData;
-                queryReview.ID = UserID;
-                var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
-                // Kiểm tra xem việc lấy danh sách có thành công không
-                if (list.Count()==0)
-                {
-                    // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Review list error", null);
-                    var errors = new List<string> { "Review list error" };
-                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<List<object>>(list));
-            }
-            catch (Exception ex)
-            {
-
-                // Trả về mã lỗi 500 với thông điệp chi tiết
-                var errors = new List<string> { "Internal server error. Please try again later." };
-                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-
-            }
-        }
-        #endregion
-        //Tạo review 
-        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
-        //Tạo bài viết
-        [HttpPost("CreateAReview")]
-        [Authorize(Policy = "RequireAdminOrUserRole")]
-        #region
-        public async Task<IActionResult> CreateAReview([FromBody]  ReviewCommand command)
-        {
-            long UserID = 0;
-            try
-            {
-                //Kiểm tra userID có tồn tại không 
-                #region
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
-                if (UserID == 0)
-                {
-                    this._logger.LogError(UserID.ToString(), "Result: false", null);
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                else
-                {
-                    this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
-                #endregion
-                //Tạo review
-
-                this._logger.LogInformation(UserID.ToString(), "CreateAReview");
-                command.OwnerID = UserID;
-                ReviewsDto aReviewDto = await _mediator.Send(command);
-                // Kiểm tra xem việc tạo có thành công không
-                if (aReviewDto == null)
-                {
-                    // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Review list error",null);
-                    var errors = new List<string> { "Review list error" };
-                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<ReviewsDto>(aReviewDto));
-
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi
-                this._logger.LogError(UserID.ToString(), "Internal server error", ex);
-
-                // Trả về mã lỗi 500 với thông điệp chi tiết
-                var errors = new List<string> { "Internal server error. Please try again later." };
-                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-            }
-
-        }
-        #endregion
-        //Xóa  review 
-        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết cần xóa này có phải của tài khoản này không
-        //Xóa bài viết
-        [HttpPost("DeleteAReview")]
-        [SwaggerOperation(Summary = "Xóa bài review của tài khoản user",
+        [SwaggerOperation(Summary = "Lấy danh sách comment của tài khoản user",
                       Description = "")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> DeleteAReview([FromBody] DelReviewCommand command)
+        public async Task<IActionResult> GetListComment([FromBody] ApiRequest<string> request)
         {
             long UserID = 0;
             try
@@ -187,21 +69,75 @@ namespace BE_2911_CleanArchitechture.Controllers
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
                 }
                 #endregion
-                //Xóa review
-                //Bước đầu phải xác minh bài review đó có phải của tài khoản này hay không
-                this._logger.LogInformation(UserID.ToString(), "DeleteAReview");
-                command.UserID = UserID;
-                int ReviewId = await _mediator.Send(command);
-                // Kiểm tra xem việc tạo có thành công không
-                if (ReviewId == -1)
+                //Select comment 
+                this._logger.LogInformation(UserID.ToString(), "Commentlist");
+                QueryEF queryComment = new QueryEF();
+                queryComment.str = request.RequestData;
+                queryComment.ID = UserID;
+                var list = await _mediator.Send(new CommentQuerySelect(request.Skip, request.Take, queryComment));
+                // Kiểm tra xem việc lấy danh sách có thành công không
+                if (list.Count() == 0)
                 {
                     // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Delete Review error", null);
-                    var errors = new List<string> { "Delete Review error" };
+                    this._logger.LogError(UserID.ToString(), "Comment list error", null);
+                    var errors = new List<string> { "Comment list error" };
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<CommentsDto>>(list));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
+            }
+        }
+        #endregion
+        //Tạo comment 
+        //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
+        [HttpPost("CreateAComment")]
+        [Authorize(Policy = "RequireUserRole")]
+        #region
+        public async Task<IActionResult> CreateAComment([FromBody] CommentCommand command)
+        {
+            long UserID = 0;
+            try
+            {
+                //Kiểm tra userID có tồn tại không 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                //Tạo comment
+
+                this._logger.LogInformation(UserID.ToString(), "CreateAComment");
+                command.OwnerID = UserID;
+                CommentsDto aCommentDto = await _mediator.Send(command);
+                // Kiểm tra xem việc tạo có thành công không
+                if (aCommentDto == null)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "Create comment error", null);
+                    var errors = new List<string> { "Create comment error" };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
-                return Ok(new ApiResponse<int>(ReviewId));
+                return Ok(new ApiResponse<CommentsDto>(aCommentDto));
 
             }
             catch (Exception ex)
@@ -216,5 +152,6 @@ namespace BE_2911_CleanArchitechture.Controllers
 
         }
         #endregion
+
     }
 }

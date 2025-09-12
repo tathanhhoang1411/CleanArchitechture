@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Repository;
+using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
 using MediatR;
@@ -12,21 +13,21 @@ using System.Threading.Tasks;
 namespace CleanArchitecture.Application.Commands.Create
 {
 
-    public class ReviewCommand : IRequest<Reviews>
+    public class ReviewCommand : IRequest<ReviewsDto>
     {
         public long OwnerID { get; set; }
-        public string? ProductId { get; set; }
         public double Rating { get; set; }
         public string? ReviewText { get; set; }
-        public class CreateReviewCommandHandler : IRequestHandler<ReviewCommand, Reviews>
+        public class CreateReviewCommandHandler : IRequestHandler<ReviewCommand, ReviewsDto>
         {
             private readonly IReviewServices _reviewServices;
             public CreateReviewCommandHandler(IReviewServices reviewServices)
             {
                 _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
             }
-            public async Task<Reviews> Handle(ReviewCommand command, CancellationToken cancellationToken)
+            public async Task<ReviewsDto> Handle(ReviewCommand command, CancellationToken cancellationToken)
             {
+                    ReviewsDto Reviewdto=null;
                 try
                 {
                     DateTime dateTime = DateTime.Now;
@@ -36,13 +37,12 @@ namespace CleanArchitecture.Application.Commands.Create
                     review.Rating = command.Rating;
                     review.ReviewText = command.ReviewText;
                     review.CreatedAt = dateTime;
-                    await _reviewServices.Review_Create(review);
-
-                    return review;
+                    Reviewdto=await _reviewServices.Review_Create(review);
+                    return Reviewdto;
                 }
                 catch
                 {
-                    return null;
+                    return Reviewdto;
                 }
             }
         }

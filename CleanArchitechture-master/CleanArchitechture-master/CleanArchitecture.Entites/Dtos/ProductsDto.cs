@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Entites.Dtos
 { 
-public class ProductDto: IProductDto
+public class ProductsDto: IProductDto
     {
     public string ProductId { get; set; } // Nếu cần thiết, có thể bỏ qua trường này
     public string ProductName { get; set; }
@@ -19,5 +19,6 @@ public class ProductDto: IProductDto
     public string ProductImage4 { get; set; }
     public string ProductImage5 { get; set; }
     public int ReviewId { get; set; }
+    public int Type { get; set; }
 }
 }

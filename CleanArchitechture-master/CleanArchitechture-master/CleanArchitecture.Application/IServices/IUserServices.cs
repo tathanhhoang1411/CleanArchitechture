@@ -13,12 +13,16 @@ namespace CleanArchitecture.Application.IRepository
     {
         string MakeToken(Users user);
         Task<Boolean> SaveToken(Users user, string accessToken);
-        Task<Boolean> CheckExistUser(Users user);
-        Task<Users> CreateUser(Users user);
-        Task<Boolean> DelUser(Users user);
+        Task<Users> CheckExistUser(Users user);
+        Task<UsersDto> CreateUser(Users user);
+        Task<UsersDto> DelUser(Users user);
+        Task<UsersDto> ActiveUser(Users user);
         Task<long> GetUserIDInTokenFromRequest(string tokenJWT);
         ClaimsPrincipal ValidateToken( string accessToken);
-        Task<List<UserDto>> GetList_Users(int skip, int take, string data);
+        Task<List<UsersDto>> GetList_Users(int skip, int take, string data);
+        Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
+        Task<Users> Get_User_byUserNameEmail(string userName,string email);
+        Task<UsersDto> ChangePassw(Users user);
 
     }
 }

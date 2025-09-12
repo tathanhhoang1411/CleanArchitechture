@@ -34,7 +34,7 @@ namespace CleanArchitecture.Application.Query
             {
                 Boolean result = false;
                 // Ánh xạ LoginQuery thành UserDto và lưu vào biến
-                UserDto userDto = _mapper.Map<UserDto>(query);
+                UsersDto userDto = _mapper.Map<UsersDto>(query);
                 Users user = await _userRepository.Login(userDto);
                 if (user == null)//Nếu không có tồn tại tài khoản 
                 {

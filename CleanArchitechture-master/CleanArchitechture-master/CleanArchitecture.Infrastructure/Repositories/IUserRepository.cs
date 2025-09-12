@@ -10,11 +10,15 @@ namespace CleanArchitecture.Infrastructure.Repositories
 {
     public interface IUserRepository
     {
-        Task<Users> Login(UserDto user);
+        Task<Users> Login(UsersDto user);
         Task<Boolean> SaveToken(Users user,string accessToken);
         Task<Users> CreateUser(Users user);
         Task<Boolean> DeleteUser(Users user);
-        Task<Boolean> CheckExistUser(Users user);
-        Task<List<UserDto>> GetListUsers(int skip, int take, string data);
+        Task<Boolean> ActiveUser(Users user);
+        Task<Users> CheckExistUser(Users user);
+        Task<Users> ChangePassw(Users user);
+        Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
+        Task<Users> Get_User_byUserNameEmail(string userName,string email);
+        Task<List<Users>> GetListUsers(int skip, int take, string data);
     }
 }

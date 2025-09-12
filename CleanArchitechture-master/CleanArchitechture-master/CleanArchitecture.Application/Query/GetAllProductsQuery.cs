@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Query
 {
-    public class GetAllProductsQuery : IRequest<List<ProductDto>>
+    public class GetAllProductsQuery : IRequest<List<ProductsDto>>
     {
         public int Skip { get; set; }
         public int Take { get; set; }
@@ -23,7 +23,7 @@ namespace CleanArchitecture.Application.Query
         }
     }
 
-    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, List<ProductDto>>
+    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, List<ProductsDto>>
     {
         private readonly IProductServices _productServices;
 
@@ -32,11 +32,11 @@ namespace CleanArchitecture.Application.Query
             _productServices = productServices;
         }
 
-        public async Task<List<ProductDto>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
+        public async Task<List<ProductsDto>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
         {
             // Lấy danh sách sản phẩm với phân trang
             var productList = await _productServices.GetList_Products(query.Skip, query.Take,query.Data);
-            return productList ?? new List<ProductDto>(); // Trả về danh sách rỗng nếu không có sản phẩm
+            return productList ?? new List<ProductsDto>(); // Trả về danh sách rỗng nếu không có sản phẩm
         }
     }
 }
