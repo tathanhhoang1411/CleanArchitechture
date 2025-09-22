@@ -11,6 +11,7 @@ namespace CleanArchitecture.Application.Query.Utilities
         public int Skip { get; set; }  // Thuộc tính kiểu int đầu tiên
         public int Take { get; set; } // Thuộc tính kiểu int thứ hai
         public T RequestData { get; set; }       // Thuộc tính kiểu class chưa biết trước
+        public int Id { get; set; }       // Thuộc tính kiểu class chưa biết trước
 
         public ApiRequest() { }
 
@@ -19,6 +20,12 @@ namespace CleanArchitecture.Application.Query.Utilities
             Skip = skipParameter;
             Take = takeParameter;
             RequestData = requestData;
+        }
+        public ApiRequest(int skipParameter, int takeParameter, int ID)
+        {
+            Skip = skipParameter;
+            Take = takeParameter;
+            Id = ID;
         }
     }
     public class QueryEF

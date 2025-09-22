@@ -12,6 +12,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
     {
         Task<List<Comments>> DelListComment(int reviewID);
         Task<List<Comments>> GetListComment(int skip, int take, string str, long userID);
+        Task<List<Comments>> GetCommentsByIdReview(int skip, int take, int reviewID);
         Task<Comments> CreateAComment(Comments comment);
     }
 }

@@ -58,6 +58,26 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 return null;
             }
+        }         
+        public async Task<List<Comments>> GetCommentsByIdReview(int skip, int take, int reviewID)
+        {
+            try
+            {
+                // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo reviewID
+                var listComment = await _userContext.Comments
+                    .Where(p => p.ReviewId == reviewID )
+                    .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+
+
+                return listComment; // Trả về danh sách comment
+            }
+            catch
+            {
+                return null;
+            }
         }      
         public async Task<Comments> CreateAComment(Comments comment)
         {

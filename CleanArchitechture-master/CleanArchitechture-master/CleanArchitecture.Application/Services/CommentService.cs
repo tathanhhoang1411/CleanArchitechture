@@ -34,6 +34,19 @@ namespace CleanArchitecture.Application.Repository
             {
                 return null;
             }
+        }     
+        public async Task<List<CommentsDto>> GetList_Comment_ByReviewID(int skip, int take, int reivewID)
+        {
+            List<Comments> comments=null;
+            try
+            {
+                comments = await _unitOfWork.Comments.GetCommentsByIdReview(skip,take, reivewID);
+                return _mapper.Map<List<CommentsDto>>(comments);
+            }
+            catch
+            {
+                return null;
+            }
         }
         public async Task<CommentsDto> Comment_Create(Comments comments)
         {

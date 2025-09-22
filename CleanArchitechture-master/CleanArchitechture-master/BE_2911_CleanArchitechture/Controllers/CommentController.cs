@@ -40,7 +40,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._commentServices = commentServices ?? throw new ArgumentNullException(nameof(commentServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
-
+        //Lấy danh sách comment bởi user đó
         [HttpPost("GetListCommentByOwner")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách comment của tài khoản user",
@@ -75,6 +75,61 @@ namespace BE_2911_CleanArchitechture.Controllers
                 queryComment.str = request.RequestData;
                 queryComment.ID = UserID;
                 var list = await _mediator.Send(new CommentQuerySelect(request.Skip, request.Take, queryComment));
+                // Kiểm tra xem việc lấy danh sách có thành công không
+                if (list.Count() == 0)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "Comment list error", null);
+                    var errors = new List<string> { "Comment list error" };
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<CommentsDto>>(list));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
+            }
+        }
+        #endregion
+        //Lấy danh sách review theo ReviewID( theo bài viết đang xem)
+
+        [HttpPost("GetListCommentByReviewID")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Lấy danh sách comment của bài viết đó",
+              Description = "ID:  mã ID của bài review")]
+        [Authorize(Policy = "RequireUserRole")]
+        #region
+        public async Task<IActionResult> GetListCommentByReviewID([FromBody] ApiRequest<int> request)
+        {
+            long UserID = 0;
+            try
+            {
+                //Kiểm tra userID có tồn tại không 
+                #region
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
+                UserID = await UserIDTypeLong;
+                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
+                if (UserID == 0)
+                {
+                    this._logger.LogError(UserID.ToString(), "Result: false", null);
+                    var errors = new List<string> { "UserId not exist" };
+                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                else
+                {
+                    this._logger.LogInformation(UserID.ToString(), "Result: true");
+                }
+                #endregion
+                //Select comment 
+                this._logger.LogInformation(UserID.ToString(), "Commentlist");
+
+                var list = await _mediator.Send(new CommentQuerySelectAllByReviewID(request.Skip, request.Take, request.Id));
                 // Kiểm tra xem việc lấy danh sách có thành công không
                 if (list.Count() == 0)
                 {

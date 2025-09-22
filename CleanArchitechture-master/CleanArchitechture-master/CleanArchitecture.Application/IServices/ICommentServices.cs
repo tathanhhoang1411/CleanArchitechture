@@ -14,6 +14,7 @@ namespace CleanArchitecture.Application.IRepository
     {
 
         Task<List<CommentsDto>> GetList_Comment_ByOwner(int skip, int take, string str, long userID);
+        Task<List<CommentsDto>> GetList_Comment_ByReviewID(int skip, int take, int reviewID);
         Task<CommentsDto> Comment_Create(Comments comments);
     }
 }
