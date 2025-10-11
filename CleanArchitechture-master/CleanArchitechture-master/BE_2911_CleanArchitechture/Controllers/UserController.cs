@@ -77,7 +77,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("GetAllUser")]
         #region
-        public async Task<IActionResult> GetAllUser([FromBody] ApiRequest<string> request)
+        public async Task<IActionResult> GetAllUser([FromQuery] int skip,[FromQuery] int take, [FromQuery] string requestData)
         {
             long UserID =0;
             try
@@ -97,6 +97,10 @@ namespace BE_2911_CleanArchitecture.Controllers
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
                 #endregion
                 _logger.LogInformation(UserID.ToString(), "GetAllUser");
+                ApiRequest<string> request = new ApiRequest<string>();
+                request.Take = take;
+                request.Skip = skip;
+                request.RequestData = requestData;
                 var list = await _mediator.Send(new GetAllUserQuery(request.Skip, request.Take,request.RequestData));
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<UsersDto>>(list));

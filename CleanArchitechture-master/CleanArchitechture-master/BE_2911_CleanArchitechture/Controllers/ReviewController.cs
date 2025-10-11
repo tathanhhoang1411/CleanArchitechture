@@ -44,17 +44,20 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
-        [HttpPost("GetAllListReview")]
+        [HttpGet("GetAllListReview")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách review (ai cũng có thể ) cho người dùng không đăng nhập",
                       Description = "")]
         #region
-        public async Task<IActionResult> GetAllListReview([FromBody] ApiRequest<string> request)
+        public async Task<IActionResult> GetAllListReview([FromQuery] int skip, [FromQuery] int take, [FromQuery] string requestData)
         {
             long UserID = 0;
             try
             {
-
+                ApiRequest<string> request = new ApiRequest<string>();
+                request.Skip = skip;    
+                request.Take = take;
+                request.RequestData = requestData;
                 QueryEF queryReview = new QueryEF();
                 queryReview.str = request.RequestData;
                 var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
@@ -76,12 +79,12 @@ namespace BE_2911_CleanArchitechture.Controllers
             }
         }
         #endregion
-        [HttpPost("GetListReview")]
+        [HttpGet("GetListReview")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách review của tài khoản hiện tại",
                       Description = "")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
-        public async Task<IActionResult> GetListReviewByUser([FromBody] ApiRequest<string> request)
+        public async Task<IActionResult> GetListReviewByUser([FromQuery] int skip, [FromQuery] int take, [FromQuery] string requestData)
         {
             long UserID = 0;
             try
@@ -103,7 +106,10 @@ namespace BE_2911_CleanArchitechture.Controllers
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
                 }
                 #endregion
-
+                ApiRequest<string> request = new ApiRequest<string>();
+                request.Skip= skip;
+                request.Take= take;
+                request.RequestData = requestData;
                 QueryEF queryReview = new QueryEF();
                 queryReview.str = request.RequestData;
                 queryReview.ID = UserID;

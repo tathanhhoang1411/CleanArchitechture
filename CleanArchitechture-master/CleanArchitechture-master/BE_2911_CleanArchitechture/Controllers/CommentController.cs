@@ -41,13 +41,13 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
         //Lấy danh sách comment bởi user đó
-        [HttpPost("GetListCommentByOwner")]
+        [HttpGet("GetListCommentByOwner")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách comment của tài khoản user",
                       Description = "")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> GetListComment([FromBody] ApiRequest<string> request)
+        public async Task<IActionResult> GetListComment( [FromQuery] int skip, [FromQuery] int take, [FromQuery] string requestData)
         {
             long UserID = 0;
             try
@@ -71,6 +71,10 @@ namespace BE_2911_CleanArchitechture.Controllers
                 #endregion
                 //Select comment 
                 this._logger.LogInformation(UserID.ToString(), "Commentlist");
+                ApiRequest<string> request = new ApiRequest<string>();
+                request.Take = take;
+                request.Skip = skip;
+                request.RequestData = requestData;
                 QueryEF queryComment = new QueryEF();
                 queryComment.str = request.RequestData;
                 queryComment.ID = UserID;
@@ -98,13 +102,13 @@ namespace BE_2911_CleanArchitechture.Controllers
         #endregion
         //Lấy danh sách review theo ReviewID( theo bài viết đang xem)
 
-        [HttpPost("GetListCommentByReviewID")]
+        [HttpGet("GetListCommentByReviewID")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách comment của bài viết đó",
               Description = "ID:  mã ID của bài review")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> GetListCommentByReviewID([FromBody] ApiRequest<int> request)
+        public async Task<IActionResult> GetListCommentByReviewID([FromQuery] int skip, [FromQuery] int take, [FromQuery] int requestData )
         {
             long UserID = 0;
             try
@@ -128,7 +132,10 @@ namespace BE_2911_CleanArchitechture.Controllers
                 #endregion
                 //Select comment 
                 this._logger.LogInformation(UserID.ToString(), "Commentlist");
-
+                ApiRequest<int> request = new ApiRequest<int>();
+                request.Skip = skip;
+                request.Take = take;
+                request.Id = requestData;
                 var list = await _mediator.Send(new CommentQuerySelectAllByReviewID(request.Skip, request.Take, request.Id));
                 // Kiểm tra xem việc lấy danh sách có thành công không
                 if (list.Count() == 0)
