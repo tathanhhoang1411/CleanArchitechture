@@ -202,8 +202,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                                 var users = await _userContext.Users
                 .Where(u => u.Username.Trim().Contains(data))
-                .Take(take)
                 .Skip(skip)
+                .Take(take)
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
