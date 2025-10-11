@@ -40,8 +40,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                              products = await _userContext.Products
                 .Where(p => p.ProductName.Contains(data))
-                .Take(take)
                 .Skip(skip)
+                .Take(take)
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
