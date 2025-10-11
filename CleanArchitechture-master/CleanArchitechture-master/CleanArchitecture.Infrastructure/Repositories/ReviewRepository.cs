@@ -60,39 +60,75 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public async Task<List<object>> GetListReviews(int skip, int take, string str, long userID)
         {
             List<object> list = null;
+            IEnumerable<dynamic> reviewList = new List<dynamic>(); ;
             try
             {
-                var reviewList = await (
-             from review in _userContext.Reviews
-             where review.ReviewText.Contains(str) && review.OwnerID == userID
-             join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
-             from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
-             orderby review.CreatedAt descending
-             select new
-             {
-                 review.ReviewId,
-                 review.Rating,
-                 review.ReviewText,
-                 review.CreatedAt,
-                 ProductName = product != null ? product.ProductName : null,
-                 Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
-                 ProductImage1 = product != null ? product.ProductImage1 : null,
-                 ProductImage2 = product != null ? product.ProductImage2 : null,
-                 ProductImage3 = product != null ? product.ProductImage3 : null,
-                 ProductImage4 = product != null ? product.ProductImage4 : null,
-                 ProductImage5 = product != null ? product.ProductImage5 : null
-             }
-         )
-         .Skip(skip)
-         .Take(take)
-         .AsNoTracking()
-         .ToListAsync();
+                switch (userID)
+                {
+                    case 0:
+                         reviewList = await (
+from review in _userContext.Reviews
+where review.ReviewText.Contains(str) 
+join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
+from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
+orderby review.CreatedAt descending
+select new
+{
+ review.ReviewId,
+ review.Rating,
+ review.ReviewText,
+ review.CreatedAt,
+ ProductName = product != null ? product.ProductName : null,
+ Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
+ ProductImage1 = product != null ? product.ProductImage1 : null,
+ ProductImage2 = product != null ? product.ProductImage2 : null,
+ ProductImage3 = product != null ? product.ProductImage3 : null,
+ ProductImage4 = product != null ? product.ProductImage4 : null,
+ ProductImage5 = product != null ? product.ProductImage5 : null
+}
+)
+.Skip(skip)
+.Take(take)
+.AsNoTracking()
+.ToListAsync();
+                        break;
+
+                    case >0:
+                         reviewList = await (
+from review in _userContext.Reviews
+where review.ReviewText.Contains(str) && review.OwnerID == userID
+join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
+from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
+orderby review.CreatedAt descending
+select new
+{
+ review.ReviewId,
+ review.Rating,
+ review.ReviewText,
+ review.CreatedAt,
+ ProductName = product != null ? product.ProductName : null,
+ Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
+ ProductImage1 = product != null ? product.ProductImage1 : null,
+ ProductImage2 = product != null ? product.ProductImage2 : null,
+ ProductImage3 = product != null ? product.ProductImage3 : null,
+ ProductImage4 = product != null ? product.ProductImage4 : null,
+ ProductImage5 = product != null ? product.ProductImage5 : null
+}
+)
+.Skip(skip)
+.Take(take)
+.AsNoTracking()
+.ToListAsync();
+                        break;
+                }
 
                 // Ánh xạ qua ExpandoObject
-                List<dynamic> mappedReviewList = null;
-                 mappedReviewList = reviewList.Select(r =>
+
+                List<dynamic> mappedReviewList = new List<dynamic>();
+
+                foreach (var r in reviewList)
                 {
-                    dynamic expando = new ExpandoObject();
+                    dynamic expando = new ExpandoObject() as IDictionary<string, object>;
                     expando.ReviewId = r.ReviewId;
                     expando.Rating = r.Rating;
                     expando.ReviewText = r.ReviewText;
@@ -105,8 +141,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     expando.ProductImage4 = r.ProductImage4;
                     expando.ProductImage5 = r.ProductImage5;
 
-                    return expando;
-                }).ToList();
+                    mappedReviewList.Add(expando);
+                }
                 // Trả về danh sách đã ánh xạ
                 return mappedReviewList;
             }

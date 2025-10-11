@@ -38,7 +38,6 @@ namespace CleanArchitecture.Application.Commands.Select
                 try
                 {
                     var ReviewDtoList = await _reviewServices.GetList_Reviews(query.Skip, query.Take, query.Data.str, query.Data.ID);
-
                     return ReviewDtoList ?? new List<object>(); // Trả về danh sách rỗng nếu không có bài review
                 }
                 catch

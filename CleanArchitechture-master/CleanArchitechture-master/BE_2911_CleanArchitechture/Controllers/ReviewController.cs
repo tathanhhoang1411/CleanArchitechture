@@ -35,7 +35,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         private readonly IMediator _mediator;
         private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
-        public ReviewController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices,IUserServices userServices)
+        public ReviewController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices, IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
@@ -44,14 +44,44 @@ namespace BE_2911_CleanArchitechture.Controllers
             this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
+        [HttpPost("GetAllListReview")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Lấy danh sách review (ai cũng có thể ) cho người dùng không đăng nhập",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> GetAllListReview([FromBody] ApiRequest<string> request)
+        {
+            long UserID = 0;
+            try
+            {
 
+                QueryEF queryReview = new QueryEF();
+                queryReview.str = request.RequestData;
+                var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
+                // Kiểm tra xem việc lấy danh sách có thành công không
+                if (list.Count() == 0)
+                {
+                    var errors = new List<string> { "Not found" };
+                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                return Ok(new ApiResponse<List<object>>(list));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+
+            }
+        }
+        #endregion
         [HttpPost("GetListReview")]
         [AllowAnonymous]
         [SwaggerOperation(Summary = "Lấy danh sách review của tài khoản hiện tại",
                       Description = "")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
-        #region
-        public async Task<IActionResult> GetListReview([FromBody] ApiRequest<string> request)
+        public async Task<IActionResult> GetListReviewByUser([FromBody] ApiRequest<string> request)
         {
             long UserID = 0;
             try
@@ -73,21 +103,19 @@ namespace BE_2911_CleanArchitechture.Controllers
                     this._logger.LogInformation(UserID.ToString(), "Result: true");
                 }
                 #endregion
-                //Select review 
-                this._logger.LogInformation(UserID.ToString(), "Reviewlist");
+
                 QueryEF queryReview = new QueryEF();
-                queryReview.str= request.RequestData;
+                queryReview.str = request.RequestData;
                 queryReview.ID = UserID;
                 var list = await _mediator.Send(new ReviewQuerySelect(request.Skip, request.Take, queryReview));
                 // Kiểm tra xem việc lấy danh sách có thành công không
-                if (list.Count()==0)
+                if (list.Count() == 0)
                 {
                     // Ghi log lỗi
                     this._logger.LogError(UserID.ToString(), "Review list error", null);
-                    var errors = new List<string> { "Review list error" };
+                    var errors = new List<string> { "Not found" };
                     return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
-                this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<object>>(list));
             }
             catch (Exception ex)
@@ -99,14 +127,13 @@ namespace BE_2911_CleanArchitechture.Controllers
 
             }
         }
-        #endregion
         //Tạo review 
         //lấy ID tài khoản từ jwt, lưu trong DB, mục đích là để xác nhận bài viết này là tài khoản nào tạo ra
         //Tạo bài viết
         [HttpPost("CreateAReview")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
         #region
-        public async Task<IActionResult> CreateAReview([FromBody]  ReviewCommand command)
+        public async Task<IActionResult> CreateAReview([FromBody] ReviewCommand command)
         {
             long UserID = 0;
             try
@@ -137,7 +164,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 if (aReviewDto == null)
                 {
                     // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Review list error",null);
+                    this._logger.LogError(UserID.ToString(), "Review list error", null);
                     var errors = new List<string> { "Review list error" };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
