@@ -20,11 +20,12 @@ namespace CleanArchitecture.Application.Services
         private readonly IDatabase _database;
         private readonly ILogger<RedisCacheService> _logger;
         private readonly TimeSpan _defaultCacheDuration;
-
+        private readonly IConnectionMultiplexer _connection;
         public RedisCacheService(IConnectionMultiplexer connection, ILogger<RedisCacheService> logger, RabbitMQService rabbitMQ, IConfiguration configuration)
         {
             _database = connection.GetDatabase();
             _logger = logger;
+            _connection = connection;
             // Đọc thời gian cache mặc định từ appsettings.json
             var defaultSeconds = configuration.GetValue<int>("Redis:DefaultCacheDurationInSeconds", 300);
             _defaultCacheDuration = TimeSpan.FromSeconds(defaultSeconds);
@@ -32,6 +33,19 @@ namespace CleanArchitecture.Application.Services
             rabbitMQ.Subscribe(OnCommentEventReceived);
         }
 
+        public async Task ClearCacheByPrefix(string prefix)
+        {
+            var endpoints = _connection.GetEndPoints();
+            var server = _connection.GetServer(endpoints.First());
+            var keys = server.Keys(pattern: $"{prefix}*");
+
+            foreach (var key in keys)
+            {
+                await _database.KeyDeleteAsync(key);
+            }
+
+            Console.WriteLine($"[Redis] Cleared cache with prefix: {prefix}");
+        }
         public async Task<T?> GetAsync<T>(string key)
         {
             try

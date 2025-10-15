@@ -65,7 +65,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     return ConnectionMultiplexer.Connect(configuration);
 });
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>(); // Đăng ký Redis
-
+builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
 builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
