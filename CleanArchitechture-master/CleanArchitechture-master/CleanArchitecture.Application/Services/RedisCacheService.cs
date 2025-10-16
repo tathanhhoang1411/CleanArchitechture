@@ -27,12 +27,22 @@ namespace CleanArchitecture.Application.Services
             _logger = logger;
             _connection = connection;
             // Đọc thời gian cache mặc định từ appsettings.json
-            var defaultSeconds = configuration.GetValue<int>("Redis:DefaultCacheDurationInSeconds", 300);
+            var defaultSeconds = configuration.GetValue<int>("Redis:DefaultCacheDurationInSeconds", 60);
             _defaultCacheDuration = TimeSpan.FromSeconds(defaultSeconds);
-            // Lắng nghe event từ RabbitMQ
-            rabbitMQ.Subscribe(OnCommentEventReceived);
+            // ✅ Đăng ký listener một lần duy nhất tại đây
+            rabbitMQ.Subscribe(OnMessageReceived);
         }
-
+        private void OnMessageReceived(string message)
+        {
+            if (message.StartsWith("CommentUpdated:") ||
+                message.StartsWith("CommentDeleted:") ||
+                message.StartsWith("CommentCreate:"))
+            {
+                // Xóa toàn bộ cache liên quan đến comment
+                ClearCacheByPrefix("comments:");
+                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'comments:' due to {message}");
+            }
+        }
         public async Task ClearCacheByPrefix(string prefix)
         {
             var endpoints = _connection.GetEndPoints();
@@ -73,15 +83,6 @@ namespace CleanArchitecture.Application.Services
         {
             await _database.KeyDeleteAsync(key);
         }
-        private void OnCommentEventReceived(string message)
-        {
-            if (message.StartsWith("CommentUpdated:") || message.StartsWith("CommentDeleted:") || message.StartsWith("CommentCreate:"))
-            {
-                var id = message.Split(':')[1];
-                var cacheKey = $"comment_{id}";
-                _database.KeyDelete(cacheKey);
-                Console.WriteLine($"🧹 Cache cleared for {cacheKey}");
-            }
-        }
+
     }
 }
