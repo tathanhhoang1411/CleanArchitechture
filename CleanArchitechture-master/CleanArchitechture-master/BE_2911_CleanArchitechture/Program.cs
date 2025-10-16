@@ -17,6 +17,8 @@ using CleanArchitecture.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using BE_2911_CleanArchitechture.Logging;
+using CleanArchitecture.Application.IServices;
+using StackExchange.Redis;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -52,9 +54,18 @@ builder.Services.AddSwaggerGen(c =>
             }
         });
 });
+// ✅ SQL Server DBContext
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(
                             builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
-
+// ✅ Redis Configuration
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse(
+        builder.Configuration["Redis:ConnectionString"], true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>(); // Đăng ký Redis
+builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
 builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
@@ -109,18 +120,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddMvc();
 var automapper = new MapperConfiguration(item => item.AddProfile(new MappingProfile()));
 IMapper mapper = automapper.CreateMapper();
-builder.Services.AddSingleton(mapper);
-//builder.Services.AddCors(options =>
-//{
-//    options.AddDefaultPolicy(policy =>
-//    {
-//        //policy.WithOrigins("http://localhost:4200");
-//        policy.AllowAnyOrigin();
-//        policy.WithMethods("GET", "POST", "DELETE", "PUT");
-//        policy.AllowAnyHeader(); // <--- list the allowed headers here
-//        policy.AllowAnyOrigin();
-//    });
-//});
+builder.Services.AddSingleton( mapper);
+
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     builder => builder.AllowAnyOrigin()
     .WithMethods("GET", "POST", "PUT", "DELETE")
