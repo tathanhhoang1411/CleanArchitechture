@@ -52,17 +52,10 @@ namespace CleanArchitecture.Application.Repository
         //Hàm để kiểm tra bài review đó có phải của tài khoản 
         public async Task<List<Reviews>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
         {
-            var cacheKey = $"reviews:reviewid:{reviewID}:ownerid:{ownerID}";
-            var cached = await _cache.GetAsync<List<Reviews>>(cacheKey);
-            if (cached != null)
-                return cached;
-
             List<Reviews> aReview = null;
             try
             {
                 aReview = await _unitOfWork.Reviews.GetListReviewsByOwnerID(reviewID, ownerID);
-                //
-                await _cache.SetAsync(cacheKey, aReview, TimeSpan.FromMinutes(1));
                 return aReview;
             }
             catch
