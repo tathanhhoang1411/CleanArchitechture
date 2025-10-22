@@ -161,18 +161,12 @@ namespace CleanArchitecture.Application.Services
         }
         public async Task<Users> CheckExistUser(Users user)
         {
-            var cacheKey = $"users:userid:{user.UserId}";
-            var cached = await _cache.GetAsync<Users>(cacheKey);
-            if (cached != null)
-                return cached;
             Users aUser = null;
             try
             {
                 aUser = await _unitOfWork.Users.CheckExistUser(user);
                 if (aUser!= null)
                 {
-                    //
-                    await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
                     return aUser;
                 }
                 return null;
@@ -186,12 +180,7 @@ namespace CleanArchitecture.Application.Services
         {
             try
             {
-                var cacheKey = $"users:username:{userName}:email:{email}:password:{passWord}";
-                var cached = await _cache.GetAsync<Users>(cacheKey);
-                if (cached != null)
-                    return cached;
                  Users aUser = await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
-                await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
                 return aUser;
             }
             catch
@@ -203,13 +192,8 @@ namespace CleanArchitecture.Application.Services
         {
             try
             {
-                var cacheKey = $"users:username:{userName}:email:{email}";
-                var cached = await _cache.GetAsync<Users>(cacheKey);
-                if (cached != null)
-                    return cached;
 
                 Users aUser= await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
-                await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
                 return aUser;
             }
             catch
