@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using CleanArchitecture.Application.IRepository;
+using CleanArchitecture.Application.IServices;
 using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Services;
 using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Infrastructure.Repositories;
@@ -9,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace CleanArchitecture.Application.Repository
 {
@@ -16,18 +20,28 @@ namespace CleanArchitecture.Application.Repository
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        public ReviewServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IRedisCacheService _cache;
+        private readonly RabbitMQService _rabbitMQ;
+        public ReviewServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, RabbitMQService rabbitMQ)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _rabbitMQ = rabbitMQ ?? throw new ArgumentNullException(nameof(rabbitMQ));
         }
 
         public async Task<List<object>> GetList_Reviews(int skip, int take, string str, long userID)
         {
+            var cacheKey = $"reviews:user:{userID}:skip:{skip}:take:{take}:q:{str}";
+            var cached = await _cache.GetAsync<List<object>>(cacheKey);
+            if (cached != null)
+                return cached;
             List<object> reviews=null;
             try
             {
                 reviews = await _unitOfWork.Reviews.GetListReviews(skip,take, str, userID);
+                //
+                await _cache.SetAsync(cacheKey, reviews, TimeSpan.FromMinutes(1));
                 return reviews;
             }
             catch
@@ -35,12 +49,20 @@ namespace CleanArchitecture.Application.Repository
                 return reviews;
             }
         }
+        //Hàm để kiểm tra bài review đó có phải của tài khoản 
         public async Task<List<Reviews>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
         {
+            var cacheKey = $"reviews:reviewid:{reviewID}:ownerid:{ownerID}";
+            var cached = await _cache.GetAsync<List<Reviews>>(cacheKey);
+            if (cached != null)
+                return cached;
+
             List<Reviews> aReview = null;
             try
             {
                 aReview = await _unitOfWork.Reviews.GetListReviewsByOwnerID(reviewID, ownerID);
+                //
+                await _cache.SetAsync(cacheKey, aReview, TimeSpan.FromMinutes(1));
                 return aReview;
             }
             catch
@@ -56,6 +78,8 @@ namespace CleanArchitecture.Application.Repository
             {
                 await _unitOfWork.Reviews.CreateReview(review);
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"ReviewCreate:{review.ReviewId}");
                 return _mapper.Map<ReviewsDto>(review);
             }
             catch
@@ -81,6 +105,8 @@ namespace CleanArchitecture.Application.Repository
                 //Xóa review
                 reviewIDDel=await _unitOfWork.Reviews.DelReview(reviewID);
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"ReviewDelete:{reviewID}");
                 return reviewIDDel;
             }
             catch
