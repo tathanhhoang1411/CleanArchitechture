@@ -41,6 +41,21 @@ namespace CleanArchitecture.Application.Services
                 // Xóa toàn bộ cache liên quan đến comment
                 ClearCacheByPrefix("comments:");
                 Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'comments:' due to {message}");
+            }     
+            if (message.StartsWith("ReviewDelete:") ||
+                message.StartsWith("ReviewCreate:"))
+            {
+                // Xóa toàn bộ cache liên quan đến review
+                ClearCacheByPrefix("reviews:");
+                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'review:' due to {message}");
+            }     
+            if (message.StartsWith("UsersDelete:") ||
+                message.StartsWith("UsersUpdate:") ||
+                message.StartsWith("UsersCreate:"))
+            {
+                // Xóa toàn bộ cache liên quan đến review
+                ClearCacheByPrefix("users:");
+                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'user:' due to {message}");
             }
         }
         public async Task ClearCacheByPrefix(string prefix)

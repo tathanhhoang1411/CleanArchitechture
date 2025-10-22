@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using CleanArchitecture.Entites.Dtos;
 using Org.BouncyCastle.Asn1.Ocsp;
+using CleanArchitecture.Application.IServices;
 namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
@@ -24,11 +25,15 @@ namespace CleanArchitecture.Application.Services
         private  IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IRedisCacheService _cache;
+        private readonly RabbitMQService _rabbitMQ;
+        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, RabbitMQService rabbitMQ)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _rabbitMQ = rabbitMQ ?? throw new ArgumentNullException(nameof(rabbitMQ));
         }
 
         public string MakeToken(Users user)
@@ -138,9 +143,15 @@ namespace CleanArchitecture.Application.Services
         }
         public async Task<List<UsersDto>> GetList_Users(int skip, int take,  string data)
         {
+            var cacheKey = $"users:skip:{skip}:take:{take}:q:{data}";
+            var cached = await _cache.GetAsync<List<UsersDto>>(cacheKey);
+            if (cached != null)
+                return cached;
             try
             {
                 List<Users> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
+                //
+                await _cache.SetAsync(cacheKey, listUser, TimeSpan.FromMinutes(1));
                 return _mapper.Map<List<UsersDto>>(listUser);
             }
             catch
@@ -150,12 +161,18 @@ namespace CleanArchitecture.Application.Services
         }
         public async Task<Users> CheckExistUser(Users user)
         {
+            var cacheKey = $"users:userid:{user.UserId}";
+            var cached = await _cache.GetAsync<Users>(cacheKey);
+            if (cached != null)
+                return cached;
             Users aUser = null;
             try
             {
                 aUser = await _unitOfWork.Users.CheckExistUser(user);
                 if (aUser!= null)
                 {
+                    //
+                    await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
                     return aUser;
                 }
                 return null;
@@ -169,7 +186,13 @@ namespace CleanArchitecture.Application.Services
         {
             try
             {
-                return await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
+                var cacheKey = $"users:username:{userName}:email:{email}:password:{passWord}";
+                var cached = await _cache.GetAsync<Users>(cacheKey);
+                if (cached != null)
+                    return cached;
+                 Users aUser = await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
+                await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
+                return aUser;
             }
             catch
             {
@@ -180,7 +203,14 @@ namespace CleanArchitecture.Application.Services
         {
             try
             {
-                return await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
+                var cacheKey = $"users:username:{userName}:email:{email}";
+                var cached = await _cache.GetAsync<Users>(cacheKey);
+                if (cached != null)
+                    return cached;
+
+                Users aUser= await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
+                await _cache.SetAsync(cacheKey, aUser, TimeSpan.FromMinutes(1));
+                return aUser;
             }
             catch
             {
@@ -195,6 +225,8 @@ namespace CleanArchitecture.Application.Services
             {
                  await _unitOfWork.Users.CreateUser(user);
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"UsersCreate:{user.UserId}");
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -210,6 +242,8 @@ namespace CleanArchitecture.Application.Services
             {
                 await _unitOfWork.Users.ChangePassw(user);
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -225,6 +259,8 @@ namespace CleanArchitecture.Application.Services
                 await _unitOfWork.Users.DeleteUser(user);
                 user.Status = false;
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"UsersDelete:{user.UserId}");
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -241,6 +277,8 @@ namespace CleanArchitecture.Application.Services
                 await _unitOfWork.Users.ActiveUser(user);
                 user.Status = true;
                 await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
                 return _mapper.Map<UsersDto>(user);
             }
             catch
