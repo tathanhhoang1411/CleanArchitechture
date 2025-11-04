@@ -1,7 +1,7 @@
 ﻿using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Commands.Create;
 using CleanArchitecture.Application.Commands.Delete;
-using CleanArchitecture.Application.Commands.Select;
+using CleanArchitecture.Application.Query.Select;
 using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Query;
 using CleanArchitecture.Application.Query.Utilities;

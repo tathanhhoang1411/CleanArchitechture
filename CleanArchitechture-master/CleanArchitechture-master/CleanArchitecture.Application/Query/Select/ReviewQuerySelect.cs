@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.Application.Commands.Select
+namespace CleanArchitecture.Application.Query.Select
 {
 
     public class ReviewQuerySelect : IRequest<List<object>>

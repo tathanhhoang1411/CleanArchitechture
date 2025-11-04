@@ -11,22 +11,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.Application.Commands.Select
+namespace CleanArchitecture.Application.Query.Select
 {
 
-    public class CommentQuerySelectAllByReviewID : IRequest<List<CommentsDto>>
+    public class CommentQuerySelect : IRequest<List<CommentsDto>>
     {
         public int Skip { get; set; }
         public int Take { get; set; }
-        public int ReviewID { get; set; }
+        public QueryEF Data { get; set; }
 
-        public CommentQuerySelectAllByReviewID(int skip, int take, int reviewID)
+        public CommentQuerySelect(int skip, int take, QueryEF data)
         {
             Skip = skip;
             Take = take;
-            ReviewID = reviewID;
+            Data = data;
         }
-        public class CommentQuerySelectHandler : IRequestHandler<CommentQuerySelectAllByReviewID, List<CommentsDto>>
+        public int ReviewID { get; set; }
+        public class CommentQuerySelectHandler : IRequestHandler<CommentQuerySelect, List<CommentsDto>>
         {
             private readonly ICommentServices _commetServices;
             public CommentQuerySelectHandler(ICommentServices commentServices)
@@ -34,11 +35,11 @@ namespace CleanArchitecture.Application.Commands.Select
                 _commetServices = commentServices ?? throw new ArgumentNullException(nameof(commentServices));
             }
 
-            public async Task<List<CommentsDto>> Handle(CommentQuerySelectAllByReviewID query, CancellationToken cancellationToken)
+            public async Task<List<CommentsDto>> Handle(CommentQuerySelect query, CancellationToken cancellationToken)
             {
                 try
                 {
-                    var CommentDtoList = await _commetServices.GetList_Comment_ByReviewID(query.Skip, query.Take, query.ReviewID);
+                    var CommentDtoList = await _commetServices.GetList_Comment_ByOwner(query.Skip, query.Take, query.Data.str, query.Data.ID);
 
                     return CommentDtoList ?? new List<CommentsDto>(); // Trả về danh sách rỗng nếu không có bài review
                 }
