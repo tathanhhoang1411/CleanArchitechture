@@ -1,22 +1,13 @@
 ﻿using BE_2911_CleanArchitechture.Logging;
-using CleanArchitecture.Application.Commands.Create;
-using CleanArchitecture.Application.Commands.Delete;
-using CleanArchitecture.Application.Query.Select;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Application.Query;
-using CleanArchitecture.Application.Query.Utilities;
-using CleanArchitecture.Application.Services;
-using CleanArchitecture.Entites.Dtos;
-using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Application.Features.Comments.Commands.Create;
+using CleanArchitecture.Application.Features.Comments.Query;
+using CleanArchitecture.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Collections.Generic;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
+using CleanArchitecture.Application.Utilities;
+using CleanArchitecture.Application.Dtos;
 
 namespace BE_2911_CleanArchitechture.Controllers
 {

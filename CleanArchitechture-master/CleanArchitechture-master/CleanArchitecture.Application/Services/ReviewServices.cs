@@ -1,18 +1,9 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Application.IServices;
-using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Services;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using CleanArchitecture.Entites.Interfaces;
 
 namespace CleanArchitecture.Application.Repository
 {
@@ -50,9 +41,9 @@ namespace CleanArchitecture.Application.Repository
             }
         }
         //Hàm để kiểm tra bài review đó có phải của tài khoản 
-        public async Task<List<Reviews>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
+        public async Task<List<Review>> GetList_Reviews_ByOwner(int reviewID, long ownerID)
         {
-            List<Reviews> aReview = null;
+            List<Review> aReview = null;
             try
             {
                 aReview = await _unitOfWork.Reviews.GetListReviewsByOwnerID(reviewID, ownerID);
@@ -64,7 +55,7 @@ namespace CleanArchitecture.Application.Repository
             }
         }
 
-        public async Task<ReviewsDto> Review_Create(Reviews review)
+        public async Task<ReviewsDto> Review_Create(Review review)
         {
             ReviewsDto reviewDto = null;
             try
@@ -86,7 +77,7 @@ namespace CleanArchitecture.Application.Repository
             try
             {
                 //Check xem bài review cần xóa đó có phải là bài review của tài khoản này không
-                List<Reviews> list=await GetList_Reviews_ByOwner(reviewID, ownerID);
+                List<Review> list=await GetList_Reviews_ByOwner(reviewID, ownerID);
                 if(list.Count == 0)
                 {
                     return reviewIDDel;

@@ -1,23 +1,18 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration;
-using CleanArchitecture.Application.IRepository;
+using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Crypto.Generators;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Dtos;
 using Org.BouncyCastle.Asn1.Ocsp;
-using CleanArchitecture.Application.IServices;
+using CleanArchitecture.Entites.Interfaces;
 namespace CleanArchitecture.Application.Services
 {
     public class UserService:IUserServices
@@ -36,7 +31,7 @@ namespace CleanArchitecture.Application.Services
             _rabbitMQ = rabbitMQ ?? throw new ArgumentNullException(nameof(rabbitMQ));
         }
 
-        public string MakeToken(Users user)
+        public string MakeToken(User user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -61,7 +56,7 @@ namespace CleanArchitecture.Application.Services
             var encodeToken = new JwtSecurityTokenHandler().WriteToken(token);
             return encodeToken;
         }
-        public async Task<Boolean> SaveToken(Users user, string accessToken)
+        public async Task<Boolean> SaveToken(User user, string accessToken)
         {
             Boolean result= false;
             try
@@ -89,13 +84,13 @@ namespace CleanArchitecture.Application.Services
                 var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value; // Thay "id" bằng tên trường bạn sử dụng
                 var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value; // Thay "id" bằng tên trường bạn sử dụng
                 var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value; // Thay "id" bằng tên trường bạn sử dụng
-                Users users = new Users();
+                User users = new User();
                 users.Username = userName;
                 users.UserId = long.Parse(userId);
                 users.Email = email;
-                Task<Users> checkUser= _unitOfWork.Users.CheckExistUser(users);
+                Task<User> checkUser= _unitOfWork.Users.CheckExistUser(users);
                 // Đợi để lấy giá trị bool từ Task
-                Users resultFromTask = await checkUser;
+                User resultFromTask = await checkUser;
                 if (!resultFromTask.Status)
                 {
                     return result;
@@ -149,7 +144,7 @@ namespace CleanArchitecture.Application.Services
                 return cached;
             try
             {
-                List<Users> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
+                List<User> listUser =await _unitOfWork.Users.GetListUsers(skip, take, data);
                 //
                 await _cache.SetAsync(cacheKey, listUser, TimeSpan.FromMinutes(1));
                 return _mapper.Map<List<UsersDto>>(listUser);
@@ -159,9 +154,9 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public async Task<Users> CheckExistUser(Users user)
+        public async Task<User> CheckExistUser(User user)
         {
-            Users aUser = null;
+            User aUser = null;
             try
             {
                 aUser = await _unitOfWork.Users.CheckExistUser(user);
@@ -176,11 +171,11 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }      
-        public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord)
+        public async Task<User> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord)
         {
             try
             {
-                 Users aUser = await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
+                 User aUser = await _unitOfWork.Users.Get_User_byUserNameEmailAndPassw(userName, email, passWord);
                 return aUser;
             }
             catch
@@ -188,12 +183,12 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }     
-        public async Task<Users> Get_User_byUserNameEmail(string userName,string email)
+        public async Task<User> Get_User_byUserNameEmail(string userName,string email)
         {
             try
             {
 
-                Users aUser= await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
+                User aUser= await _unitOfWork.Users.Get_User_byUserNameEmail(userName, email);
                 return aUser;
             }
             catch
@@ -201,7 +196,7 @@ namespace CleanArchitecture.Application.Services
                 return null;
             }
         }
-        public async Task<UsersDto> CreateUser(Users user)
+        public async Task<UsersDto> CreateUser(User user)
         {
 
             UsersDto userDto = null;
@@ -218,7 +213,7 @@ namespace CleanArchitecture.Application.Services
                 return userDto;
             }
         }         
-        public async Task<UsersDto> ChangePassw(Users user)
+        public async Task<UsersDto> ChangePassw(User user)
         {
 
             UsersDto aUser = null;
@@ -235,7 +230,7 @@ namespace CleanArchitecture.Application.Services
                 return aUser;
             }
         }      
-        public async Task<UsersDto> DelUser(Users user)
+        public async Task<UsersDto> DelUser(User user)
         {
             UsersDto userDto = null;
             try
@@ -253,7 +248,7 @@ namespace CleanArchitecture.Application.Services
             }
             
         }
-        public async Task<UsersDto> ActiveUser(Users user)
+        public async Task<UsersDto> ActiveUser(User user)
         {
             UsersDto userDto = null;
             try

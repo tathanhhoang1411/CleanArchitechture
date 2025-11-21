@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Entites.Interfaces;
+using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,9 +17,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
-        public async Task<Products> CreateProduct(Products createProduct)
+        public async Task<Product> CreateProduct(Product createProduct)
         {
-            Products prod=null;
+            Product prod=null;
             try
             {
                 await _userContext.AddAsync(createProduct);
@@ -33,9 +33,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         }
 
-        public async Task<List<Products>> GetListProducts(int skip, int take, string data)
+        public async Task<List<Product>> GetListProducts(int skip, int take, string data)
         {
-            List<Products>? products = null;
+            List<Product>? products = null;
             try
             {
                              products = await _userContext.Products
@@ -56,9 +56,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
-        public async Task<Products> GetAProducts(int reviewId)
+        public async Task<Product> GetAProducts(int reviewId)
         {
-            Products? products = null;
+            Product? products = null;
             try
             {
                              products = await _userContext.Products
@@ -75,7 +75,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }    
-        public async Task<List<Products>> DelListProduct(int reviewId)
+        public async Task<List<Product>> DelListProduct(int reviewId)
         {
             try
             {
@@ -100,9 +100,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
-        public async Task<Products> ProductUpdate(Products product)
+        public async Task<Product> ProductUpdate(Product product)
         {
-                Products? existingProduct = null;
+                Product? existingProduct = null;
             try
             {
                 // Tìm sản phẩm trong cơ sở dữ liệu

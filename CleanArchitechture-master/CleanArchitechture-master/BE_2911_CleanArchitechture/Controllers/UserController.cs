@@ -1,23 +1,17 @@
 ﻿using AutoMapper;
 using BE_2911_CleanArchitechture.Logging;
-using CleanArchitecture.Application.Commands.Create;
-using CleanArchitecture.Application.Commands.Delete;
-using CleanArchitecture.Application.Commands.Update;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Application.Query;
-using CleanArchitecture.Application.Query.Utilities;
-using CleanArchitecture.Application.Services;
-using CleanArchitecture.Entites.Dtos;
-using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Application.Features.Users.Commands.Create;
+using CleanArchitecture.Application.Features.Users.Commands.Update;
+using CleanArchitecture.Application.Features.Users.Query;
+using CleanArchitecture.Application.Dtos;
+using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Application.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using UpdStatusUserCommand = CleanArchitecture.Application.Commands.Update.UpdStatusUserCommand;
+using UpdStatusUserCommand = CleanArchitecture.Application.Features.Users.Commands.Update.UpdStatusUserCommand;
 
 namespace BE_2911_CleanArchitecture.Controllers
 {

@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
-using CleanArchitecture.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CleanArchitecture.Entites.Interfaces;
 
 namespace CleanArchitecture.Application.Repository
 {
@@ -27,7 +26,7 @@ namespace CleanArchitecture.Application.Repository
             List<ProductsDto> listProductdto=null;
             try
             {
-                List<Products> listProduct = await _unitOfWork.Products.GetListProducts(skip, take, data);
+                List<Product> listProduct = await _unitOfWork.Products.GetListProducts(skip, take, data);
                 return _mapper.Map<List<ProductsDto>>(listProduct);
             }
             catch
@@ -36,7 +35,7 @@ namespace CleanArchitecture.Application.Repository
             }
         }
 
-        public async Task<ProductsDto> Product_Create(Products product)
+        public async Task<ProductsDto> Product_Create(Product product)
         {
             ProductsDto dto = null;
             try
@@ -56,7 +55,7 @@ namespace CleanArchitecture.Application.Repository
             ProductsDto dto = null;
             try
             {
-                Products prod = await _unitOfWork.Products.GetAProducts(reviewId);
+                Product prod = await _unitOfWork.Products.GetAProducts(reviewId);
                 return _mapper.Map<ProductsDto>(prod);
             }
             catch
@@ -64,12 +63,12 @@ namespace CleanArchitecture.Application.Repository
                 return dto;
             }
         }
-        public async Task<ProductsDto> Product_Update(Products product)
+        public async Task<ProductsDto> Product_Update(Product product)
         {
             ProductsDto dto = null;
             try
             {
-                Products prod = await _unitOfWork.Products.ProductUpdate(product);
+                Product prod = await _unitOfWork.Products.ProductUpdate(product);
                 await _unitOfWork.CompleteAsync();
                 return _mapper.Map<ProductsDto>(prod);
             }catch

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Entites.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Entites.Interfaces;
+using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         }
         public async Task<int> DelReview(int reviewId)
         {
-            Reviews? aReview = null;
+            Review? aReview = null;
             try
             {
                  aReview = await _userContext.Reviews
@@ -42,9 +42,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return -1;
             }
         }
-        public async Task<Reviews> CreateReview(Reviews createReview)
+        public async Task<Review> CreateReview(Review createReview)
         {
-            Reviews? reviews = null;
+            Review? reviews = null;
             try
             {
                 await _userContext.AddAsync(createReview);
@@ -151,9 +151,9 @@ select new
                 return list;
             }
         }
-        public async Task<List<Reviews>> GetListReviewsByOwnerID(int reviewID, long ownerID)
+        public async Task<List<Review>> GetListReviewsByOwnerID(int reviewID, long ownerID)
         {
-            List<Reviews> list = null;
+            List<Review> list = null;
             try
             {
                  list = await (

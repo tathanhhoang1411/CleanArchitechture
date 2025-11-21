@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Application.IServices;
-using CleanArchitecture.Application.Query.Utilities;
+using CleanArchitecture.Application.Utilities;
 using CleanArchitecture.Application.Services;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.Repositories;
-using Nest;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using CleanArchitecture.Entites.Interfaces;
 namespace CleanArchitecture.Application.Repository
 {
     public class CommentServices : ICommentServices
@@ -36,7 +33,7 @@ namespace CleanArchitecture.Application.Repository
             var cached = await _cache.GetAsync<List<CommentsDto>>(cacheKey);
             if (cached != null)
                 return cached;
-            List<Comments> comments=null;
+            List<Comment> comments=null;
             try
             {
                 comments = await _unitOfWork.Comments.GetListComment(skip,take, str, userID);
@@ -56,7 +53,7 @@ namespace CleanArchitecture.Application.Repository
             var cached = await _cache.GetAsync<List<CommentsDto>>(cacheKey);
             if (cached != null)
                 return cached;
-            List<Comments> comments=null;
+            List<Comment> comments=null;
             try
             {
                 comments = await _unitOfWork.Comments.GetCommentsByIdReview(skip,take, reivewID);
@@ -69,9 +66,9 @@ namespace CleanArchitecture.Application.Repository
                 return null;
             }
         }
-        public async Task<CommentsDto> Comment_Create(Comments comments)
+        public async Task<CommentsDto> Comment_Create(Comment comments)
         {
-            Comments comment=null;
+            Comment comment=null;
             try
             {
                 comment = await _unitOfWork.Comments.CreateAComment(comments);

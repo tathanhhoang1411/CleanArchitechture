@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Entites.Interfaces;
+using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;

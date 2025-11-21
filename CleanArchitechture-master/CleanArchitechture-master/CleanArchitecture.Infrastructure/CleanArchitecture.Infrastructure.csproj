@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -15,11 +15,19 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NEST" Version="7.17.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CleanArchitecture.Entites\CleanArchitecture.Entites.csproj" />
+    <ProjectReference Include="..\CleanArchitecture.Application\CleanArchitecture.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CleanArchitecture.Domain">
+      <HintPath>..\CleanArchitecture.Entites\obj\Debug\net6.0\CleanArchitecture.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="CleanArchitecture.Entites">
+      <HintPath>..\CleanArchitecture.Entites\obj\Debug\net6.0\CleanArchitecture.Entites.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

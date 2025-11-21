@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using CleanArchitecture.Application.Query;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Dtos;
+using CleanArchitecture.Application.Features.Users.Query;
 using CleanArchitecture.Entites.Entites;
 
 namespace BE_2911_CleanArchitechture.Handler
@@ -10,11 +10,11 @@ namespace BE_2911_CleanArchitechture.Handler
         public MappingProfile()
         {
             //CreateMap<TblCustomer, CustomerEntity>().ForMember(item => item.StatusName, item => item.MapFrom(s => s.IsActive == true ? "Active" : "In Active"));
-            CreateMap<ProductsDto, Products>().ReverseMap();
+            CreateMap<ProductsDto, Product>().ReverseMap();
             CreateMap<LoginQuery, UsersDto>();
-            CreateMap<UsersDto, Users>().ReverseMap();
-            CreateMap<ReviewsDto, Reviews>().ReverseMap();
-            CreateMap<CommentsDto, Comments>().ReverseMap();
+            CreateMap<UsersDto, User>().ReverseMap();
+            CreateMap<ReviewsDto, Review>().ReverseMap();
+            CreateMap<CommentsDto, Comment>().ReverseMap();
             //CreateMap<TblSalesProductInfo, InvoiceDetail>().ReverseMap();
             //CreateMap<TblProduct, ProductEntity>().ReverseMap();
             //CreateMap<TblProductvarinat, ProductVariantEntity>().ReverseMap();

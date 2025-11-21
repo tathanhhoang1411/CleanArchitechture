@@ -1,7 +1,6 @@
 using CleanArchitecture.Application;
-using CleanArchitecture.Application.IRepository;
 using CleanArchitecture.Application.Repository;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Infrastructure.Persistence;
 using CleanArchitecture.Infrastructure.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,15 +9,14 @@ using BE_2911_CleanArchitechture.Handler;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-//using CleanArchitecture.Application.IServices;
-//using CleanArchitecture.Application.Services;
 using AutoMapper;
 using CleanArchitecture.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using BE_2911_CleanArchitechture.Logging;
-using CleanArchitecture.Application.IServices;
+using CleanArchitecture.Application.Interfaces;
 using StackExchange.Redis;
+using CleanArchitecture.Entites.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

@@ -1,14 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using StackExchange.Redis;
-using Newtonsoft.Json;
-using System.Text.Json;
 using IDatabase = StackExchange.Redis.IDatabase;
-using CleanArchitecture.Application.IServices;
+using CleanArchitecture.Application.Interfaces;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration; // Thêm namespace này

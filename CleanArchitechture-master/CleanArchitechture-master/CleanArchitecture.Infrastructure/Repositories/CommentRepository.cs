@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Entites.Interfaces;
+using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -14,7 +15,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
-        public async Task<List<Comments>> DelListComment(int reviewId)
+        public async Task<List<Comment>> DelListComment(int reviewId)
         {
             try
             {
@@ -39,13 +40,13 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
-        public async Task<List<Comments>> GetListComment(int skip, int take, string str, long userID)
+        public async Task<List<Comment>> GetListComment(int skip, int take, string str, long userID)
         {
             try
             {
                 // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo userID
                 var listComment = await _userContext.Comments
-                    .Where(p => p.UserId == userID && p.CommentText.Contains(str))
+                    .Where(p => p.UserId == userID && p.CommentText.StartsWith(str))
                     .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
                     .Skip(skip)
                     .Take(take)
@@ -59,7 +60,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }         
-        public async Task<List<Comments>> GetCommentsByIdReview(int skip, int take, int reviewID)
+        public async Task<List<Comment>> GetCommentsByIdReview(int skip, int take, int reviewID)
         {
             try
             {
@@ -79,7 +80,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }      
-        public async Task<Comments> CreateAComment(Comments comment)
+        public async Task<Comment> CreateAComment(Comment comment)
         {
             try
             {

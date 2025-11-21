@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using BCrypt.Net;
-using CleanArchitecture.Entites.Dtos;
+using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.DBContext;
+using CleanArchitecture.Entites.Interfaces;
+using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -22,53 +23,49 @@ namespace CleanArchitecture.Infrastructure.Repositories
             
         }
         //Trả về 1 user
-        public async Task<Users> Login(UsersDto userDto)
+        public async Task<Entites.Entites.User> Login(Entites.Entites.User user)
         {
-            Users? user = null;
+            Entites.Entites.User? auser = null;
             try
             {
                 // Lấy thông tin người dùng từ cơ sở dữ liệu
-                user = await _userContext.Users.AsNoTracking()
+                auser = await _userContext.Users.AsNoTracking()
                     .FirstOrDefaultAsync(
                     u => u.Username 
                     == 
-                    userDto.Username 
+                    user.Username 
                     &&
                     u.Email 
                     ==
-                    userDto.Email
+                    user.Email
                     &&
                     u.Status==true);
-                if (user==null)
+                if (auser==null)
                 {
                     return null;
                 }
-                Boolean checkPass= BCrypt.Net.BCrypt.Verify(userDto.Password, user.PasswordHash);
+                Boolean checkPass= BCrypt.Net.BCrypt.Verify(user.PasswordHash, auser.PasswordHash);
                 if (checkPass==false)
                 {
                     return null;
                 }
-                return user;
+                return auser;
             }
             catch
             {
-                return user;
+                return null;
             }
         }
-        public async Task<Boolean> SaveToken(Users user, string accessToken)
+        public async Task<Boolean> SaveToken(Entites.Entites.User user, string accessToken)
         {
-            Users? userDB = null;
+            Entites.Entites.User? userDB = null;
             try
             {
                 userDB = await _userContext.Users
                     .FirstOrDefaultAsync(
                     u => u.Username 
                     ==
-                    user.Username 
-                    && 
-                    u.PasswordHash
-                    ==
-                    user.PasswordHash );
+                    user.Username );
                 if (userDB == null)
                 {
                     return false;
@@ -82,9 +79,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return false;
             }
         }
-        public async Task<Users> CreateUser(Users user)
+        public async Task<Entites.Entites.User> CreateUser(Entites.Entites.User user)
         {
-            var NewUser = new Users();
+            var NewUser = new Entites.Entites.User();
             try
             {
                 NewUser.Username = user.Username;
@@ -103,9 +100,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return user;
             }
         }
-        public async Task<Users> CheckExistUser(Users user)
+        public async Task<Entites.Entites.User> CheckExistUser(Entites.Entites.User user)
         {
-            Users? userDB = null;
+            Entites.Entites.User? userDB = null;
             try
             {
                 userDB = await _userContext.Users
@@ -130,9 +127,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return userDB;
             }
         }
-        public async Task<Users> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
+        public async Task<Entites.Entites.User> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
         {
-            Users? userDB = null;
+            Entites.Entites.User? userDB = null;
             try
             {
 
@@ -166,9 +163,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }     
-        public async Task<Users> Get_User_byUserNameEmail(string userName,string email)
+        public async Task<Entites.Entites.User> Get_User_byUserNameEmail(string userName,string email)
         {
-            Users? userDB = null;
+            Entites.Entites.User? userDB = null;
             try
             {
 
@@ -196,7 +193,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<Users>> GetListUsers(int skip, int take,string data)
+        public async Task<List<Entites.Entites.User>> GetListUsers(int skip, int take,string data)
         {
             try
             {
@@ -209,18 +206,18 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .ToListAsync();
                 if (users.Count==0)
                 {
-                    return new List<Users>();
+                    return new List<Entites.Entites.User>();
                 }
-                return new List<Users>(users);
+                return new List<Entites.Entites.User>();
             }
             catch
             {
                 return null;
             }
         }         
-        public async Task<Users> ChangePassw(Users user)
+        public async Task<Entites.Entites.User> ChangePassw(Entites.Entites.User user)
         {
-            Users? aUsers = null;
+            Entites.Entites.User? aUsers = null;
             try
             {
                  aUsers = await _userContext.Users
@@ -239,9 +236,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         }    
         //Thật chất là thay đổi trạng thái user
-        public async Task<Boolean> DeleteUser(Users user)
+        public async Task<Boolean> DeleteUser(Entites.Entites.User user)
         {
-            Users? users = null;
+            Entites.Entites.User? users = null;
             try
             {
                                  users = await _userContext.Users
@@ -261,9 +258,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         } 
         //Thật chất là thay đổi trạng thái user
-        public async Task<Boolean> ActiveUser(Users user)
+        public async Task<Boolean> ActiveUser(Entites.Entites.User user)
         {
-            Users? users = null;
+            Entites.Entites.User? users = null;
             try
             {
                          users  = await _userContext.Users

@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Application.IRepository;
+﻿using CleanArchitecture.Application.Repository;
 using CleanArchitecture.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;

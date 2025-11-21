@@ -1,13 +1,5 @@
-﻿using AutoMapper;
-using CleanArchitecture.Application.IRepository;
-using CleanArchitecture.Entites.Dtos;
-using CleanArchitecture.Entites.Entites;
-using CleanArchitecture.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using CleanArchitecture.Application.Interfaces;
 
 namespace CleanArchitecture.Application.Repository
 {
