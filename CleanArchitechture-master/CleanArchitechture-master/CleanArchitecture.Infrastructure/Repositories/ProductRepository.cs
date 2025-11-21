@@ -39,9 +39,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                              products = await _userContext.Products
-                .Where(p => p.ProductName.Contains(data))
+                .Where(p => p.ProductName.StartsWith(data) || p.ProductName.EndsWith(data))
                 .Skip(skip)
-                .Take(take)
+                .Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();

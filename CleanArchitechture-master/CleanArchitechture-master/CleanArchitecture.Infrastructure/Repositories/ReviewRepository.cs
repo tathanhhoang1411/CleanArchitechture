@@ -68,7 +68,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     case 0:
                          reviewList = await (
 from review in _userContext.Reviews
-where review.ReviewText.Contains(str) 
+where review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str)
 join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
 from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
 orderby review.CreatedAt descending
@@ -88,7 +88,7 @@ select new
 }
 )
 .Skip(skip)
-.Take(take)
+.Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
 .AsNoTracking()
 .ToListAsync();
                         break;
@@ -96,7 +96,7 @@ select new
                     case >0:
                          reviewList = await (
 from review in _userContext.Reviews
-where review.ReviewText.Contains(str) && review.OwnerID == userID
+where review.OwnerID == userID && (review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str))
 join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
 from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
 orderby review.CreatedAt descending
@@ -116,7 +116,7 @@ select new
 }
 )
 .Skip(skip)
-.Take(take)
+.Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
 .AsNoTracking()
 .ToListAsync();
                         break;

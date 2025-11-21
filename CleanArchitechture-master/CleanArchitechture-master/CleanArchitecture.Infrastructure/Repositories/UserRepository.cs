@@ -198,9 +198,9 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                                 var users = await _userContext.Users
-                .Where(u => u.Username.Trim().Contains(data))
+                .Where(u => u.Username==data)
                 .Skip(skip)
-                .Take(take)
+                .Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
                 .OrderBy(p => p.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
