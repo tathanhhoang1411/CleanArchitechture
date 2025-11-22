@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using System.Threading;
 
 namespace CleanArchitecture.Infrastructure.Repositories
 {
@@ -17,21 +19,21 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public IReviewRepository Reviews { get; private set; }
         public IUserRepository Users{ get; private set; }
         public ICommentRepository Comments { get; private set; }
-        public UnitOfWork(ApplicationContext context)
+        public UnitOfWork(ApplicationContext context, IConfiguration configuration)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             Products = new ProductRepository(_context);
             Reviews = new ReviewRepository(_context);
             Users = new UserRepository(_context);
-            Comments = new CommentRepository(_context);
+            Comments = new CommentRepository(_context, configuration);
         }
 
 
-        public async Task<int> CompleteAsync()
+        public async Task<int> CompleteAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _context.SaveChangesAsync();
+                return await _context.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException ex)
             {

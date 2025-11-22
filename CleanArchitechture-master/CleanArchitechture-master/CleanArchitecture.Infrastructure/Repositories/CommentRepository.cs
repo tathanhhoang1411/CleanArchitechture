@@ -1,94 +1,105 @@
-﻿using CleanArchitecture.Entites.Entites;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace CleanArchitecture.Infrastructure.Repositories
 {
     public class CommentRepository : ICommentRepository
     {
         private readonly ApplicationContext _userContext;
-        public CommentRepository(ApplicationContext userContext)
+        private readonly int _maxTake; // Giới hạn configurable
+
+        public CommentRepository(ApplicationContext userContext, IConfiguration configuration)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+
+            // Đọc từ cấu hình, fallback về 1000 nếu không có hoặc không hợp lệ
+            var configured = configuration.GetValue<int?>("Paging:MaxTake");
+            _maxTake = (configured.HasValue && configured.Value > 0) ? configured.Value : 1000;
         }
-        public async Task<List<Comment>> DelListComment(int reviewId)
+
+        public async Task<List<Comment>> DelListComment(int reviewId, CancellationToken cancellationToken = default)
         {
-            try
+            // Validate input
+            if (reviewId <= 0)
+                return new List<Comment>();
+
+            // Lấy danh sách các comment có ReviewID tương ứng
+            var commentsToDelete = await _userContext.Comments
+                .Where(p => p.ReviewId == reviewId)
+                .ToListAsync(cancellationToken);
+
+            if (commentsToDelete == null || commentsToDelete.Count == 0)
             {
-                // Lấy danh sách các sản phẩm có ReviewID tương ứng
-                var CommentToDelete = await _userContext.Comments
-                    .Where(p => p.ReviewId == reviewId)
-                    .ToListAsync();
-
-                if (CommentToDelete.Count == 0)
-                {
-                    // Có thể ném ra ngoại lệ hoặc trả về danh sách rỗng tùy theo yêu cầu của bạn
-                    return null; // Hoặc throw new Exception("No products found");
-                }
-
-                // Xóa tất cả các sản phẩm trong danh sách
-                _userContext.Comments.RemoveRange(CommentToDelete);
-
-                return CommentToDelete; // Trả về danh sách sản phẩm đã xóa
+                return new List<Comment>();
             }
-            catch
-            {
-                return null;
-            }
+
+            _userContext.Comments.RemoveRange(commentsToDelete);
+
+            return commentsToDelete;
         }
-        public async Task<List<Comment>> GetListComment(int skip, int take, string str, long userID)
+
+        public async Task<List<Comment>> GetListComment(int skip, int take, string str, long userID, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo userID
-                var listComment = await _userContext.Comments
-                    .Where(p => p.UserId == userID && (p.CommentText.StartsWith(str)|| p.CommentText.EndsWith(str)))
-                    .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
-                    .Skip(skip)
-                    .Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
-                    .ToListAsync();
+            // Validate pagination
+            if (skip < 0) skip = 0;
+            if (take <= 0) take = 10;
+            take = Math.Min(take, _maxTake);
 
+            var query = _userContext.Comments.AsQueryable();
 
-                return listComment; // Trả về danh sách sản phẩm đã xóa
-            }
-            catch
+            if (userID > 0)
+                query = query.Where(p => p.UserId == userID);
+
+            if (!string.IsNullOrWhiteSpace(str))
             {
-                return null;
+                // Use StartsWith/EndsWith to preserve index usage
+                query = query.Where(p => p.CommentText != null && (p.CommentText.StartsWith(str) || p.CommentText.EndsWith(str)));
             }
-        }         
-        public async Task<List<Comment>> GetCommentsByIdReview(int skip, int take, int reviewID)
+
+            var listComment = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync(cancellationToken);
+
+            return listComment ?? new List<Comment>();
+        }
+
+        public async Task<List<Comment>> GetCommentsByIdReview(int skip, int take, int reviewID, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Lấy danh sách các comment, bỏ qua 'skip' và lấy 'take' số lượng, lọc theo reviewID
-                var listComment = await _userContext.Comments
-                    .Where(p => p.ReviewId == reviewID )
-                    .OrderByDescending(p => p.CreatedAt) // Order by creation date descending
-                    .Skip(skip)
-                    .Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
-                    .ToListAsync();
+            if (skip < 0) skip = 0;
+            if (take <= 0) take = 10;
+            take = Math.Min(take, _maxTake);
 
+            var listComment = await _userContext.Comments
+                .Where(p => p.ReviewId == reviewID)
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync(cancellationToken);
 
-                return listComment; // Trả về danh sách comment
-            }
-            catch
-            {
-                return null;
-            }
-        }      
-        public async Task<Comment> CreateAComment(Comment comment)
+            return listComment ?? new List<Comment>();
+        }
+
+        public async Task<Comment> CreateAComment(Comment comment, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                await _userContext.AddAsync(comment);
-                return comment;
-            }
-            catch
-            {
-                return null;
+            if (comment == null)
+                throw new ArgumentNullException(nameof(comment));
 
-            }
+            if (comment.CreatedAt == default)
+                comment.CreatedAt = DateTime.UtcNow;
+
+            await _userContext.Comments.AddAsync(comment, cancellationToken);
+            return comment;
         }
     }
 }

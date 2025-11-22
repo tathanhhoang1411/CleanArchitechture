@@ -38,7 +38,7 @@ namespace CleanArchitecture.Application.Features.Comments.Query
             {
                 try
                 {
-                    var CommentDtoList = await _commetServices.GetList_Comment_ByOwner(query.Skip, query.Take, query.Data.str, query.Data.ID);
+                    var CommentDtoList = await _commetServices.GetList_Comment_ByOwner(query.Skip, query.Take, query.Data.str, query.Data.ID, cancellationToken);
 
                     if (CommentDtoList != null)
                         return CommentDtoList;

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CleanArchitecture.Entites.Interfaces
 {
@@ -15,6 +16,6 @@ namespace CleanArchitecture.Entites.Interfaces
         IUserRepository Users { get; }
         ICommentRepository Comments { get; }
 
-        Task<int> CompleteAsync();
+        Task<int> CompleteAsync(CancellationToken cancellationToken = default);
     }
 }

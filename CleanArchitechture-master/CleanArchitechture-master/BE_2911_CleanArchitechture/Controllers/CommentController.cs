@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using CleanArchitecture.Application.Utilities;
 using CleanArchitecture.Application.Dtos;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace BE_2911_CleanArchitechture.Controllers
 {
@@ -38,7 +40,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                       Description = "")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> GetListComment( [FromQuery] int skip, [FromQuery] int take, [FromQuery] string requestData)
+        public async Task<IActionResult> GetListComment( [FromQuery] int skip, [FromQuery] int take, [FromQuery] string requestData, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -69,14 +71,17 @@ namespace BE_2911_CleanArchitechture.Controllers
                 QueryEF queryComment = new QueryEF();
                 queryComment.str = request.RequestData;
                 queryComment.ID = UserID;
-                var list = await _mediator.Send(new CommentQuerySelect(request.Skip, request.Take, queryComment));
+
+                // Pagination validation handled by PaginationValidationFilter globally
+
+                var list = await _mediator.Send(new CommentQuerySelect(request.Skip, request.Take, queryComment), cancellationToken);
+
                 // Kiểm tra xem việc lấy danh sách có thành công không
-                if (list.Count() == 0)
+                if (list == null || list.Count() == 0)
                 {
-                    // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Comment list error", null);
-                    var errors = new List<string> { "Comment list error" };
-                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    // Trả về 200 với mảng rỗng (hoặc thay đổi theo business)
+                    this._logger.LogInformation(UserID.ToString(), "Comment list empty");
+                    return Ok(new ApiResponse<List<CommentsDto>>(new List<CommentsDto>()));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<CommentsDto>>(list));
@@ -99,7 +104,7 @@ namespace BE_2911_CleanArchitechture.Controllers
               Description = "ID:  mã ID của bài review")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> GetListCommentByReviewID([FromQuery] int skip, [FromQuery] int take, [FromQuery] int requestData )
+        public async Task<IActionResult> GetListCommentByReviewID([FromQuery] int skip, [FromQuery] int take, [FromQuery] int requestData, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -127,14 +132,16 @@ namespace BE_2911_CleanArchitechture.Controllers
                 request.Skip = skip;
                 request.Take = take;
                 request.Id = requestData;
-                var list = await _mediator.Send(new CommentQuerySelectAllByReviewID(request.Skip, request.Take, request.Id));
+
+                // Pagination validation handled by PaginationValidationFilter globally
+
+                var list = await _mediator.Send(new CommentQuerySelectAllByReviewID(request.Skip, request.Take, request.Id), cancellationToken);
                 // Kiểm tra xem việc lấy danh sách có thành công không
-                if (list.Count() == 0)
+                if (list == null || list.Count() == 0)
                 {
-                    // Ghi log lỗi
-                    this._logger.LogError(UserID.ToString(), "Comment list error", null);
-                    var errors = new List<string> { "Comment list error" };
-                    return StatusCode(404, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                    // Trả về 200 với mảng rỗng (hoặc thay đổi theo business)
+                    this._logger.LogInformation(UserID.ToString(), "Comment list empty");
+                    return Ok(new ApiResponse<List<CommentsDto>>(new List<CommentsDto>()));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Result: true");
                 return Ok(new ApiResponse<List<CommentsDto>>(list));
@@ -154,7 +161,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         [HttpPost("CreateAComment")]
         [Authorize(Policy = "RequireUserRole")]
         #region
-        public async Task<IActionResult> CreateAComment([FromBody] CommentCommand command)
+        public async Task<IActionResult> CreateAComment([FromBody] CommentCommand command, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -180,7 +187,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 this._logger.LogInformation(UserID.ToString(), "CreateAComment");
                 command.OwnerID = UserID;
-                CommentsDto aCommentDto = await _mediator.Send(command);
+                CommentsDto aCommentDto = await _mediator.Send(command, cancellationToken);
                 // Kiểm tra xem việc tạo có thành công không
                 if (aCommentDto == null)
                 {

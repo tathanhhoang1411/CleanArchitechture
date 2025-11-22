@@ -17,11 +17,15 @@ using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Interfaces;
 using StackExchange.Redis;
 using CleanArchitecture.Entites.Interfaces;
+using BE_2911_CleanArchitechture.Filters;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<PaginationValidationFilter>();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -76,6 +80,7 @@ builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserService>();
 builder.Services.AddTransient<IimageServices, ImageServices>();
 builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger
+builder.Services.AddScoped<PaginationValidationFilter>();
 builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthorization(options =>
@@ -143,7 +148,6 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Logging.ClearProviders(); // Xóa các logger mặc định
 builder.Logging.AddSerilog(); // Thêm Serilog
-
 
 
 var app = builder.Build();

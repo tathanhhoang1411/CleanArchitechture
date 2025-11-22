@@ -1,7 +1,7 @@
-﻿
-using CleanArchitecture.Application.Dtos;
+﻿using CleanArchitecture.Application.Dtos;
 using MediatR;
 using CleanArchitecture.Application.Interfaces;
+using System.Threading;
 
 namespace CleanArchitecture.Application.Features.Comments.Query
 {
@@ -30,7 +30,7 @@ namespace CleanArchitecture.Application.Features.Comments.Query
             {
                 try
                 {
-                    var CommentDtoList = await _commetServices.GetList_Comment_ByReviewID(query.Skip, query.Take, query.ReviewID);
+                    var CommentDtoList = await _commetServices.GetList_Comment_ByReviewID(query.Skip, query.Take, query.ReviewID, cancellationToken);
 
                     return CommentDtoList ?? new List<CommentsDto>(); // Trả về danh sách rỗng nếu không có bài review
                 }

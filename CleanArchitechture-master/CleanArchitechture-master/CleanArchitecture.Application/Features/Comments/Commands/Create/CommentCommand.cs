@@ -1,8 +1,8 @@
-﻿
-using CleanArchitecture.Application.Dtos;
+﻿using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
 using CleanArchitecture.Application.Interfaces;
+using System.Threading;
 
 namespace CleanArchitecture.Application.Features.Comments.Commands.Create
 {
@@ -32,7 +32,7 @@ namespace CleanArchitecture.Application.Features.Comments.Commands.Create
                     comment.ReviewId = command.ReviewID;
                     comment.CreatedAt = dateTime;
                     comment.UserId = command.OwnerID;
-                    commentDto = await _commentServices.Comment_Create(comment);
+                    commentDto = await _commentServices.Comment_Create(comment, cancellationToken);
                     return commentDto;
                 }
                 catch
