@@ -1,13 +1,7 @@
-﻿using AutoMapper;
+﻿
 using CleanArchitecture.Application.Interfaces;
-using CleanArchitecture.Application.Services;
-using CleanArchitecture.Application.Dtos;
-using CleanArchitecture.Entites.Entites;
 using MediatR;
-using System;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using CleanArchitecture.Entites.Interfaces;
 
 namespace CleanArchitecture.Application.Utilities

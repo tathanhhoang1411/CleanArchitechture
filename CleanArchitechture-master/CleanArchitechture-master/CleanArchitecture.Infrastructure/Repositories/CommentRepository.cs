@@ -2,9 +2,6 @@
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Threading.Tasks;
 
 namespace CleanArchitecture.Infrastructure.Repositories
 {

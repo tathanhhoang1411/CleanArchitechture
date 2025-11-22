@@ -1,10 +1,6 @@
 ﻿using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Dtos;
-using CleanArchitecture.Entites.Entites;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Features.Products.Query
 {

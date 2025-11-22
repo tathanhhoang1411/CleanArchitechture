@@ -1,17 +1,7 @@
-﻿using AutoMapper;
-using BCrypt.Net;
-using CleanArchitecture.Application.Dtos;
-using CleanArchitecture.Entites.Entites;
+﻿
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace CleanArchitecture.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository

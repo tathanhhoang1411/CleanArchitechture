@@ -1,17 +1,12 @@
 ﻿using AutoMapper;
-using AutoMapper.Configuration;
 using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Entites.Entites;
 using Microsoft.IdentityModel.Tokens;
-using Org.BouncyCastle.Crypto.Generators;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using CleanArchitecture.Application.Dtos;
-using Org.BouncyCastle.Asn1.Ocsp;
 using CleanArchitecture.Entites.Interfaces;
 namespace CleanArchitecture.Application.Services
 {

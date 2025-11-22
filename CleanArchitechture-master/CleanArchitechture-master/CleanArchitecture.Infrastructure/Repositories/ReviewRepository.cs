@@ -1,14 +1,9 @@
-﻿using AutoMapper;
+﻿
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 namespace CleanArchitecture.Infrastructure.Repositories
 {
     public class ReviewRepository : IReviewRepository

@@ -2,11 +2,6 @@
 using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CleanArchitecture.Entites.Interfaces;
 
 namespace CleanArchitecture.Application.Repository
