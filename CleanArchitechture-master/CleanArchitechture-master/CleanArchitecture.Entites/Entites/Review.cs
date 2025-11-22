@@ -1,5 +1,5 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CleanArchitecture.Entites.Entites
 {
@@ -7,10 +7,16 @@ namespace CleanArchitecture.Entites.Entites
     {
         [Key]
         public int ReviewId { get; set; }
+
         public long OwnerID { get; set; }
+
         public double Rating { get; set; }
+
+        [Required]
+        [MaxLength(2000)]
         public string ReviewText { get; set; }
-        [MaxLength(1000)] // Đặt độ dài tối đa là 100 ký tự
+
+        [Required]
         public DateTime CreatedAt { get; set; }
     }
 }
