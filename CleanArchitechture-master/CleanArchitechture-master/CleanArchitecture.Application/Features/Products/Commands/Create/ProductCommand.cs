@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Dtos;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace CleanArchitecture.Application.Features.Products.Commands.Create
 {
@@ -20,15 +21,18 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Create
         public class CreateProductCommandHandler : IRequestHandler<ProductCommand, ProductsDto>
         {
             private readonly IProductServices _productServices;
-            public CreateProductCommandHandler(IProductServices productServices)
+            private readonly ILogger<CreateProductCommandHandler> _logger;
+            public CreateProductCommandHandler(IProductServices productServices, ILogger<CreateProductCommandHandler> logger)
             {
-                _productServices = productServices??throw new ArgumentNullException(nameof(productServices));
+                _productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
             public async Task<ProductsDto> Handle(ProductCommand command, CancellationToken cancellationToken)
             {
-                    ProductsDto prodDto=null;
+                ProductsDto prodDto = null;
                 try
                 {
+                    _logger.LogInformation("CreateProductCommand starting for owner {OwnerID}", command.OwnerID);
                     DateTime dateTime = DateTime.Now;
                     long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
                     Entites.Entites.Product product = new Entites.Entites.Product
@@ -47,11 +51,13 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Create
                         Type = command.Type,
                     };
 
-                    prodDto = await _productServices.Product_Create(product);
+                    prodDto = await _productServices.Product_Create(product, cancellationToken);
+                    _logger.LogInformation("CreateProductCommand completed for ProductId {ProductId}", product.ProductId);
                     return prodDto;
                 }
-                catch  
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "CreateProductCommand failed for owner {OwnerID}", command.OwnerID);
                     return prodDto;
                 }
             }

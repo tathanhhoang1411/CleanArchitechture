@@ -1,31 +1,40 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Dynamic;
+using Microsoft.Extensions.Configuration;
+
 namespace CleanArchitecture.Infrastructure.Repositories
 {
     public class ReviewRepository : IReviewRepository
     {
-        private ApplicationContext _userContext;
-        public ReviewRepository(ApplicationContext userContext)
+        private readonly ApplicationContext _userContext;
+        private readonly int _maxTake;
+
+        public ReviewRepository(ApplicationContext userContext, IConfiguration configuration)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            var configured = configuration.GetValue<int?>("Paging:MaxTake");
+            _maxTake = (configured.HasValue && configured.Value > 0) ? configured.Value : 5000;
         }
-        public async Task<int> DelReview(int reviewId)
+
+        public async Task<int> DelReview(int reviewId, CancellationToken cancellationToken = default)
         {
-            Review? aReview = null;
             try
             {
-                 aReview = await _userContext.Reviews
-    .AsNoTracking()
-    .FirstOrDefaultAsync(p => p.ReviewId == reviewId);
+                var aReview = await _userContext.Reviews
+                    .FirstOrDefaultAsync(p => p.ReviewId == reviewId, cancellationToken);
 
-                if (aReview ==null)
+                if (aReview == null)
                 {
-                    // Có thể ném ra ngoại lệ hoặc trả về null tùy theo yêu cầu của bạn
-                    return -1; // hoặc throw new Exception("Product not found");
+                    return -1;
                 }
 
                 _userContext.Reviews.Remove(aReview);
@@ -37,137 +46,151 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return -1;
             }
         }
-        public async Task<Review> CreateReview(Review createReview)
+
+        public async Task<Review> CreateReview(Review createReview, CancellationToken cancellationToken = default)
         {
-            Review? reviews = null;
+            if (createReview == null) return null;
+
             try
             {
-                await _userContext.AddAsync(createReview);
+                if (createReview.CreatedAt == default)
+                    createReview.CreatedAt = DateTime.UtcNow;
+
+                await _userContext.Reviews.AddAsync(createReview, cancellationToken);
                 return createReview;
             }
             catch
             {
-                return reviews;
-
+                return null;
             }
         }
 
-        public async Task<List<object>> GetListReviews(int skip, int take, string str, long userID)
+        public async Task<List<object>> GetListReviews(int skip, int take, string str, long userID, CancellationToken cancellationToken = default)
         {
-            List<object> list = null;
-            IEnumerable<dynamic> reviewList = new List<dynamic>(); ;
+            if (skip < 0) skip = 0;
+            if (take <= 0) take = 10;
+            take = Math.Min(take, _maxTake);
+
             try
             {
-                switch (userID)
-                {
-                    case 0:
-                         reviewList = await (
-from review in _userContext.Reviews
-where review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str)
-join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
-from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
-orderby review.CreatedAt descending
-select new
-{
- review.ReviewId,
- review.Rating,
- review.ReviewText,
- review.CreatedAt,
- ProductName = product != null ? product.ProductName : null,
- Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
- ProductImage1 = product != null ? product.ProductImage1 : null,
- ProductImage2 = product != null ? product.ProductImage2 : null,
- ProductImage3 = product != null ? product.ProductImage3 : null,
- ProductImage4 = product != null ? product.ProductImage4 : null,
- ProductImage5 = product != null ? product.ProductImage5 : null
-}
-)
-.Skip(skip)
-.Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
-.AsNoTracking()
-.ToListAsync();
-                        break;
+                var result = new List<object>();
 
-                    case >0:
-                         reviewList = await (
-from review in _userContext.Reviews
-where review.OwnerID == userID && (review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str))
-join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
-from product in productGroup.DefaultIfEmpty() // Thực hiện left outer join
-orderby review.CreatedAt descending
-select new
-{
- review.ReviewId,
- review.Rating,
- review.ReviewText,
- review.CreatedAt,
- ProductName = product != null ? product.ProductName : null,
- Price = product != null ? product.Price : (decimal?)null, // Chuyển sang nullable type
- ProductImage1 = product != null ? product.ProductImage1 : null,
- ProductImage2 = product != null ? product.ProductImage2 : null,
- ProductImage3 = product != null ? product.ProductImage3 : null,
- ProductImage4 = product != null ? product.ProductImage4 : null,
- ProductImage5 = product != null ? product.ProductImage5 : null
-}
-)
-.Skip(skip)
-.Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
-.AsNoTracking()
-.ToListAsync();
-                        break;
+                if (userID == 0)
+                {
+                    var reviewList = await (
+                        from review in _userContext.Reviews
+                        where string.IsNullOrEmpty(str) || review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str)
+                        join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
+                        from product in productGroup.DefaultIfEmpty()
+                        orderby review.CreatedAt descending
+                        select new
+                        {
+                            review.ReviewId,
+                            review.Rating,
+                            review.ReviewText,
+                            review.CreatedAt,
+                            ProductName = product != null ? product.ProductName : null,
+                            Price = product != null ? product.Price : (decimal?)null,
+                            ProductImage1 = product != null ? product.ProductImage1 : null,
+                            ProductImage2 = product != null ? product.ProductImage2 : null,
+                            ProductImage3 = product != null ? product.ProductImage3 : null,
+                            ProductImage4 = product != null ? product.ProductImage4 : null,
+                            ProductImage5 = product != null ? product.ProductImage5 : null
+                        })
+                        .Skip(skip)
+                        .Take(take)
+                        .AsNoTracking()
+                        .ToListAsync(cancellationToken);
+
+                    foreach (var r in reviewList)
+                    {
+                        dynamic expando = new ExpandoObject();
+                        expando.ReviewId = r.ReviewId;
+                        expando.Rating = r.Rating;
+                        expando.ReviewText = r.ReviewText;
+                        expando.CreatedAt = r.CreatedAt;
+                        expando.ProductName = r.ProductName;
+                        expando.Price = r.Price;
+                        expando.ProductImage1 = r.ProductImage1;
+                        expando.ProductImage2 = r.ProductImage2;
+                        expando.ProductImage3 = r.ProductImage3;
+                        expando.ProductImage4 = r.ProductImage4;
+                        expando.ProductImage5 = r.ProductImage5;
+
+                        result.Add(expando);
+                    }
+                }
+                else if (userID > 0)
+                {
+                    var reviewList = await (
+                        from review in _userContext.Reviews
+                        where review.OwnerID == userID && (string.IsNullOrEmpty(str) || review.ReviewText.StartsWith(str) || review.ReviewText.EndsWith(str))
+                        join product in _userContext.Products on review.ReviewId equals product.ReviewID into productGroup
+                        from product in productGroup.DefaultIfEmpty()
+                        orderby review.CreatedAt descending
+                        select new
+                        {
+                            review.ReviewId,
+                            review.Rating,
+                            review.ReviewText,
+                            review.CreatedAt,
+                            ProductName = product != null ? product.ProductName : null,
+                            Price = product != null ? product.Price : (decimal?)null,
+                            ProductImage1 = product != null ? product.ProductImage1 : null,
+                            ProductImage2 = product != null ? product.ProductImage2 : null,
+                            ProductImage3 = product != null ? product.ProductImage3 : null,
+                            ProductImage4 = product != null ? product.ProductImage4 : null,
+                            ProductImage5 = product != null ? product.ProductImage5 : null
+                        })
+                        .Skip(skip)
+                        .Take(take)
+                        .AsNoTracking()
+                        .ToListAsync(cancellationToken);
+
+                    foreach (var r in reviewList)
+                    {
+                        dynamic expando = new ExpandoObject();
+                        expando.ReviewId = r.ReviewId;
+                        expando.Rating = r.Rating;
+                        expando.ReviewText = r.ReviewText;
+                        expando.CreatedAt = r.CreatedAt;
+                        expando.ProductName = r.ProductName;
+                        expando.Price = r.Price;
+                        expando.ProductImage1 = r.ProductImage1;
+                        expando.ProductImage2 = r.ProductImage2;
+                        expando.ProductImage3 = r.ProductImage3;
+                        expando.ProductImage4 = r.ProductImage4;
+                        expando.ProductImage5 = r.ProductImage5;
+
+                        result.Add(expando);
+                    }
                 }
 
-                // Ánh xạ qua ExpandoObject
-
-                List<dynamic> mappedReviewList = new List<dynamic>();
-
-                foreach (var r in reviewList)
-                {
-                    dynamic expando = new ExpandoObject() as IDictionary<string, object>;
-                    expando.ReviewId = r.ReviewId;
-                    expando.Rating = r.Rating;
-                    expando.ReviewText = r.ReviewText;
-                    expando.CreatedAt = r.CreatedAt;
-                    expando.ProductName = r.ProductName;
-                    expando.Price = r.Price;
-                    expando.ProductImage1 = r.ProductImage1;
-                    expando.ProductImage2 = r.ProductImage2;
-                    expando.ProductImage3 = r.ProductImage3;
-                    expando.ProductImage4 = r.ProductImage4;
-                    expando.ProductImage5 = r.ProductImage5;
-
-                    mappedReviewList.Add(expando);
-                }
-                // Trả về danh sách đã ánh xạ
-                return mappedReviewList;
+                return result;
             }
             catch
             {
-                return list;
+                return new List<object>();
             }
         }
-        public async Task<List<Review>> GetListReviewsByOwnerID(int reviewID, long ownerID)
+
+        public async Task<List<Review>> GetListReviewsByOwnerID(int reviewID, long ownerID, CancellationToken cancellationToken = default)
         {
-            List<Review> list = null;
             try
             {
-                 list = await (
-                from review in _userContext.Reviews
-                where review.ReviewId == reviewID && review.OwnerID == ownerID  // Lọc trước khi join
-                orderby review.CreatedAt descending
-                select review) // Thêm select để lấy danh sách đánh giá)
-           .AsNoTracking()
-            .ToListAsync();
-                if (list.Count() == 0)
-                {
-                    return null;
-                }
-                // Trả về danh sách đã ánh xạ
-                return list;
+                var list = await (
+                    from review in _userContext.Reviews
+                    where review.ReviewId == reviewID && review.OwnerID == ownerID
+                    orderby review.CreatedAt descending
+                    select review)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                return list ?? new List<Review>();
             }
             catch
             {
-                return list;
+                return new List<Review>();
             }
         }
     }

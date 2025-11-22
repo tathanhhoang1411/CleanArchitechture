@@ -22,8 +22,8 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public UnitOfWork(ApplicationContext context, IConfiguration configuration)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            Products = new ProductRepository(_context);
-            Reviews = new ReviewRepository(_context);
+            Products = new ProductRepository(_context, configuration);
+            Reviews = new ReviewRepository(_context, configuration);
             Users = new UserRepository(_context);
             Comments = new CommentRepository(_context, configuration);
         }

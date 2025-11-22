@@ -3,11 +3,10 @@ using CleanArchitecture.Application.Utilities;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Microsoft.Extensions.Logging;
+using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace CleanArchitecture.Application.Features.Products.Commands.Update
 {
@@ -27,15 +26,18 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Update
         public class CreateProductCommandHandler : IRequestHandler<ProductcommandUpdate, ProductsDto>
         {
             private readonly IProductServices _productServices;
-            public CreateProductCommandHandler(IProductServices productServices)
+            private readonly ILogger<CreateProductCommandHandler> _logger;
+            public CreateProductCommandHandler(IProductServices productServices, ILogger<CreateProductCommandHandler> logger)
             {
                 _productServices = productServices;
+                _logger = logger;
             }
             public async Task<ProductsDto> Handle(ProductcommandUpdate command, CancellationToken cancellationToken)
             {
 
                 try
                 {
+                    _logger?.LogInformation("Product update starting for {ProductId}", command.ProductId);
                     var product = new Entites.Entites.Product
                     {
                         ProductName = command.ProductName,
@@ -50,11 +52,13 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Update
                         ProductId = command.ProductId
                     };
 
-                    ProductsDto proddto=await _productServices.Product_Update(product);
+                    ProductsDto proddto = await _productServices.Product_Update(product, cancellationToken);
+                    _logger?.LogInformation("Product update completed for {ProductId}", command.ProductId);
                     return proddto;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger?.LogError(ex, "Product update failed for {ProductId}", command.ProductId);
                     return new ProductsDto();
                 }
             }

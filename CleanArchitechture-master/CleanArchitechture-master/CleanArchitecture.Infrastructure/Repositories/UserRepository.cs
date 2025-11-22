@@ -1,44 +1,39 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 namespace CleanArchitecture.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationContext _userContext;
+        private readonly int _maxTake = 5000;
+
         public UserRepository(ApplicationContext userContext)
         {
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-            
         }
         //Trả về 1 user
-        public async Task<Entites.Entites.User> Login(Entites.Entites.User user)
+        public async Task<Entites.Entites.User> Login(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? auser = null;
             try
             {
-                // Lấy thông tin người dùng từ cơ sở dữ liệu
-                auser = await _userContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(
-                    u => u.Username 
-                    == 
-                    user.Username 
-                    &&
-                    u.Email 
-                    ==
-                    user.Email
-                    &&
-                    u.Status==true);
-                if (auser==null)
-                {
+                var auser = await _userContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email && u.Status == true, cancellationToken);
+
+                if (auser == null)
                     return null;
-                }
-                Boolean checkPass= BCrypt.Net.BCrypt.Verify(user.PasswordHash, auser.PasswordHash);
-                if (checkPass==false)
-                {
+
+                var checkPass = BCrypt.Net.BCrypt.Verify(user.PasswordHash, auser.PasswordHash);
+                if (!checkPass)
                     return null;
-                }
+
                 return auser;
             }
             catch
@@ -46,21 +41,14 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
-        public async Task<Boolean> SaveToken(Entites.Entites.User user, string accessToken)
+        public async Task<Boolean> SaveToken(Entites.Entites.User user, string accessToken, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? userDB = null;
             try
             {
-                userDB = await _userContext.Users
-                    .FirstOrDefaultAsync(
-                    u => u.Username 
-                    ==
-                    user.Username );
+                var userDB = await _userContext.Users.FirstOrDefaultAsync(u => u.Username == user.Username, cancellationToken);
                 if (userDB == null)
-                {
                     return false;
-                }
-                // Cập nhật các thuộc tính của đối tượng
+
                 userDB.Token = accessToken;
                 return true;
             }
@@ -69,82 +57,37 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return false;
             }
         }
-        public async Task<Entites.Entites.User> CreateUser(Entites.Entites.User user)
+        public async Task<Entites.Entites.User> CreateUser(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            var NewUser = new Entites.Entites.User();
+            if (user == null) return null;
+
             try
             {
-                NewUser.Username = user.Username;
-                NewUser.Email = user.Email;
-                NewUser.CreatedAt = user.CreatedAt;
-                NewUser.PasswordHash = user.PasswordHash;
-                NewUser.UserId = user.UserId;
-                NewUser.Role = user.Role;
-                NewUser.Status = true;
-                _userContext.Users.Add( NewUser );
+                var newUser = new Entites.Entites.User
+                {
+                    Username = user.Username,
+                    Email = user.Email,
+                    PasswordHash = user.PasswordHash,
+                    UserId = user.UserId,
+                    Role = user.Role,
+                    Status = true,
+                    CreatedAt = user.CreatedAt == default ? DateTime.UtcNow : user.CreatedAt
+                };
 
-                    return user;
+                await _userContext.Users.AddAsync(newUser, cancellationToken);
+                return newUser;
             }
             catch
             {
-                return user;
+                return null;
             }
         }
-        public async Task<Entites.Entites.User> CheckExistUser(Entites.Entites.User user)
+        public async Task<Entites.Entites.User> CheckExistUser(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? userDB = null;
             try
             {
-                userDB = await _userContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                    u => u.Username
-                    ==
-                    user.Username
-                    &&
-                    u.Email
-                    ==
-                    user.Email);
-                if (userDB == null)
-                {
-                    return userDB;
-                }
-
-                return userDB;
-            }
-            catch
-            {
-                return userDB;
-            }
-        }
-        public async Task<Entites.Entites.User> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord)
-        {
-            Entites.Entites.User? userDB = null;
-            try
-            {
-
-                userDB = await _userContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                    u => u.Username
-                    ==
-                    userName
-                    &&
-                    u.Email
-                    ==
-                    email
-                    &&
-                    u.Status == true);
-                if (userDB == null)
-                {
-                    return null;
-                }
-                Boolean flag = BCrypt.Net.BCrypt.Verify(oldPassWord, userDB.PasswordHash);
-                if (!flag)
-                {
-                    return null;
-                }
-                
+                var userDB = await _userContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email, cancellationToken);
 
                 return userDB;
             }
@@ -152,29 +95,33 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 return null;
             }
-        }     
-        public async Task<Entites.Entites.User> Get_User_byUserNameEmail(string userName,string email)
+        }
+        public async Task<Entites.Entites.User> Get_User_byUserNameEmailAndPassw(string userName,string email, string oldPassWord, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? userDB = null;
             try
             {
+                var userDB = await _userContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == userName && u.Email == email && u.Status == true, cancellationToken);
 
-                userDB = await _userContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                    u => u.Username
-                    ==
-                    userName
-                    &&
-                    u.Email
-                    ==
-                    email
-                    &&
-                    u.Status == true);
-                if (userDB == null)
-                {
-                    return null;
-                }
+                if (userDB == null) return null;
+
+                var flag = BCrypt.Net.BCrypt.Verify(oldPassWord, userDB.PasswordHash);
+                if (!flag) return null;
+
+                return userDB;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<Entites.Entites.User> Get_User_byUserNameEmail(string userName,string email, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var userDB = await _userContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == userName && u.Email == email && u.Status == true, cancellationToken);
+
                 return userDB;
             }
             catch
@@ -183,40 +130,45 @@ namespace CleanArchitecture.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<Entites.Entites.User>> GetListUsers(int skip, int take,string data)
+        public async Task<List<Entites.Entites.User>> GetListUsers(int skip, int take,string data, CancellationToken cancellationToken = default)
         {
+            if (skip < 0) skip = 0;
+            if (take <= 0) take = 10;
+            take = Math.Min(take, _maxTake);
+
             try
             {
-                                var users = await _userContext.Users
-                .Where(u => u.Username==data)
-                .Skip(skip)
-                .Take(Math.Min(take, 5000)) // Giới hạn số lượng bản ghi lấy tối đa
-                .OrderBy(p => p.CreatedAt)
-                .AsNoTracking()
-                .ToListAsync();
-                if (users.Count==0)
+                var query = _userContext.Users.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(data))
                 {
-                    return new List<Entites.Entites.User>();
+                    query = query.Where(u => u.Username == data);
                 }
+
+                var users = await query
+                    .OrderBy(p => p.CreatedAt)
+                    .Skip(skip)
+                    .Take(take)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                return users ?? new List<Entites.Entites.User>();
+            }
+            catch
+            {
                 return new List<Entites.Entites.User>();
             }
-            catch
-            {
-                return null;
-            }
-        }         
-        public async Task<Entites.Entites.User> ChangePassw(Entites.Entites.User user)
+        }
+        public async Task<Entites.Entites.User> ChangePassw(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? aUsers = null;
             try
             {
-                 aUsers = await _userContext.Users
-.Where(u => u.Username == user.Username && u.Email == user.Email && u.Status ==true)
-.FirstOrDefaultAsync();
-                if (aUsers == null)
-                {
-                    return null;
-                }
+                var aUsers = await _userContext.Users
+                    .Where(u => u.Username == user.Username && u.Email == user.Email && u.Status == true)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (aUsers == null) return null;
+
                 aUsers.PasswordHash = user.PasswordHash;
                 return aUsers;
             }
@@ -224,46 +176,40 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 return null;
             }
-        }    
+        }
         //Thật chất là thay đổi trạng thái user
-        public async Task<Boolean> DeleteUser(Entites.Entites.User user)
+        public async Task<Boolean> DeleteUser(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? users = null;
             try
             {
-                                 users = await _userContext.Users
-                .Where(u => u.Username == user.Username && u.Email == user.Email)
-                .FirstOrDefaultAsync();
-                if (users == null)
-                {
-                    return false;
-                }
-                users.Status = false;
+                var users = await _userContext.Users
+                    .Where(u => u.Username == user.Username && u.Email == user.Email)
+                    .FirstOrDefaultAsync(cancellationToken);
 
+                if (users == null) return false;
+
+                users.Status = false;
                 return true; // Trả về true khi xóa thành công
             }
             catch
             {
                 return false;
             }
-        } 
+        }
         //Thật chất là thay đổi trạng thái user
-        public async Task<Boolean> ActiveUser(Entites.Entites.User user)
+        public async Task<Boolean> ActiveUser(Entites.Entites.User user, CancellationToken cancellationToken = default)
         {
-            Entites.Entites.User? users = null;
             try
             {
-                         users  = await _userContext.Users
-            .Where(u => u.Username == user.Username && u.Email == user.Email)
-            .FirstOrDefaultAsync();
-                if (users == null)
-                {
-                    return false;
-                }
-                users.Status = true;
+                var users = await _userContext.Users
+                    .Where(u => u.Username == user.Username && u.Email == user.Email)
+                    .FirstOrDefaultAsync(cancellationToken);
 
-            return true; // Trả về true khi active thành công
-        }
+                if (users == null) return false;
+
+                users.Status = true;
+                return true; // Trả về true khi active thành công
+            }
             catch
             {
                 return false;
