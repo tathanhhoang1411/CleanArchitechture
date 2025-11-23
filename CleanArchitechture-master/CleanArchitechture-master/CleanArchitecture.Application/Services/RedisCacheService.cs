@@ -14,7 +14,7 @@ namespace CleanArchitecture.Application.Services
         private readonly ILogger<RedisCacheService> _logger;
         private readonly TimeSpan _defaultCacheDuration;
         private readonly IConnectionMultiplexer _connection;
-        public RedisCacheService(IConnectionMultiplexer connection, ILogger<RedisCacheService> logger, RabbitMQService rabbitMQ, IConfiguration configuration)
+        public RedisCacheService(IConnectionMultiplexer connection, ILogger<RedisCacheService> logger, IRabbitMQService rabbitMQ, IConfiguration configuration)
         {
             _database = connection.GetDatabase();
             _logger = logger;

@@ -17,10 +17,10 @@ namespace CleanArchitecture.Application.Repository
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRedisCacheService _cache;
-        private readonly RabbitMQService _rabbitMQ;
+        private readonly IRabbitMQService _rabbitMQ;
         private readonly ILogger<ReviewServices> _logger;
         private const int _maxTake = 5000;
-        public ReviewServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, RabbitMQService rabbitMQ, ILogger<ReviewServices> logger)
+        public ReviewServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, IRabbitMQService rabbitMQ, ILogger<ReviewServices> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

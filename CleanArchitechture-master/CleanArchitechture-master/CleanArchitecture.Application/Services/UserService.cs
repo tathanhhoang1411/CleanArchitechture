@@ -16,8 +16,8 @@ namespace CleanArchitecture.Application.Services
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRedisCacheService _cache;
-        private readonly RabbitMQService _rabbitMQ;
-        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, RabbitMQService rabbitMQ)
+        private readonly IRabbitMQService _rabbitMQ;
+        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, IRabbitMQService rabbitMQ)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

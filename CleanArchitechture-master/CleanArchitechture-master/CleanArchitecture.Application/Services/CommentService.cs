@@ -20,9 +20,9 @@ namespace CleanArchitecture.Application.Repository
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRedisCacheService _cache;
-        private readonly RabbitMQService _rabbitMQ;
+        private readonly IRabbitMQService _rabbitMQ;
         private readonly ILogger<CommentServices> _logger;
-        public CommentServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, RabbitMQService rabbitMQ, ILogger<CommentServices> logger)
+        public CommentServices(IReviewRepository reviewRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, IRabbitMQService rabbitMQ, ILogger<CommentServices> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

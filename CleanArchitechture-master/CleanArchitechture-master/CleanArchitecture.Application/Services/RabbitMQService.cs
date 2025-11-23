@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Microsoft.Extensions.Configuration;
+using CleanArchitecture.Application.Interfaces;
 namespace CleanArchitecture.Application.Services
 {
-    public class RabbitMQService
+    public class RabbitMQService: IRabbitMQService
     {
         private readonly ConnectionFactory _factory;
         private readonly string _queueName = "comment_events";
