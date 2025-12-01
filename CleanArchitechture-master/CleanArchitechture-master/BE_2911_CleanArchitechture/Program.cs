@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AutoMapper;
-using CleanArchitecture.Application.Services;
+using CleanArchitecture.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using BE_2911_CleanArchitechture.Logging;
@@ -18,6 +18,7 @@ using CleanArchitecture.Application.Interfaces;
 using StackExchange.Redis;
 using CleanArchitecture.Entites.Interfaces;
 using BE_2911_CleanArchitechture.Filters;
+using CleanArchitecture.Application.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

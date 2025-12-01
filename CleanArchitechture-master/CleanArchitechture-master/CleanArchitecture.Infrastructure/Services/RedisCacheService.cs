@@ -1,12 +1,11 @@
-﻿
 using StackExchange.Redis;
 using IDatabase = StackExchange.Redis.IDatabase;
 using CleanArchitecture.Application.Interfaces;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration; // Thêm namespace này
+using Microsoft.Extensions.Configuration;
 
-namespace CleanArchitecture.Application.Services
+namespace CleanArchitecture.Infrastructure.Services
 {
     public class RedisCacheService : IRedisCacheService
     {
@@ -19,10 +18,8 @@ namespace CleanArchitecture.Application.Services
             _database = connection.GetDatabase();
             _logger = logger;
             _connection = connection;
-            // Đọc thời gian cache mặc định từ appsettings.json
             var defaultSeconds = configuration.GetValue<int>("Redis:DefaultCacheDurationInSeconds", 60);
             _defaultCacheDuration = TimeSpan.FromSeconds(defaultSeconds);
-            // ✅ Đăng ký listener một lần duy nhất tại đây
             rabbitMQ.Subscribe(OnMessageReceived);
         }
         private void OnMessageReceived(string message)
@@ -31,24 +28,18 @@ namespace CleanArchitecture.Application.Services
                 message.StartsWith("CommentDeleted:") ||
                 message.StartsWith("CommentCreate:"))
             {
-                // Xóa toàn bộ cache liên quan đến comment
-                ClearCacheByPrefix("comments:");
-                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'comments:' due to {message}");
-            }     
+                ClearCacheByPrefix("comments:").GetAwaiter().GetResult();
+            }
             if (message.StartsWith("ReviewDelete:") ||
                 message.StartsWith("ReviewCreate:"))
             {
-                // Xóa toàn bộ cache liên quan đến review
-                ClearCacheByPrefix("reviews:");
-                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'review:' due to {message}");
-            }     
+                ClearCacheByPrefix("reviews:").GetAwaiter().GetResult();
+            }
             if (message.StartsWith("UsersDelete:") ||
                 message.StartsWith("UsersUpdate:") ||
                 message.StartsWith("UsersCreate:"))
             {
-                // Xóa toàn bộ cache liên quan đến review
-                ClearCacheByPrefix("users:");
-                Console.WriteLine($"🧹 [RedisCacheService] Cleared cache for prefix 'user:' due to {message}");
+                ClearCacheByPrefix("users:").GetAwaiter().GetResult();
             }
         }
         public async Task ClearCacheByPrefix(string prefix)
@@ -61,16 +52,13 @@ namespace CleanArchitecture.Application.Services
             {
                 await _database.KeyDeleteAsync(key);
             }
-
-            Console.WriteLine($"[Redis] Cleared cache with prefix: {prefix}");
         }
         public async Task<T?> GetAsync<T>(string key)
         {
             try
             {
-            var value = await _database.StringGetAsync(key);
-            if (value.IsNullOrEmpty) return default;
-
+                var value = await _database.StringGetAsync(key);
+                if (value.IsNullOrEmpty) return default;
                 return JsonSerializer.Deserialize<T>(value!);
             }
             catch (Exception ex)
@@ -79,11 +67,9 @@ namespace CleanArchitecture.Application.Services
                 return default;
             }
         }
-
         public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
         {
             var jsonData = JsonSerializer.Serialize(value);
-            // Dùng thời gian mặc định nếu không truyền expiry
             var effectiveExpiry = expiry ?? _defaultCacheDuration;
             await _database.StringSetAsync(key, jsonData, effectiveExpiry);
         }
@@ -91,6 +77,5 @@ namespace CleanArchitecture.Application.Services
         {
             await _database.KeyDeleteAsync(key);
         }
-
     }
 }
