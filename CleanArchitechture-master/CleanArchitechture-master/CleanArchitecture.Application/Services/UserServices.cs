@@ -10,14 +10,14 @@ using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Interfaces;
 namespace CleanArchitecture.Application.Services
 {
-    public class UserService:IUserServices
+    public class UserServices:IUserServices
     {
         private  IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRedisCacheService _cache;
         private readonly IRabbitMQService _rabbitMQ;
-        public UserService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, IRabbitMQService rabbitMQ)
+        public UserServices(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache, IRabbitMQService rabbitMQ)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

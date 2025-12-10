@@ -54,21 +54,12 @@ namespace CleanArchitecture.Infrastructure.Repositories
             if (take <= 0) take = 10;
             take = Math.Min(take, _maxTake);
 
-            var query = _userContext.Comments.AsQueryable();
-
-            if (userID > 0)
-                query = query.Where(p => p.UserId == userID);
-
-            if (!string.IsNullOrWhiteSpace(str))
-            {
-                // Use StartsWith/EndsWith to preserve index usage
-                query = query.Where(p => p.CommentText != null && (p.CommentText.StartsWith(str) || p.CommentText.EndsWith(str)));
-            }
-
-            var listComment = await query
+            var listComment = await _userContext.Comments
+                .Where(p => p.CommentText != null && (p.CommentText.StartsWith(str) || p.CommentText.EndsWith(str))&& p.UserId==userID)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip(skip)
                 .Take(take)
+                  .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return listComment ?? new List<Comment>();

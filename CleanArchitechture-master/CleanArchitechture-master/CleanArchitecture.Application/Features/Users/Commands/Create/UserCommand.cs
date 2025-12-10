@@ -33,7 +33,7 @@ namespace CleanArchitecture.Application.Features.Users.Commands.Create
                     user.CreatedAt = dateTime;
                     user.Role = "User";
                     Entites.Entites.User isExistUser = await _userServices.CheckExistUser(user);
-                    if (isExistUser==null)//Nếu đăng kí tài khoản đã tồn tại
+                    if (isExistUser!=null)//Nếu đăng kí tài khoản đã tồn tại
                     {
                         return null;
                     }

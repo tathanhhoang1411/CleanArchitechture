@@ -19,17 +19,15 @@ namespace BE_2911_CleanArchitecture.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IWebHostEnvironment _environment;
         private readonly IMediator _mediator;
-        private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
         private readonly IUserServices _userServices;
-        public UserController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IMapper mapper, IUserServices userServices)
+        public UserController(IMediator mediator
+            , ICustomLogger logger
+            , IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
-            this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         //Đăng nhập

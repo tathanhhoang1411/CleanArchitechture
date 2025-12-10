@@ -20,20 +20,15 @@ namespace BE_2911_CleanArchitechture.Controllers
         //{
         //    _productServices = productServices;
         //}
-        private readonly IWebHostEnvironment _environment;
-
-        private readonly IProductServices _productServices;
         private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
-        private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
-        public ReviewController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, IProductServices productServices, IUserServices userServices)
+        public ReviewController(IMediator mediator
+            , ICustomLogger logger
+            , IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._productServices = productServices ?? throw new ArgumentNullException(nameof(productServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
         [HttpGet("GetAllListReview")]

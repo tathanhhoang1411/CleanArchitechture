@@ -19,6 +19,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public IReviewRepository Reviews { get; private set; }
         public IUserRepository Users{ get; private set; }
         public ICommentRepository Comments { get; private set; }
+        public IFriendRepository Friends { get; private set; }
         public UnitOfWork(ApplicationContext context, IConfiguration configuration)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -26,6 +27,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             Reviews = new ReviewRepository(_context, configuration);
             Users = new UserRepository(_context);
             Comments = new CommentRepository(_context, configuration);
+            Friends = new FriendRepository(_context, configuration);
         }
 
 

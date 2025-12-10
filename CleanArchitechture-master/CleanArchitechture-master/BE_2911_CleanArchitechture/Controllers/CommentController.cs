@@ -17,20 +17,15 @@ namespace BE_2911_CleanArchitechture.Controllers
     [ApiController]
     public class CommentController : ControllerBase
     {
-        private readonly IWebHostEnvironment _environment;
-
-        private readonly ICommentServices _commentServices;
         private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
-        private readonly IConfiguration _configuration;
         private readonly ICustomLogger _logger;
-        public CommentController(IMediator mediator, IWebHostEnvironment environment, ICustomLogger logger, IConfiguration configuration, ICommentServices commentServices, IUserServices userServices)
+        public CommentController(IMediator mediator
+            , ICustomLogger logger
+            , IUserServices userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._commentServices = commentServices ?? throw new ArgumentNullException(nameof(commentServices));
             this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
         //Lấy danh sách comment bởi user đó

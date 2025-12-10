@@ -15,6 +15,8 @@ namespace BE_2911_CleanArchitechture.Handler
             CreateMap<UsersDto, User>().ReverseMap();
             CreateMap<ReviewsDto, Review>().ReverseMap();
             CreateMap<CommentsDto, Comment>().ReverseMap();
+            CreateMap<CommentsDto, Comment>().ReverseMap();
+            CreateMap<FriendsDto, Friend>().ReverseMap();
             //CreateMap<TblSalesProductInfo, InvoiceDetail>().ReverseMap();
             //CreateMap<TblProduct, ProductEntity>().ReverseMap();
             //CreateMap<TblProductvarinat, ProductVariantEntity>().ReverseMap();

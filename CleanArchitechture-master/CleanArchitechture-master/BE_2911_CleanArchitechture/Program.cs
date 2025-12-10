@@ -78,8 +78,10 @@ builder.Services.AddTransient<ICommentServices, CommentServices>();
 builder.Services.AddTransient<ICommentRepository, CommentRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IUserServices, UserService>();
+builder.Services.AddTransient<IUserServices, UserServices>();
 builder.Services.AddTransient<IimageServices, ImageServices>();
+builder.Services.AddTransient<IFriendRepository, FriendRepository>();
+builder.Services.AddTransient<IFriendServices, FriendServices>();
 builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger
 builder.Services.AddScoped<PaginationValidationFilter>();
 builder.Services.AddApplicationMediaR();

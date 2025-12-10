@@ -15,6 +15,7 @@ namespace CleanArchitecture.Entites.Interfaces
         IReviewRepository Reviews { get; }
         IUserRepository Users { get; }
         ICommentRepository Comments { get; }
+        IFriendRepository Friends { get; }
 
         Task<int> CompleteAsync(CancellationToken cancellationToken = default);
     }
