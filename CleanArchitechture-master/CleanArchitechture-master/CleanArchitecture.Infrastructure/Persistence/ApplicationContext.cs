@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Entites.Entites;
+﻿using CleanArchitecture.Domain.Entites;
+using CleanArchitecture.Entites.Entites;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Infrastructure.Persistence
@@ -11,6 +12,16 @@ namespace CleanArchitecture.Infrastructure.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Giả sử tên Model của bạn là Friend.
+            // Và tên bảng thực tế trong SQL Server là 'Friendships'
+            //modelBuilder.Entity<Friend>().ToTable("Friendships");
+
+            // Hoặc nếu tên bảng thực tế là 'Friends' và schema là 'dbo'
+            modelBuilder.Entity<Product>().ToTable("Products", "dbo");
+            modelBuilder.Entity<User>().ToTable("Users", "dbo");
+            modelBuilder.Entity<Review>().ToTable("Reviews", "dbo");
+            modelBuilder.Entity<Comment>().ToTable("Comments", "dbo");
+            modelBuilder.Entity<Friend>().ToTable("Friends", "dbo");
             base.OnModelCreating(modelBuilder);
         }
 

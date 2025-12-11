@@ -42,13 +42,12 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 // Truy vấn chỉ cần kiểm tra một chiều duy nhất (A -> B)
                 aFriend = await _userContext.Friends
-                    .Where(p => p.SenderId == senderId && p.RequestId == receiverId)
-                    .FirstOrDefaultAsync(cancellationToken);
+                    .FirstOrDefaultAsync(p => p.SenderId == senderId && p.ReceiverId == receiverId, cancellationToken);
                 return aFriend;
             }
             catch
             {
-                return aFriend;
+                return null;
             }
         }
     }

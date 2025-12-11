@@ -9,19 +9,22 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Entites.Entites
 {
-    [Table("[Friend]")]
+    [Table("[Friends]")]
     public class Friend
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long RequestId { get; set; } // Khóa chính (PK), bigint
 
+        [Required]
         // Khóa ngoại (Foreign Key) cho người gửi
         public long SenderId { get; set; } // bigint, not null
 
+        [Required]
         // Khóa ngoại (Foreign Key) cho người nhận
         public long ReceiverId { get; set; } // bigint, not null
 
+        [Required]
         // Lưu trữ dưới dạng INT trong DB, nhưng dùng enum trong Code
         public FriendRequestStatus Status { get; set; } // int, not null
 

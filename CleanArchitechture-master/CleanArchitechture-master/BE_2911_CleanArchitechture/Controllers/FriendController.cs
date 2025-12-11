@@ -69,7 +69,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 this._logger.LogInformation(UserID.ToString(), "Friend request");
                 FriendsDto aFriendDto = await _mediator.Send(new SendFriendRequestCommand(UserID,receiverId), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
-                if (aFriendDto == null)
+                if (aFriendDto.ReceiverId == 0)
                 {
                     // Trả về thất bại
                     this._logger.LogInformation(UserID.ToString(), "Friend request fail");

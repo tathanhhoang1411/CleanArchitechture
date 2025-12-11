@@ -37,8 +37,8 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Create
                 try
                 {
                     _logger.LogInformation("SendFriendRequestCommand starting for user {UserId}", sendFriendRequestCommand.senderId);
-                    FriendsDto aFriend = await _friendServices.CheckExist(sendFriendRequestCommand.senderId, sendFriendRequestCommand.receiverId, cancellationToken);
-                    if (aFriend == null)
+                     friendDto = await _friendServices.CheckExist(sendFriendRequestCommand.senderId, sendFriendRequestCommand.receiverId, cancellationToken);
+                    if (friendDto.ReceiverId > 0)
                     {
                         return friendDto;
                     }
@@ -58,7 +58,7 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Create
                 {
                     _logger.LogError(ex, "SendFriendRequestCommand failed for user {UserId}", sendFriendRequestCommand.senderId);
                     return friendDto;
-                }
+                } 
             }
         }
      }

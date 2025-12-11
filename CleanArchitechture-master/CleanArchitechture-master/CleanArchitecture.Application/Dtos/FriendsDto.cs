@@ -12,6 +12,7 @@ namespace CleanArchitecture.Application.Dtos
     {
         public long SenderId { get; set; } 
         public long ReceiverId { get; set; } 
+        public FriendRequestStatus Status { get; set; } 
         public DateTime RequestedAt { get; set; } 
         public DateTime? ActionedAt { get; set; }
     }
