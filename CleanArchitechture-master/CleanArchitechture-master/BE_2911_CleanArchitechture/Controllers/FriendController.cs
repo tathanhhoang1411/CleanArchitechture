@@ -3,6 +3,7 @@ using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Features.Comments.Query;
 using CleanArchitecture.Application.Features.Friends.Commands.Create;
+using CleanArchitecture.Application.Features.Friends.Query;
 using CleanArchitecture.Application.Features.Users.Query;
 using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Services;
@@ -61,6 +62,44 @@ namespace BE_2911_CleanArchitechture.Controllers
                 }
                 this._logger.LogInformation(UserID.ToString(), "Success!");
                 return Ok(new ApiResponse<FriendsDto>(aFriendDto));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
+
+        //Lấy danh sách đã gửi lời mời kết bạn 
+        [HttpGet("ListSendFriend")]
+        [SwaggerOperation(Summary = "Lấy danh sách đxa gửi lời mời kết bạn",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> ListSendFriend([FromQuery] int skip,int take, CancellationToken cancellationToken)
+        {
+            long UserID = 0;
+            try
+            {
+
+                //Kiểm tra userID có tồn tại không 
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
+                //Select ListSendFriend 
+                this._logger.LogInformation(UserID.ToString(), "ListSendFriend request");
+                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take,UserID), cancellationToken);
+                // Kiểm tra xem việc gửi kết bạn có thành công không
+                if (listFriendDto == null)
+                {
+                    // Trả về thất bại
+                    this._logger.LogInformation(UserID.ToString(), "ListSendFriend request fail");
+                    return Ok(new ApiResponse<string>("Fail!"));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Success!");
+                return Ok(new ApiResponse<List<FriendsDto>>(listFriendDto));
             }
             catch (Exception ex)
             {

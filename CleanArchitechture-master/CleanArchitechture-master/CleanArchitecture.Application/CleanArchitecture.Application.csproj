@@ -25,7 +25,6 @@
     <Folder Include="Features\Comments\Commands\Update\" />
     <Folder Include="Features\Friends\Commands\Delete\" />
     <Folder Include="Features\Friends\Commands\Update\" />
-    <Folder Include="Features\Friends\Query\" />
     <Folder Include="Features\Products\Commands\Delete\" />
     <Folder Include="Features\Reviews\Commands\Update\" />
   </ItemGroup>

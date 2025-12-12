@@ -50,5 +50,23 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
+        public async Task<List<Friend>> GetListSendFriend(int skip, int take, long userId, CancellationToken cancellationToken = default)
+        {
+            List<Friend> listSendFriend = null;
+            try
+            {
+                listSendFriend = await _userContext.Friends
+                                .Where(p => p.SenderId == userId)
+                                .OrderByDescending(p=>p.RequestedAt)
+                                .Skip(skip)
+                                .Take(take)
+                                .ToListAsync(cancellationToken);
+                return listSendFriend;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }
