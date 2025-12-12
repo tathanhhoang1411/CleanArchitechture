@@ -24,22 +24,20 @@ namespace BE_2911_CleanArchitechture.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductController : BaseController
     {
-        private readonly IWebHostEnvironment _environment;
-        private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
+        private readonly IWebHostEnvironment _environment;
         private readonly ILogger<ProductController> _ilogger;
-
         public ProductController(IMediator mediator
             , IWebHostEnvironment environment
             , ICustomLogger logger
             ,IUserServices userServices
             , ILogger<ProductController> ilogger)
+            : base(logger, userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
             _ilogger = ilogger ?? throw new ArgumentNullException(nameof(ilogger));
         }
 
@@ -53,16 +51,8 @@ namespace BE_2911_CleanArchitechture.Controllers
             var sw = Stopwatch.StartNew();
             try
             {
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                _ilogger.LogInformation("Check UserID in TokenJWT: {UserID}", UserID);
-                if (UserID == 0)
-                {
-                    _ilogger.LogWarning("UserId not exist in token");
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
 
                 _ilogger.LogInformation("CreateProduct start for user {UserID}", UserID);
                 command.OwnerID = UserID;

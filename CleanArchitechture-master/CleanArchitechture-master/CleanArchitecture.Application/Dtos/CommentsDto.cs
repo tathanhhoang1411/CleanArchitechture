@@ -9,7 +9,7 @@ namespace CleanArchitecture.Application.Dtos
     public class CommentsDto
     {
         public long CommentId { get; set; }
-        public int ReviewId { get; set; }
+        public long ReviewId { get; set; }
         public string CommentText { get; set; }
         public DateTime CreatedAt { get; set; }
     }

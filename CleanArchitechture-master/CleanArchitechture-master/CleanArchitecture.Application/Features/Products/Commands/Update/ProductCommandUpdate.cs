@@ -16,8 +16,8 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Update
         public string? ProductName { get; set; }
         public decimal Price { get; set; }
         public long OwnerID { get; set; }
-        public int ReviewID { get; set; }
-        public string ProductId { get; set; }
+        public long ReviewID { get; set; }
+        public long ProductId { get; set; }
         public string? ProductImage1 { get; set; }
         public string? ProductImage2 { get; set; }
         public string? ProductImage3 { get; set; }

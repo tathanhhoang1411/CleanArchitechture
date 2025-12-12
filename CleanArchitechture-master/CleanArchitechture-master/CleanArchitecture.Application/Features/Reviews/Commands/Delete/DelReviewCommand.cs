@@ -5,11 +5,11 @@ using MediatR;
 namespace CleanArchitecture.Application.Features.Reviews.Commands.Delete
 {
 
-    public class DelReviewCommand : IRequest<int>
+    public class DelReviewCommand : IRequest<long>
     {
         public int ReviewID { get; set; }
         public long UserID { get; set; }
-        public class DelReviewCommandHandler : IRequestHandler<DelReviewCommand, int>
+        public class DelReviewCommandHandler : IRequestHandler<DelReviewCommand, long>
         {
             private readonly IReviewServices _reviewServices;
             public DelReviewCommandHandler(IReviewServices reviewServices)
@@ -17,9 +17,9 @@ namespace CleanArchitecture.Application.Features.Reviews.Commands.Delete
                 _reviewServices = reviewServices ?? throw new ArgumentNullException(nameof(reviewServices));
 
             }
-            public async Task<int> Handle(DelReviewCommand command, CancellationToken cancellationToken)
+            public async Task<long> Handle(DelReviewCommand command, CancellationToken cancellationToken)
             {
-                int reviewID = -1;
+                long reviewID = -1;
                 try
                 {
                     reviewID = await _reviewServices.Review_Del(command.ReviewID,command.UserID);

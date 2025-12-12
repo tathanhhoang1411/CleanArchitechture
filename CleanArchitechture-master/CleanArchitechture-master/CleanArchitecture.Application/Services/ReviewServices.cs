@@ -87,9 +87,9 @@ namespace CleanArchitecture.Application.Repository
                 return null;
             }
         }
-        public async Task<int> Review_Del(int reviewID, long ownerID, CancellationToken cancellationToken = default)
+        public async Task<long> Review_Del(int reviewID, long ownerID, CancellationToken cancellationToken = default)
         {
-            int reviewIDDel = -1;
+            long reviewIDDel=0;
             try
             {
                 List<Review> list = await GetList_Reviews_ByOwner(reviewID, ownerID, cancellationToken);

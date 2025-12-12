@@ -3,12 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CleanArchitecture.Entites.Entites
 {
+    [Table("Comments")]
     public class Comment
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CommentId { get; set; }
 
-        public int ReviewId { get; set; }
+        public long ReviewId { get; set; }
 
         public long UserId { get; set; }
 

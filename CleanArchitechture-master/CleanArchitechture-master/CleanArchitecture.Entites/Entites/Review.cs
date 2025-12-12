@@ -6,7 +6,8 @@ namespace CleanArchitecture.Entites.Entites
     public class Review
     {
         [Key]
-        public int ReviewId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long ReviewId { get; set; }
 
         public long OwnerID { get; set; }
 

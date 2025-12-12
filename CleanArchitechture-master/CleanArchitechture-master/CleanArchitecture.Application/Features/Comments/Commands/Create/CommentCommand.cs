@@ -33,7 +33,6 @@ namespace CleanArchitecture.Application.Features.Comments.Commands.Create
                     DateTime dateTime = DateTime.Now;
                     long timestamp = new DateTimeOffset(dateTime).ToUnixTimeSeconds();
                     Entites.Entites.Comment comment = new Entites.Entites.Comment();
-                    comment.CommentId = timestamp;
                     comment.CommentText = command.ReviewText;
                     comment.ReviewId = command.ReviewID;
                     comment.CreatedAt = dateTime;

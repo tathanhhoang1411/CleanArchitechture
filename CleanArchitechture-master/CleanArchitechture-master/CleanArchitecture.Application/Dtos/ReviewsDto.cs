@@ -10,7 +10,7 @@ namespace CleanArchitecture.Application.Dtos
 { 
 public class ReviewsDto 
     {
-        public int ReviewId { get; set; }
+        public long ReviewId { get; set; }
         public long OwnerID { get; set; }
         public double Rating { get; set; }
         public string ReviewText { get; set; }

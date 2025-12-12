@@ -38,7 +38,6 @@ namespace CleanArchitecture.Application.Features.Products.Commands.Create
                     Entites.Entites.Product product = new Entites.Entites.Product
                     {
                         ProductName = command.ProductName,
-                        ProductId = timestamp.ToString(),
                         Price = command.Price,
                         CreatedAt = dateTime,
                         OwnerID = command.OwnerID,

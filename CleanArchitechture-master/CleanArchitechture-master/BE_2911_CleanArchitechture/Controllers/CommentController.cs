@@ -15,18 +15,15 @@ namespace BE_2911_CleanArchitechture.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CommentController : ControllerBase
+    public class CommentController : BaseController
     {
-        private readonly IUserServices _userServices;
         private readonly IMediator _mediator;
-        private readonly ICustomLogger _logger;
         public CommentController(IMediator mediator
             , ICustomLogger logger
             , IUserServices userServices)
+            : base(logger, userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._userServices = userServices ?? throw new ArgumentNullException(nameof(userServices));
         }
         //Lấy danh sách comment bởi user đó
         [HttpGet("GetListCommentByOwner")]
@@ -41,22 +38,9 @@ namespace BE_2911_CleanArchitechture.Controllers
             try
             {
                 //Kiểm tra userID có tồn tại không 
-                #region
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
-                if (UserID == 0)
-                {
-                    this._logger.LogError(UserID.ToString(), "Result: false", null);
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                else
-                {
-                    this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
-                #endregion
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
                 //Select comment 
                 this._logger.LogInformation(UserID.ToString(), "Commentlist");
                 ApiRequest<string> request = new ApiRequest<string>();
@@ -105,22 +89,9 @@ namespace BE_2911_CleanArchitechture.Controllers
             try
             {
                 //Kiểm tra userID có tồn tại không 
-                #region
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
-                if (UserID == 0)
-                {
-                    this._logger.LogError(UserID.ToString(), "Result: false", null);
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                else
-                {
-                    this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
-                #endregion
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
                 //Select comment 
                 this._logger.LogInformation(UserID.ToString(), "Commentlist");
                 ApiRequest<int> request = new ApiRequest<int>();
@@ -162,22 +133,9 @@ namespace BE_2911_CleanArchitechture.Controllers
             try
             {
                 //Kiểm tra userID có tồn tại không 
-                #region
-                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                Task<long> UserIDTypeLong = _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                UserID = await UserIDTypeLong;
-                this._logger.LogInformation(UserID.ToString(), "Check UserID in TokenJWT");
-                if (UserID == 0)
-                {
-                    this._logger.LogError(UserID.ToString(), "Result: false", null);
-                    var errors = new List<string> { "UserId not exist" };
-                    return StatusCode(403, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-                }
-                else
-                {
-                    this._logger.LogInformation(UserID.ToString(), "Result: true");
-                }
-                #endregion
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
                 //Tạo comment
 
                 this._logger.LogInformation(UserID.ToString(), "CreateAComment");

@@ -49,20 +49,20 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         public async Task<List<Comment>> GetListComment(int skip, int take, string str, long userID, CancellationToken cancellationToken = default)
         {
-            // Validate pagination
-            if (skip < 0) skip = 0;
-            if (take <= 0) take = 10;
-            take = Math.Min(take, _maxTake);
+                // Validate pagination
+                if (skip < 0) skip = 0;
+                if (take <= 0) take = 10;
+                take = Math.Min(take, _maxTake);
 
-            var listComment = await _userContext.Comments
-                .Where(p => p.CommentText != null && (p.CommentText.StartsWith(str) || p.CommentText.EndsWith(str))&& p.UserId==userID)
-                .OrderByDescending(p => p.CreatedAt)
-                .Skip(skip)
-                .Take(take)
-                  .AsNoTracking()
-                .ToListAsync(cancellationToken);
+                var listComment = await _userContext.Comments
+                    .Where(p => p.CommentText != null && (p.CommentText.StartsWith(str)) && p.UserId == userID)
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Skip(skip)
+                    .Take(take)
+                      .AsNoTracking()
+                    .ToListAsync(cancellationToken);
 
-            return listComment ?? new List<Comment>();
+                return listComment ?? new List<Comment>();
         }
 
         public async Task<List<Comment>> GetCommentsByIdReview(int skip, int take, int reviewID, CancellationToken cancellationToken = default)

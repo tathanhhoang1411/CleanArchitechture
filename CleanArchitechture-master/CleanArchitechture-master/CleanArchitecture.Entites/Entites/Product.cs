@@ -6,7 +6,8 @@ namespace CleanArchitecture.Entites.Entites
     public class Product
     {
         [Key]
-        public string ProductId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long ProductId { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -30,7 +31,7 @@ namespace CleanArchitecture.Entites.Entites
         [Required]
         public DateTime CreatedAt { get; set; }
 
-        public int ReviewID { get; set; }
+        public long ReviewID { get; set; }
         public int Type { get; set; }
     }
 }
