@@ -1,0 +1,14 @@
+# Thư mục build và output của .NET
+**/.git
+**/bin/
+**/obj/
+**/node_modules/
+
+# Visual Studio files
+.vs/
+*.pdb
+*.suo
+
+# Docker files
+Dockerfile
+.dockerignore
