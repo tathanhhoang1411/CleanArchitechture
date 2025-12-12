@@ -12,6 +12,6 @@ namespace CleanArchitecture.Application.Interfaces
     {
         Task<FriendsDto> Send(Friend friend, CancellationToken cancellationToken = default);
         Task<FriendsDto> CheckExist(long senderId,long receiverId, CancellationToken cancellationToken = default);
-        Task<List<FriendsDto>> GetList_SendFriend(int skip,int take, long userId, CancellationToken cancellationToken = default);
+        Task<List<FriendsDto>> GetList_SendFriend(int skip,int take, long userId,int status, CancellationToken cancellationToken = default);
     }
 }

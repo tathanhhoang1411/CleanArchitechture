@@ -8,12 +8,14 @@ namespace CleanArchitecture.Application.Features.Friends.Query
     {
         public int Skip { get; set; }
         public int Take { get; set; }
+        public int Status { get; set; }
         public long UserID { get; set; }
 
-        public GetAllSendFriendRequestsQuery(int skip, int take, long userID)
+        public GetAllSendFriendRequestsQuery(int skip, int take, long userID,int status)
         {
             Skip = skip;
             Take = take;
+            Status = status;
             UserID = userID;
         }
     }
@@ -30,7 +32,7 @@ namespace CleanArchitecture.Application.Features.Friends.Query
         public async Task<List<FriendsDto>> Handle(GetAllSendFriendRequestsQuery query, CancellationToken cancellationToken)
         {
             // Lấy danh sách đã gửi kết bạn
-            List<FriendsDto> ListSendFriend = await _friendServices.GetList_SendFriend(query.Skip, query.Take, query.UserID, cancellationToken);
+            List<FriendsDto> ListSendFriend = await _friendServices.GetList_SendFriend(query.Skip, query.Take, query.UserID, query.Status, cancellationToken);
             return ListSendFriend ?? new List<FriendsDto>(); // Trả về danh sách rỗng nếu không có sản phẩm
         }
     }

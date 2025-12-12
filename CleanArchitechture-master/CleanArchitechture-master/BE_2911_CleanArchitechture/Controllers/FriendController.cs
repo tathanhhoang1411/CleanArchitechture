@@ -75,22 +75,22 @@ namespace BE_2911_CleanArchitechture.Controllers
 
         //Lấy danh sách đã gửi lời mời kết bạn 
         [HttpGet("ListSendFriend")]
-        [SwaggerOperation(Summary = "Lấy danh sách đxa gửi lời mời kết bạn",
-                      Description = "")]
+        [SwaggerOperation(Summary = "Lấy danh sách kết bạn",
+                      Description = "status=1: lời mời chưa chấp nhận, status=2: lời mời đã được chấp nhận")]
+                                   
         #region
-        public async Task<IActionResult> ListSendFriend([FromQuery] int skip,int take, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListSendFriend([FromQuery] int skip,int take,int status, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
             {
 
                 //Kiểm tra userID có tồn tại không 
-                //Kiểm tra userID có tồn tại không 
                 UserID = await GetUserIdFromTokenAsync();
                 if (UserID == 0) return ForbiddenResponse();
                 //Select ListSendFriend 
                 this._logger.LogInformation(UserID.ToString(), "ListSendFriend request");
-                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take,UserID), cancellationToken);
+                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take,UserID, status), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
                 if (listFriendDto == null)
                 {

@@ -68,14 +68,14 @@ namespace CleanArchitecture.Application.Services
                 return new FriendsDto();
             }
         }
-        public async Task<List<FriendsDto>> GetList_SendFriend(int skip, int take, long userId, CancellationToken cancellationToken )
+        public async Task<List<FriendsDto>> GetList_SendFriend(int skip, int take, long userId,int status, CancellationToken cancellationToken )
         {
             if (skip < 0) throw new ArgumentNullException(nameof(skip));
             if (take< 0) throw new ArgumentNullException(nameof(take));
             List<Friend> listSendFriend = null;
             try
             {
-                listSendFriend = await _unitOfWork.Friends.GetListSendFriend(skip, take,userId, cancellationToken);
+                listSendFriend = await _unitOfWork.Friends.GetListSendFriend(skip, take,userId, status, cancellationToken);
                 if (listSendFriend == null)
                 {
                     return new List<FriendsDto>();
