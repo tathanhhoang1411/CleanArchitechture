@@ -79,7 +79,7 @@ builder.Services.AddTransient<ICommentRepository, CommentRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserServices>();
-builder.Services.AddTransient<IimageServices, ImageServices>();
+builder.Services.AddTransient<IImageServices, ImageServices>();
 builder.Services.AddTransient<IFriendRepository, FriendRepository>();
 builder.Services.AddTransient<IFriendServices, FriendServices>();
 builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger

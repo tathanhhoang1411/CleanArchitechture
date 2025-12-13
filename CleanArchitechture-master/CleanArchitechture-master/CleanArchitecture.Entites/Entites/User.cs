@@ -27,8 +27,10 @@ namespace CleanArchitecture.Entites.Entites
         [MaxLength(2048)]
         public string? Token { get; set; }
 
-        [MaxLength(50)]
+        [MaxLength(5)]
         public string? Role { get; set; }
+        [MaxLength(50)]
+        public string? Avatar { get; set; }
 
         public bool Status { get; set; }
     }

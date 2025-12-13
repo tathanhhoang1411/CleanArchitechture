@@ -11,6 +11,7 @@ namespace CleanArchitecture.Application.Features.Users.Commands.Create
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
+        public string? Avatar { get; set; }
         public class CreateUserCommandHandler : IRequestHandler<UserCommand, UsersDto>
         {
             private readonly IUserServices _userServices;
@@ -32,6 +33,7 @@ namespace CleanArchitecture.Application.Features.Users.Commands.Create
                     user.UserId = timestamp;
                     user.CreatedAt = dateTime;
                     user.Role = "User";
+                    user.Avatar = command.Avatar;
                     Entites.Entites.User isExistUser = await _userServices.CheckExistUser(user);
                     if (isExistUser!=null)//Nếu đăng kí tài khoản đã tồn tại
                     {

@@ -68,7 +68,6 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     Username = user.Username,
                     Email = user.Email,
                     PasswordHash = user.PasswordHash,
-                    UserId = user.UserId,
                     Role = user.Role,
                     Status = true,
                     CreatedAt = user.CreatedAt == default ? DateTime.UtcNow : user.CreatedAt

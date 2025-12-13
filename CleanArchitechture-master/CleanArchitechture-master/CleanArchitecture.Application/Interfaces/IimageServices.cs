@@ -1,5 +1,6 @@
 ﻿
 using CleanArchitecture.Entites.Entites;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,10 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Interfaces
 {
-    public interface IimageServices
+    public interface IImageServices
     {
-        Task<string> Image_Update();
+         public string GetFilePath(long userID, int type, long Id, string webRootPath, CancellationToken cancellationToken = default);
+        public Task<List<string>> UploadImage(HttpRequest request,string email, long userID, int type, long Id, string webRootPath, CancellationToken cancellationToken = default);
+
     }
 }

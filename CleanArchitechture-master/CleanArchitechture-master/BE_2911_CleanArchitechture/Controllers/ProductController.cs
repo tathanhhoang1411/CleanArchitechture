@@ -28,17 +28,20 @@ namespace BE_2911_CleanArchitechture.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IWebHostEnvironment _environment;
+        private readonly IImageServices _imageService;
         private readonly ILogger<ProductController> _ilogger;
         public ProductController(IMediator mediator
             , IWebHostEnvironment environment
             , ICustomLogger logger
             ,IUserServices userServices
-            , ILogger<ProductController> ilogger)
+            , ILogger<ProductController> ilogger
+            ,IImageServices imageService)
             : base(logger, userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
             _ilogger = ilogger ?? throw new ArgumentNullException(nameof(ilogger));
+            _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService)); 
         }
 
         [HttpPost("CreateAProductReview")]
@@ -56,37 +59,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 _ilogger.LogInformation("CreateProduct start for user {UserID}", UserID);
                 command.OwnerID = UserID;
-                int temp = 1;
-                List<string> listRootImage = new List<string>();
-                var _uploadedfiles = Request.Form.Files;
-                foreach (IFormFile source in _uploadedfiles)
-                {
-                    string Filename = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds().ToString();
-                    string Filepath = GetFilePath(UserID.ToString(), "Post", command.ReviewID);
-
-                    if (!System.IO.Directory.Exists(Filepath))
-                    {
-                        System.IO.Directory.CreateDirectory(Filepath);
-                    }
-
-                    string imagepath = Filepath + "\\" + temp + ".jpg";
-
-                    if (System.IO.File.Exists(imagepath))
-                    {
-                        System.IO.File.Delete(imagepath);
-                    }
-                    using (FileStream stream = System.IO.File.Create(imagepath))
-                    {
-                        await source.CopyToAsync(stream, cancellationToken);
-                    }
-                    listRootImage.Add(imagepath);
-                    if (temp == 5)
-                    {
-                        break;
-                    }
-                    temp++;
-                }
-
+                List<string> listRootImage =await _imageService.UploadImage(Request,"", command.OwnerID,2,command.ReviewID,this._environment.ContentRootPath,cancellationToken);
                 if (listRootImage.Count > 0) command.ProductImage1 = listRootImage.ElementAtOrDefault(0);
                 if (listRootImage.Count > 1) command.ProductImage2 = listRootImage.ElementAtOrDefault(1);
                 if (listRootImage.Count > 2) command.ProductImage3 = listRootImage.ElementAtOrDefault(2);
@@ -116,17 +89,6 @@ namespace BE_2911_CleanArchitechture.Controllers
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
-        }
-
-        [NonAction]
-        private string GetFilePath(string userID,string flag,int reviewId)
-        {
-            if (flag!="Post")
-            {
-                return this._environment.ContentRootPath + "\\Uploads\\UserID_" + userID+"\\Comment_"+ reviewId;
-
-            }
-            return this._environment.ContentRootPath + "\\Uploads\\UserID_" + userID+"\\Review_"+ reviewId;
         }
     }
 }

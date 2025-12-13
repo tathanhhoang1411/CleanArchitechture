@@ -1,16 +1,21 @@
 ﻿using AutoMapper;
 using BE_2911_CleanArchitechture.Logging;
+using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Features.Users.Commands.Create;
 using CleanArchitecture.Application.Features.Users.Commands.Update;
 using CleanArchitecture.Application.Features.Users.Query;
-using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Application.Repository;
 using CleanArchitecture.Application.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Diagnostics;
+using System.Threading;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using UpdStatusUserCommand = CleanArchitecture.Application.Features.Users.Commands.Update.UpdStatusUserCommand;
 
 namespace BE_2911_CleanArchitecture.Controllers
@@ -20,19 +25,26 @@ namespace BE_2911_CleanArchitecture.Controllers
     public class UserController : BE_2911_CleanArchitechture.Controllers.BaseController
     {
         private readonly IMediator _mediator;
-        public UserController(IMediator mediator
+        private readonly IWebHostEnvironment _environment;
+        private readonly IImageServices _imageService;
+        public UserController(
+            IMediator mediator
             , ICustomLogger logger
-            , IUserServices userServices)
+            , IWebHostEnvironment environment
+            , IUserServices userServices
+            , IImageServices imageService)
             : base(logger, userServices)
         {
-            this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
         }
         //Đăng nhập
         [HttpPost("Login")]
         [SwaggerOperation(Summary = "Đăng nhập để lấy thông tin JWT",
                       Description = "Sử dụng tên đăng nhập,email và mật khẩu để xác thực.")]
         #region
-        public async Task<IActionResult> Login([FromBody] LoginQuery query)
+        public async Task<IActionResult> Login([FromBody] LoginQuery query, CancellationToken cancellationToken)
         {
             try
             {
@@ -97,18 +109,18 @@ namespace BE_2911_CleanArchitecture.Controllers
         //Đăng ký tài khoản
         [HttpPost("RegisterUser")]
         #region
-        public async Task<IActionResult> RegisterUser([FromBody] UserCommand UserCommand)
+        public async Task<IActionResult> RegisterUser([FromForm] UserCommand UserCommand, CancellationToken cancellationToken)
         {
             try
             {
-                try
-                {
-                    UserCommand.Username.Trim();
-                    UserCommand.Password.Trim();
-                    UserCommand.Email.Trim();
-                    UsersDto userDto = await _mediator.Send(UserCommand);
+                UserCommand.Username.Trim();
+                UserCommand.Email.Trim();
+                UserCommand.Password.Trim();
+                List<string> listRootImage = await _imageService.UploadImage(Request, UserCommand.Email, 0, 1, 0, _environment.ContentRootPath, cancellationToken);
+                if (listRootImage.Count > 0) UserCommand.Avatar = listRootImage.ElementAtOrDefault(0);
+                UsersDto userDto = await _mediator.Send(UserCommand);
 
-                    if (userDto == null)
+                if (userDto == null)
                     {
                         var errors = new List<string> { "The username or Email already exists." };
                         return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
@@ -129,13 +141,6 @@ namespace BE_2911_CleanArchitecture.Controllers
                     var errors = new List<string> { "Internal server error. Please try again later." };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
-
-            }
-            catch (Exception ex)
-            {
-                var errors = new List<string> { "Internal server error. Please try again later." };
-                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-            }
         }
         #endregion
         //Tắt tài khoản user
@@ -144,7 +149,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [SwaggerOperation(Summary = "Xóa tài khoản người dùng, chỉ admin mới có quyền",
                       Description = "")]
         #region
-        public async Task<IActionResult> DeleteAUser([FromBody] UpdStatusUserCommand command)
+        public async Task<IActionResult> DeleteAUser([FromBody] UpdStatusUserCommand command, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -182,7 +187,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng, chỉ admin mới có quyền",
                       Description = "")]
         #region
-        public async Task<IActionResult> ActiveAUser([FromBody] UpdStatusUserCommand command)
+        public async Task<IActionResult> ActiveAUser([FromBody] UpdStatusUserCommand command, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -220,7 +225,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [SwaggerOperation(Summary = "Kích hoạt tài khoản người dùng",
                       Description = "")]
         #region
-        public async Task<IActionResult> UpdPasswordUser([FromBody] UpdPasswordUserCommand command)
+        public async Task<IActionResult> UpdPasswordUser([FromBody] UpdPasswordUserCommand command,CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -258,7 +263,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [SwaggerOperation(Summary = "Đặt lại mật khẩu tài khoản người dùng, chỉ Admin mới có thể thao tác",
                       Description = "")]
         #region
-        public async Task<IActionResult> ResetPasswordUser([FromBody] ResetPasswordUserCommand command)
+        public async Task<IActionResult> ResetPasswordUser([FromBody] ResetPasswordUserCommand command, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try

@@ -18,6 +18,7 @@ namespace CleanArchitecture.Application.Dtos
         public string Password { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
+        public string? Avatar { get; set; }
         public Boolean Status { get; set; }
     }
 }
