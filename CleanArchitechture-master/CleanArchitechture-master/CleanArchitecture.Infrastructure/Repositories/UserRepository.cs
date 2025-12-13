@@ -137,21 +137,16 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
             try
             {
-                var query = _userContext.Users.AsQueryable();
-
-                if (!string.IsNullOrWhiteSpace(data))
-                {
-                    query = query.Where(u => u.Username == data);
-                }
-
-                var users = await query
+                List<Entites.Entites.User> query = await _userContext.Users
+                    .Where(p=>p.Username.StartsWith(data))
                     .OrderBy(p => p.CreatedAt)
                     .Skip(skip)
                     .Take(take)
                     .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
-                return users ?? new List<Entites.Entites.User>();
+
+                return query ?? new List<Entites.Entites.User>();
             }
             catch
             {
