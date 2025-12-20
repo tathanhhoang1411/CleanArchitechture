@@ -111,42 +111,80 @@ namespace BE_2911_CleanArchitecture.Controllers
         #region
         public async Task<IActionResult> RegisterUser([FromForm] UserCommand UserCommand, CancellationToken cancellationToken)
         {
+            if (UserCommand == null)
+            {
+                return BadRequest(ApiResponse<List<string>>.CreateErrorResponse(new List<string> { "Request body is required" }, false));
+            }
+
+            // Trim input safely
+            UserCommand.Username = UserCommand.Username?.Trim();
+            UserCommand.Email = UserCommand.Email?.Trim();
+            UserCommand.Password = UserCommand.Password?.Trim();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<List<string>>.CreateErrorResponse(new List<string> { "Invalid input" }, false));
+            }
+
+            List<string> listRootImage = null;
+
             try
             {
-                UserCommand.Username=UserCommand.Username.Trim().ToLower().Replace(" ", "");
-                UserCommand.Email=UserCommand.Email.Trim().ToLower().Replace(" ", "");
-                UserCommand.Password = UserCommand.Password.Trim().ToLower().Replace(" ","");
-                //Kiểm tra ảnh đại diện có tên là email.jpg có hay chưa
-                bool isExist = await _imageService.IsImageExist( UserCommand.Email,1, _environment.ContentRootPath, cancellationToken);
-                if(isExist)//không có thì mới cho phép upload để tạo tài khoản
-                {
-                  return BadRequest(new ApiResponse<string>("Please change another email, because this email already exists."));
-                }
-                List<string> listRootImage = await _imageService.UploadImage(Request, UserCommand.Email, 0, 1, 0, _environment.ContentRootPath, cancellationToken);
-                if (listRootImage.Count > 0) UserCommand.Avatar = listRootImage.ElementAtOrDefault(0);
-                UsersDto userDto = await _mediator.Send(UserCommand);
+                UserCommand.Username = UserCommand.Username.Trim().ToLower().Replace(" ", "");
+                UserCommand.Email = UserCommand.Email.Trim().ToLower().Replace(" ", "");
+                UserCommand.Password = UserCommand.Password.Trim().ToLower().Replace(" ", "");
 
+                // Check if avatar file for this email already exists
+                bool isExist = await _imageService.IsImageExist(UserCommand.Email, 1, _environment.ContentRootPath, cancellationToken);
+                if (isExist)
+                {
+                    return BadRequest(new ApiResponse<string>("Please change another email, because this email already exists."));
+                }
+
+                // Upload image(s)
+                listRootImage = await _imageService.UploadImage(Request, UserCommand.Email, 0, 1, 0, _environment.ContentRootPath, cancellationToken);
+                if (listRootImage != null && listRootImage.Count > 0)
+                    UserCommand.Avatar = listRootImage.ElementAtOrDefault(0);
+
+                // Create user via mediator (propagate cancellation)
+                UsersDto userDto = await _mediator.Send(UserCommand, cancellationToken);
+
+                // Validate mediator result
                 if (userDto == null)
-                    {
-                        var errors = new List<string> { "The username or Email already exists." };
-                        return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-
-                    }
-                    if (userDto.Username == null)
-                    {
-                        var errors = new List<string> { "Created successfully, but error created or saved token. Please login" };
-                        return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
-
-                    }
-                    userDto.Password = UserCommand.Password;
-                    return Ok(new ApiResponse<UsersDto>(userDto));
-                }
-                catch (Exception ex)
                 {
+                    // creation failed (e.g., duplicate)
+                    await _imageService.DeleteUploadedFiles(listRootImage, _environment.ContentRootPath, cancellationToken);
+                    var errors = new List<string> { "The username or Email already exists." };
+                    return Conflict(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
 
-                    var errors = new List<string> { "Internal server error. Please try again later." };
+                if (string.IsNullOrWhiteSpace(userDto.Username) || string.IsNullOrWhiteSpace(userDto.Email))
+                {
+                    await _imageService.DeleteUploadedFiles(listRootImage, _environment.ContentRootPath, cancellationToken);
+                    _logger.LogError(UserCommand?.Email ?? "0", "Mediator returned invalid user data", null);
+                    var errors = new List<string> { "Created successfully, but resulting user data is invalid." };
                     return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
                 }
+
+                // Success
+                userDto.Password = UserCommand.Password;
+                return Ok(new ApiResponse<UsersDto>(userDto));
+            }
+            catch (OperationCanceledException)
+            {
+                // cleanup and return client closed request
+                try { await _imageService.DeleteUploadedFiles(listRootImage, _environment.ContentRootPath, cancellationToken); } catch { }
+                _logger.LogInformation(UserCommand?.Email ?? "0", "RegisterUser canceled");
+                return StatusCode(499, "Client Closed Request");
+            }
+            catch (Exception ex)
+            {
+                // General error: rollback uploaded files and return 500
+                try { await _imageService.DeleteUploadedFiles(listRootImage, _environment.ContentRootPath, cancellationToken); } catch { }
+                _logger.LogError(UserCommand?.Email ?? "0", "RegisterUser error", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
         }
         #endregion
         //Tắt tài khoản user
