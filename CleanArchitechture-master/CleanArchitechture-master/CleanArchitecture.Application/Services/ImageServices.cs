@@ -1,12 +1,13 @@
 ﻿
 using AutoMapper;
 using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Entites.Enums;
 using CleanArchitecture.Entites.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
-using Microsoft.AspNetCore.Hosting;
 namespace CleanArchitecture.Application.Repository
 {
     public class ImageServices : IImageServices
@@ -65,59 +66,88 @@ namespace CleanArchitecture.Application.Repository
         /// <returns></returns>
         public async Task<List<string>> UploadImage(HttpRequest request,string email, long userID, int type, long Id, string webRootPath, CancellationToken cancellationToken = default)
         {
-            List<string> listPublicUrls = new List<string>();
-            int temp = 1;
-
-            // 1. Lấy đường dẫn & tạo thư mục chỉ một lần
-            string Filepath = GetFilePath(userID, type, Id, webRootPath);
-            if (!System.IO.Directory.Exists(Filepath))
+            try
             {
-                System.IO.Directory.CreateDirectory(Filepath);
-            }
+                List<string> listPublicUrls = new List<string>();
+                int temp = 1;
 
-            // Xác định tên thư mục gốc tương đối để trả về URL
-            string publicRoot = Filepath.Replace(webRootPath, "").Replace('\\', '/');
-            if (publicRoot.EndsWith('/')) publicRoot = publicRoot.TrimEnd('/');
-
-            foreach (IFormFile source in request.Form.Files)
-            {
-                if (temp > 5) break; // Dừng sớm
-
-                // 2. Kiểm tra bảo mật cơ bản
-                if (!source.ContentType.StartsWith("image/")) continue;
-
-                string fileName = "";
-                switch ((TypeUploadImg)type)
+                // 1. Lấy đường dẫn & tạo thư mục chỉ một lần
+                string Filepath = GetFilePath(userID, type, Id, webRootPath);
+                if (!System.IO.Directory.Exists(Filepath))
                 {
-                    case TypeUploadImg.Product:
-                    case TypeUploadImg.Comment:
-                        // Giữ tên file theo số thứ tự (hoặc nên dùng GUID)
-                        fileName = $"{temp}.jpg";
-                        break;
-                    case TypeUploadImg.Avatar:
-                        fileName = email + ".jpg";
-                        break;
-                    default:
-                        continue;
+                    System.IO.Directory.CreateDirectory(Filepath);
                 }
 
-                string imagepath = Path.Combine(Filepath, fileName);
+                // Xác định tên thư mục gốc tương đối để trả về URL
+                string publicRoot = Filepath.Replace(webRootPath, "").Replace('\\', '/');
+                if (publicRoot.EndsWith('/')) publicRoot = publicRoot.TrimEnd('/');
 
-                // Xóa tệp cũ và lưu tệp mới
-                if (System.IO.File.Exists(imagepath)) System.IO.File.Delete(imagepath);
-
-                using (FileStream stream = System.IO.File.Create(imagepath))
+                foreach (IFormFile source in request.Form.Files)
                 {
-                    // 3. Sử dụng await
-                    await source.CopyToAsync(stream, cancellationToken);
+                    if (temp > 5) break; // Dừng sớm
+
+                    // 2. Kiểm tra bảo mật cơ bản
+                    if (!source.ContentType.StartsWith("image/")) continue;
+
+                    string fileName = "";
+                    switch ((TypeUploadImg)type)
+                    {
+                        case TypeUploadImg.Product:
+                        case TypeUploadImg.Comment:
+                            // Giữ tên file theo số thứ tự (hoặc nên dùng GUID)
+                            fileName = $"{temp}.jpg";
+                            break;
+                        case TypeUploadImg.Avatar:
+                            fileName = email + ".jpg";
+                            break;
+                        default:
+                            continue;
+                    }
+
+                    string imagepath = Path.Combine(Filepath, fileName);
+
+                    // Xóa tệp cũ và lưu tệp mới
+                    if (System.IO.File.Exists(imagepath)) System.IO.File.Delete(imagepath);
+
+                    using (FileStream stream = System.IO.File.Create(imagepath))
+                    {
+                        // 3. Sử dụng await
+                        await source.CopyToAsync(stream, cancellationToken);
+                    }
+
+                    // 4. Trả về URL công khai
+                    listPublicUrls.Add($"{publicRoot}/{fileName}");
+
+                    temp++;
                 }
-
-                // 4. Trả về URL công khai
-                listPublicUrls.Add($"{publicRoot}/{fileName}");
-
-                temp++;
+                return listPublicUrls;
+            }catch{
+                return null;
             }
-            return listPublicUrls;
+        }
+        public async Task<bool> IsImageExist(string email, int type, string webRootPath, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // 1. Lấy đường dẫn thư mục dựa trên loại (type)
+                // Sử dụng tham số 0 cho userID và Id theo mẫu bạn cung cấp
+                string folderPath = GetFilePath(0, type, 0, webRootPath);
+
+                // 2. Tạo tên file theo định dạng {email}.jpg
+                string fileName = $"{email}.jpg";
+
+                // 3. Kết hợp thư mục và tên file bằng Path.Combine để đảm bảo an toàn trên mọi hệ điều hành
+                string fullPath = Path.Combine(folderPath, fileName);
+
+                // 4. Kiểm tra sự tồn tại của tệp tin vật lý
+                // Task.Run được dùng ở đây để thực hiện thao tác I/O đồng bộ trong một luồng bất đồng bộ
+                return await Task.Run(() => File.Exists(fullPath), cancellationToken);
+            }
+            catch
+            {
+                // Trả về false nếu có bất kỳ lỗi nào xảy ra (ví dụ: lỗi quyền truy cập hoặc đường dẫn không hợp lệ)
+                return false;
+            }
         }
     }
 }

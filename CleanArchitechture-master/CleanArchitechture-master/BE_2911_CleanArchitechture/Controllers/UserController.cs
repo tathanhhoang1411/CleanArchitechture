@@ -113,9 +113,15 @@ namespace BE_2911_CleanArchitecture.Controllers
         {
             try
             {
-                UserCommand.Username.Trim();
-                UserCommand.Email.Trim();
-                UserCommand.Password.Trim();
+                UserCommand.Username=UserCommand.Username.Trim().ToLower().Replace(" ", "");
+                UserCommand.Email=UserCommand.Email.Trim().ToLower().Replace(" ", "");
+                UserCommand.Password = UserCommand.Password.Trim().ToLower().Replace(" ","");
+                //Kiểm tra ảnh đại diện có tên là email.jpg có hay chưa
+                bool isExist = await _imageService.IsImageExist( UserCommand.Email,1, _environment.ContentRootPath, cancellationToken);
+                if(isExist)//không có thì mới cho phép upload để tạo tài khoản
+                {
+                  return BadRequest(new ApiResponse<string>("Please change another email, because this email already exists."));
+                }
                 List<string> listRootImage = await _imageService.UploadImage(Request, UserCommand.Email, 0, 1, 0, _environment.ContentRootPath, cancellationToken);
                 if (listRootImage.Count > 0) UserCommand.Avatar = listRootImage.ElementAtOrDefault(0);
                 UsersDto userDto = await _mediator.Send(UserCommand);

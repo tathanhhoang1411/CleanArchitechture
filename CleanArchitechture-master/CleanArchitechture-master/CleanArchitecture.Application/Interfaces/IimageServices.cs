@@ -13,6 +13,7 @@ namespace CleanArchitecture.Application.Interfaces
     {
          public string GetFilePath(long userID, int type, long Id, string webRootPath, CancellationToken cancellationToken = default);
         public Task<List<string>> UploadImage(HttpRequest request,string email, long userID, int type, long Id, string webRootPath, CancellationToken cancellationToken = default);
+        public Task<bool> IsImageExist(string email,int type, string webRootPath, CancellationToken cancellationToken = default);
 
     }
 }
