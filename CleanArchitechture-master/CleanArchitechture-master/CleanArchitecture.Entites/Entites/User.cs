@@ -33,5 +33,7 @@ namespace CleanArchitecture.Entites.Entites
         public string? Avatar { get; set; }
 
         public bool Status { get; set; }
+        // Liên kết đến bảng chi tiết
+        public virtual UserDetail UserDetail { get; set; }
     }
 }

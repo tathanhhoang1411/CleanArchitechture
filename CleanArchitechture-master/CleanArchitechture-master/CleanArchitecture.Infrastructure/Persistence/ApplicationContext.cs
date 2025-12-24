@@ -22,6 +22,16 @@ namespace CleanArchitecture.Infrastructure.Persistence
             modelBuilder.Entity<Review>().ToTable("Reviews", "dbo");
             modelBuilder.Entity<Comment>().ToTable("Comments", "dbo");
             modelBuilder.Entity<Friend>().ToTable("Friends", "dbo");
+            modelBuilder.Entity<Friend>().ToTable("UserDetails", "dbo");
+
+            modelBuilder.Entity<UserDetail>()
+        .HasKey(ud => ud.UserId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.UserDetail)
+                .WithOne(ud => ud.User)
+                .HasForeignKey<UserDetail>(ud => ud.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa User thì xóa luôn Detail
             base.OnModelCreating(modelBuilder);
         }
 
@@ -30,5 +40,6 @@ namespace CleanArchitecture.Infrastructure.Persistence
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Friend> Friends { get; set; }
+        public DbSet<UserDetail> UserDetails { get; set; }
     }
 }
