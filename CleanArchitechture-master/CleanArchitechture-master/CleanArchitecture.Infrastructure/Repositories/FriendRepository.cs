@@ -68,5 +68,20 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
+
+        public async Task<int> CountFriendsByUser(long userId, int status, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var count = await _userContext.Friends
+                    .Where(f => ((f.SenderId == userId) || (f.ReceiverId == userId)) && (int)f.Status == status)
+                    .CountAsync(cancellationToken);
+                return count;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
     }
 }

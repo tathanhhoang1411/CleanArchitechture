@@ -267,11 +267,49 @@ namespace CleanArchitecture.Application.Services
             try
             {
                 if (string.IsNullOrWhiteSpace(id)) return null;
+
+                var normalized = id.Trim().ToLowerInvariant();
+                var cacheKey = $"user:detail:{normalized}";
+                // Try cache first
+                var cached = await _cache.GetAsync<UserWithDetailDto>(cacheKey);
+                if (cached != null) return cached;
+
                 var user = await _unitOfWork.Users.GetUserWithDetailByIdentifier(id);
                 if (user == null) return null;
 
                 // Use AutoMapper mapping
                 var dto = _mapper.Map<UserWithDetailDto>(user);
+
+                // Count accepted friends (Accepted enum value = 2)
+                try
+                {
+                    int acceptedStatus = (int)CleanArchitecture.Entites.Enums.FriendRequestStatus.Accepted;
+                    dto.FriendCount = await _unitOfWork.Friends.CountFriendsByUser(user.UserId, acceptedStatus);
+                }
+                catch
+                {
+                    dto.FriendCount = 0;
+                }
+
+                // Cache the result for short period
+                try
+                {
+                    await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(1));
+                }
+                catch
+                {
+                    // ignore cache errors
+                }
+
+                // Publish an event to RabbitMQ that a user was searched/viewed
+                try
+                {
+                    _rabbitMQ.Publish($"UserSearched:{normalized}");
+                }
+                catch
+                {
+                    // swallow to avoid affecting main flow
+                }
 
                 return dto;
             }

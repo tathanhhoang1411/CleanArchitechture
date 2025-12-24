@@ -14,5 +14,8 @@ namespace CleanArchitecture.Application.Dtos
         public DateTime? BirthDate { get; set; }
         public string? Address { get; set; }
         public string? Bio { get; set; }
+
+        // Count of accepted friends
+        public int FriendCount { get; set; }
     }
 }
