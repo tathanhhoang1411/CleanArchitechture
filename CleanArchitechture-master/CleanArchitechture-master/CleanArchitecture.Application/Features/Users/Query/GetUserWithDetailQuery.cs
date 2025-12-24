@@ -1,11 +1,14 @@
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Interfaces;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace CleanArchitecture.Application.Features.Users.Query
 {
     public class GetUserWithDetailQuery : IRequest<UserWithDetailDto>
     {
+        [Required]
+        [StringLength(256, MinimumLength = 1)]
         public string Identifier { get; }
         public GetUserWithDetailQuery(string identifier)
         {

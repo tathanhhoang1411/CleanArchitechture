@@ -1,4 +1,5 @@
 using CleanArchitecture.Application;
+using CleanArchitecture.Application.Pipeline;
 using CleanArchitecture.Application.Repository;
 using CleanArchitecture.Infrastructure.Persistence;
 using CleanArchitecture.Infrastructure.Repositories;
@@ -152,8 +153,27 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.ClearProviders(); // Xóa các logger mặc định
 builder.Logging.AddSerilog(); // Thêm Serilog
 
+builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(DataAnnotationValidationBehavior<,>));
 
 var app = builder.Build();
+
+// Map DataAnnotation validation exceptions to 400 responses
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (CleanArchitecture.Application.Utilities.ValidationException vex)
+    {
+        // Log short warning
+        app.Logger.LogWarning("Validation failed: {Errors}", string.Join("; ", vex.Errors ?? new List<string>()));
+
+        context.Response.StatusCode = 400;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(CleanArchitecture.Application.Utilities.ApiResponse<List<string>>.CreateErrorResponse(vex.Errors ?? new List<string>(), false));
+    }
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
