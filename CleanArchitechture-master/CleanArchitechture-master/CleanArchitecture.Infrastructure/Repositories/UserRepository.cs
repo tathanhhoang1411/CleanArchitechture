@@ -209,6 +209,33 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return false;
             }
         }
+
+        public async Task<Entites.Entites.User> GetUserWithDetailByIdentifier(string identifier, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(identifier)) return null;
+
+                // Try parse as long id
+                if (long.TryParse(identifier, out var id))
+                {
+                    return await _userContext.Users
+                        .Include(u => u.UserDetail)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
+                }
+
+                // Search by username (exact) or email (exact)
+                return await _userContext.Users
+                    .Include(u => u.UserDetail)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username == identifier || u.Email == identifier, cancellationToken);
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }
 

@@ -18,6 +18,6 @@ namespace CleanArchitecture.Application.Interfaces
         Task<User> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord);
         Task<User> Get_User_byUserNameEmail(string userName,string email);
         Task<UsersDto> ChangePassw(User user);
-
+        Task<UserWithDetailDto> GetUserWithDetailByIdentifier(string id);
     }
 }

@@ -339,5 +339,44 @@ namespace BE_2911_CleanArchitecture.Controllers
             }
         }
         #endregion
+        //Tìm kiếm người dùng
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpGet("SearchUser")]
+        [SwaggerOperation(Summary = "Tìm kiếm người dùng theo id/username/email",
+                      Description = "Trả về thông tin user kèm userdetail, loại trừ password và email.")]
+        public async Task<IActionResult> SearchUser([FromQuery] string id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Validate JWT and get requester id
+                long requesterId = await GetUserIdFromTokenAsync();
+                if (requesterId == 0)
+                {
+                    return ForbiddenResponse();
+                }
+
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    var errors = new List<string> { "Parameter 'id' is required." };
+                    return BadRequest(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+
+                _logger.LogInformation(requesterId.ToString(), "SearchUser");
+                var result = await _mediator.Send(new CleanArchitecture.Application.Features.Users.Query.GetUserWithDetailQuery(id), cancellationToken);
+                if (result == null)
+                {
+                    var errors = new List<string> { "User not found." };
+                    return NotFound(ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+
+                return Ok(new ApiResponse<CleanArchitecture.Application.Dtos.UserWithDetailDto>(result));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(id ?? "0", "SearchUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Entites.Interfaces;
+
 namespace CleanArchitecture.Application.Services
 {
     public class UserServices:IUserServices
@@ -261,6 +262,23 @@ namespace CleanArchitecture.Application.Services
             }
             
         }
+        public async Task<UserWithDetailDto> GetUserWithDetailByIdentifier(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(id)) return null;
+                var user = await _unitOfWork.Users.GetUserWithDetailByIdentifier(id);
+                if (user == null) return null;
 
+                // Use AutoMapper mapping
+                var dto = _mapper.Map<UserWithDetailDto>(user);
+
+                return dto;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

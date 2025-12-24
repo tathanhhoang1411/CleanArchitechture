@@ -22,7 +22,7 @@ namespace CleanArchitecture.Infrastructure.Persistence
             modelBuilder.Entity<Review>().ToTable("Reviews", "dbo");
             modelBuilder.Entity<Comment>().ToTable("Comments", "dbo");
             modelBuilder.Entity<Friend>().ToTable("Friends", "dbo");
-            modelBuilder.Entity<Friend>().ToTable("UserDetails", "dbo");
+            modelBuilder.Entity<UserDetail>().ToTable("UserDetails", "dbo");
 
             modelBuilder.Entity<UserDetail>()
         .HasKey(ud => ud.UserId);

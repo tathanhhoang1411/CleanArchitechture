@@ -18,5 +18,6 @@ namespace CleanArchitecture.Entites.Interfaces
         Task<User> Get_User_byUserNameEmailAndPassw(string userName,string email, string passWord, CancellationToken cancellationToken = default);
         Task<User> Get_User_byUserNameEmail(string userName,string email, CancellationToken cancellationToken = default);
         Task<List<User>> GetListUsers(int skip, int take, string data, CancellationToken cancellationToken = default);
+        Task<User> GetUserWithDetailByIdentifier(string identifier, CancellationToken cancellationToken = default);
     }
 }
