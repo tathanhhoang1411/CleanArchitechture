@@ -342,8 +342,8 @@ namespace BE_2911_CleanArchitecture.Controllers
         //Tìm kiếm người dùng
         [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpGet("SearchUser")]
-        [SwaggerOperation(Summary = "Tìm kiếm người dùng theo id/username/email",
-                      Description = "Trả về thông tin user kèm userdetail, loại trừ password và email.")]
+        [SwaggerOperation(Summary = "Tìm kiếm thông tin người dùng theo id/username/email",
+                      Description = "Trả về thông tin user kèm userdetail")]
         public async Task<IActionResult> SearchUser([FromQuery] string id, CancellationToken cancellationToken)
         {
             try
@@ -374,6 +374,82 @@ namespace BE_2911_CleanArchitecture.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(id ?? "0", "SearchUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        // Upload avatar for current user
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpPost("UploadAvatar")]
+        [SwaggerOperation(Summary = "Upload ảnh đại diện cho tài khoản hiện tại",
+                      Description = "Upload multipart/form-data với ảnh. Trả về Success! hoặc Fail!")]
+        public async Task<IActionResult> UploadAvatar([FromForm] string requestEmail,CancellationToken cancellationToken)
+        {
+            long userId = 0;
+            List<string> uploaded = null;
+            try
+            {
+                userId = await GetUserIdFromTokenAsync();
+                if (userId == 0) 
+                { 
+                return ForbiddenResponse();
+
+                }
+                else
+                {
+                    string email = await GetEmailFromTokenAsync();
+                    if (email == "") return ForbiddenResponse();
+                    if (email != requestEmail.ToLower().Trim()) return ForbiddenResponse();
+                    this._logger.LogInformation(userId.ToString(), "UploadAvatar request");
+
+                    // Upload image(s). type=1 for avatar, Id=0
+                    uploaded = await _imageService.UploadImage(Request, email, userId, 1, 0, _environment.ContentRootPath, cancellationToken);
+                    try
+                    {
+                        //Update user's avatar path if upload succeeded
+                        if (uploaded != null && uploaded.Count > 0)
+                        {
+                            string avatarPath = uploaded.ElementAtOrDefault(0);
+                            var updateCommand = new UpdateUserAvatarCommand
+                            {
+                                userID = userId,
+                                avatarPath = avatarPath,
+                                email = email
+                            };
+                            UsersDto updatedUser = await _mediator.Send(updateCommand, cancellationToken);
+                            if (updatedUser.Avatar == "" || string.IsNullOrWhiteSpace(updatedUser.Avatar))
+                            {
+                                // Update failed: cleanup uploaded files
+                                try { await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, cancellationToken); } catch { }
+                                this._logger.LogError(userId.ToString(), "Failed to update user avatar in database", null);
+                                return StatusCode(500, new ApiResponse<string>("Failed to update avatar."));
+                            }
+                        }
+
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        try { if (uploaded != null) await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, CancellationToken.None); } catch { }
+                        _logger.LogError(userId.ToString(), "UploadAvatar post-upload processing error", ex);
+                        return StatusCode(499, "Client Closed Request");
+                    }
+                    if (uploaded != null && uploaded.Count > 0)
+                    {
+                        return Ok(new ApiResponse<string>("Success!"));
+                    }
+
+                    return Ok(new ApiResponse<string>("Fail!"));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (uploaded != null) await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, CancellationToken.None); } catch { }
+                return StatusCode(499, "Client Closed Request");
+            }
+            catch (Exception ex)
+            {
+                try { if (uploaded != null) await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, CancellationToken.None); } catch { }
+                _logger.LogError(userId.ToString(), "UploadAvatar error", ex);
                 var errors = new List<string> { "Internal server error. Please try again later." };
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }

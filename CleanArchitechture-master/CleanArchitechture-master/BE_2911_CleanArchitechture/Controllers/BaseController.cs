@@ -32,24 +32,55 @@ namespace BE_2911_CleanArchitechture.Controllers
                     return 0;
                 }
 
-                long userId = await _userServices.GetUserIDInTokenFromRequest(tokenJWT);
-                _logger.LogInformation(userId.ToString(), "Check UserID in TokenJWT");
+                string[] ArrayInfo = await _userServices.GetUserIDAndEmailInTokenFromRequest(tokenJWT);
+                _logger.LogInformation(ArrayInfo[0], "Check UserID in TokenJWT");
 
-                if (userId == 0)
+                if (int.Parse(ArrayInfo[0]) == 0)
                 {
-                    _logger.LogError(userId.ToString(), "Result: false", null);
+                    _logger.LogError(ArrayInfo[0], "Result: false", null);
                 }
                 else
                 {
-                    _logger.LogInformation(userId.ToString(), "Result: true");
+                    _logger.LogInformation(ArrayInfo[0], "Result: true");
                 }
 
-                return userId;
+                return long.Parse(ArrayInfo[0]);
             }
             catch (Exception ex)
             {
                 _logger.LogError("0", "Error extracting UserID from token", ex);
                 return 0;
+            }
+        }
+        protected async Task<string> GetEmailFromTokenAsync()
+        {
+            try
+            {
+                string tokenJWT = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(tokenJWT))
+                {
+                    _logger.LogInformation("0", "Token is missing in request headers.");
+                    return "";
+                }
+
+                string[] ArrayInfo = await _userServices.GetUserIDAndEmailInTokenFromRequest(tokenJWT);
+                _logger.LogInformation(ArrayInfo[0], "Check Email in TokenJWT");
+
+                if (ArrayInfo[1] ==null || ArrayInfo[1] == "")
+                {
+                    _logger.LogError(ArrayInfo[1], "Result: false", null);
+                }
+                else
+                {
+                    _logger.LogInformation(ArrayInfo[1], "Result: true");
+                }
+
+                return ArrayInfo[1];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("0", "Error extracting UserID from token", ex);
+                return "";
             }
         }
 

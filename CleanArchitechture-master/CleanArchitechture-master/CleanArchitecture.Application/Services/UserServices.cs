@@ -67,9 +67,9 @@ namespace CleanArchitecture.Application.Services
                 return result;
             }
         }     
-        public async Task<long> GetUserIDInTokenFromRequest(string tokenJWT)
+        public async Task<string[]> GetUserIDAndEmailInTokenFromRequest(string tokenJWT)
         {
-            long result=0;
+            string[] arrayResult=   new string[2];
             try
             {
                 // Giải mã token
@@ -77,9 +77,9 @@ namespace CleanArchitecture.Application.Services
                 var jwtToken = handler.ReadJwtToken(tokenJWT);
 
                 // Lấy ID từ payload
-                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value; // Thay "id" bằng tên trường bạn sử dụng
-                var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value; // Thay "id" bằng tên trường bạn sử dụng
-                var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value; // Thay "id" bằng tên trường bạn sử dụng
+                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value; 
+                var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value; 
+                var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value; 
                 User users = new User();
                 users.Username = userName;
                 users.UserId = long.Parse(userId);
@@ -89,14 +89,15 @@ namespace CleanArchitecture.Application.Services
                 User resultFromTask = await checkUser;
                 if (!resultFromTask.Status)
                 {
-                    return result;
+                    return arrayResult;
                 }
-                result = long.Parse(userId);
-                return result;
+                arrayResult[0]=userId;
+                arrayResult[1]=email;
+                return arrayResult;
             }
             catch (Exception ex)
             {
-                return result;
+                return arrayResult;
             }
         }
         public ClaimsPrincipal ValidateToken(string token)
@@ -236,6 +237,23 @@ namespace CleanArchitecture.Application.Services
                 await _unitOfWork.CompleteAsync();
                 // Gửi event sau khi DB đã cập nhật
                 _rabbitMQ.Publish($"UsersDelete:{user.UserId}");
+                return _mapper.Map<UsersDto>(user);
+            }
+            catch
+            {
+                return userDto;
+            }
+            
+        }
+        public async Task<UsersDto> UpdateUserAvatar(User user)
+        {
+            UsersDto userDto = null;
+            try
+            {
+                await _unitOfWork.Users.isUpdUserAvatar(user);
+                await _unitOfWork.CompleteAsync();
+                // Gửi event sau khi DB đã cập nhật
+                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
                 return _mapper.Map<UsersDto>(user);
             }
             catch

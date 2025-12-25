@@ -69,6 +69,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                     Email = user.Email,
                     PasswordHash = user.PasswordHash,
                     Role = user.Role,
+                    Avatar = user.Avatar,
                     Status = true,
                     CreatedAt = user.CreatedAt == default ? DateTime.UtcNow : user.CreatedAt
                 };
@@ -86,7 +87,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 var userDB = await _userContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Username == user.Username && u.Email == user.Email, cancellationToken);
+                    .FirstOrDefaultAsync(u => u.Email == user.Email, cancellationToken);
 
                 return userDB;
             }
@@ -202,6 +203,24 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 if (users == null) return false;
 
                 users.Status = true;
+                return true; // Trả về true khi active thành công
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<Boolean> isUpdUserAvatar(Entites.Entites.User user, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var users = await _userContext.Users
+                    .Where(u =>u.Email == user.Email)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (users == null) return false;
+
+                users.Avatar = user.Avatar;
                 return true; // Trả về true khi active thành công
             }
             catch
