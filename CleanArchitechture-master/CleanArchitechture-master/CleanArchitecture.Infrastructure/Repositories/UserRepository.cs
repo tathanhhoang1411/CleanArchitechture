@@ -87,7 +87,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 var userDB = await _userContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Email == user.Email, cancellationToken);
+                    .FirstOrDefaultAsync(u => u.Email == user.Email || u.UserId==user.UserId, cancellationToken);
 
                 return userDB;
             }

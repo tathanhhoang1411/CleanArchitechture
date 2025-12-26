@@ -80,6 +80,8 @@ builder.Services.AddTransient<ICommentRepository, CommentRepository>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserServices, UserServices>();
+builder.Services.AddTransient<IUserDetailRepository, UserDetailRepository>();
+builder.Services.AddTransient<IUserDetailsServices, UserDetailsServices>();
 builder.Services.AddTransient<IImageServices, ImageServices>();
 builder.Services.AddTransient<IFriendRepository, FriendRepository>();
 builder.Services.AddTransient<IFriendServices, FriendServices>();

@@ -28,13 +28,28 @@ namespace BE_2911_CleanArchitechture.Handler
                 .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.BirthDate : null))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Address : null))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Bio : null))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src =>  src.UserDetail.Gender ))
+                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src =>  src.UserDetail.CountryCode ))
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src =>  src.UserDetail.Phone ))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src =>  src.UserDetail.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.UserDetail.LastName))
+                .ForMember(dest => dest.Material, opt => opt.MapFrom(src =>  src.UserDetail.Material))
                 .ForAllOtherMembers(opt => opt.Ignore());
-            //CreateMap<TblSalesProductInfo, InvoiceDetail>().ReverseMap();
-            //CreateMap<TblProduct, ProductEntity>().ReverseMap();
-            //CreateMap<TblProductvarinat, ProductVariantEntity>().ReverseMap();
-            //CreateMap<TblMastervariant, VariantEntity>().ReverseMap();
-            //CreateMap<TblCategory, CategoryEntity>().ReverseMap();
-            //CreateMap<TblSalesHeader, InvoiceInput>().ReverseMap();
+            CreateMap<UserDetail, UserWithDetailDto>()
+                // 1. Ánh xạ các trường từ chính UserDetail
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
+                .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.BirthDate))
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
+                // Xử lý null cho các kiểu int (nếu null thì mặc định về 0)
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ?? 0))
+                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.CountryCode ?? 0))
+                .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Material ?? 0))
+
+                .ForMember(dest => dest.FriendCount, opt => opt.Ignore());
         }
 
     }

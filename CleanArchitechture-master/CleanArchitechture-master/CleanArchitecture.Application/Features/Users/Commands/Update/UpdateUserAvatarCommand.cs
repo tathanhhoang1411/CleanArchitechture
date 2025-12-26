@@ -32,7 +32,7 @@ namespace CleanArchitecture.Application.Features.Users.Commands.Update
                     user.Avatar = command.avatarPath;
                     user.Email = command.email;
                     Entites.Entites.User isExistUser = await _userServices.CheckExistUser(user);
-                    if (isExistUser == null)//Nếu tài khoản cần xóa không tồn tại
+                    if (isExistUser == null || isExistUser.Status == false)//Nếu tài khoản cần xóa không tồn tại hoặc đang bị vô hiệu hóa
                     {
                         return new UsersDto();
                     }

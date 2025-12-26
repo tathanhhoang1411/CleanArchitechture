@@ -18,6 +18,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public IProductRepository Products { get; private set; }
         public IReviewRepository Reviews { get; private set; }
         public IUserRepository Users{ get; private set; }
+        public IUserDetailRepository UserDetails{ get; private set; }
         public ICommentRepository Comments { get; private set; }
         public IFriendRepository Friends { get; private set; }
         public UnitOfWork(ApplicationContext context, IConfiguration configuration)
@@ -28,6 +29,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             Users = new UserRepository(_context);
             Comments = new CommentRepository(_context, configuration);
             Friends = new FriendRepository(_context, configuration);
+            UserDetails = new UserDetailRepository(_context);
         }
 
 

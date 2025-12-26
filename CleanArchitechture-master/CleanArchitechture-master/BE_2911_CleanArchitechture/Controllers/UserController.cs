@@ -454,5 +454,43 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+
+        //Sửa thông tin tài khoản user
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpPost("UpdInfoUser")]
+        [SwaggerOperation(Summary = "Sửa thông tin chi tiết tài khoản người dùng",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> UpdateInfoUser([FromBody] UpdInfoUserCommand command, CancellationToken cancellationToken)
+        {
+            long UserID = 0;
+            try
+            {
+                //Check user ID 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0 || UserID!= command.UserID  ) return ForbiddenResponse();
+                _logger.LogInformation(UserID.ToString(), "UpdInfoUser");
+                UserWithDetailDto userWithDetailDto = await _mediator.Send(command);
+                // Kiểm tra xem tài khoản có tồn tại hay không
+                if (userWithDetailDto.UserId == 0)
+                {
+                    // Ghi log lỗi
+                    this._logger.LogError(UserID.ToString(), "User not found", null);
+                    var errors = new List<string> { "User not found" };
+                    return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Result: true");
+                return Ok(new ApiResponse<List<UserWithDetailDto>>(new List<UserWithDetailDto> { userWithDetailDto }));
+
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi
+                _logger.LogError(UserID.ToString(), "UpdInfoUser", ex);
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
     }
 }

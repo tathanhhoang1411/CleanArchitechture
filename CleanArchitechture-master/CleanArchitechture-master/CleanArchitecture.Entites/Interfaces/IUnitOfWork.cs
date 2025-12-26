@@ -14,6 +14,7 @@ namespace CleanArchitecture.Entites.Interfaces
         IProductRepository Products { get; }
         IReviewRepository Reviews { get; }
         IUserRepository Users { get; }
+        IUserDetailRepository UserDetails { get; }
         ICommentRepository Comments { get; }
         IFriendRepository Friends { get; }
 
