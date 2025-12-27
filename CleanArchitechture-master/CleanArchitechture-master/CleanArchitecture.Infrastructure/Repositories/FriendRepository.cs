@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Domain.Entites;
+﻿
 using CleanArchitecture.Entites.Entites;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;

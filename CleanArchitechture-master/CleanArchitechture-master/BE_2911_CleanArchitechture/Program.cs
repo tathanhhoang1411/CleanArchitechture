@@ -20,21 +20,22 @@ using StackExchange.Redis;
 using CleanArchitecture.Entites.Interfaces;
 using BE_2911_CleanArchitechture.Filters;
 using CleanArchitecture.Application.Services;
+using BE_2911_CleanArchitechture.Hubs;
+using Microsoft.AspNetCore.SignalR;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// ✅ Add services to the container.
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<PaginationValidationFilter>();
 });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TATHANHHOANG API", Version = "v1", Description= "tathanhhoang.work@gmail.com" });
-    c.EnableAnnotations(); // Kích hoạt Annotations
-                           // Thêm cấu hình cho token
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TATHANHHOANG API", Version = "v1", Description = "tathanhhoang.work@gmail.com" });
+    c.EnableAnnotations();
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -42,34 +43,31 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                new string[] {}
-            }
-        });
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            new string[] {}
+        }
+    });
 });
-// ✅ SQL Server DBContext
+
+// ✅ Database & Infrastructure
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(
-                            builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
-// ✅ Redis Configuration
+    builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    var configuration = ConfigurationOptions.Parse(
-        builder.Configuration["Redis:ConnectionString"], true);
+    var configuration = ConfigurationOptions.Parse(builder.Configuration["Redis:ConnectionString"], true);
     return ConnectionMultiplexer.Connect(configuration);
 });
-builder.Services.AddSingleton<IRabbitMQService,RabbitMQService>();
-builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>(); // Đăng ký Redis
+// Thêm class này vào cuối file Program.cs hoặc một file mới
+
+builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ApplicationContext, ApplicationContext>();
 builder.Services.AddTransient<IReviewRepository, ReviewRepository>();
@@ -85,115 +83,130 @@ builder.Services.AddTransient<IUserDetailsServices, UserDetailsServices>();
 builder.Services.AddTransient<IImageServices, ImageServices>();
 builder.Services.AddTransient<IFriendRepository, FriendRepository>();
 builder.Services.AddTransient<IFriendServices, FriendServices>();
-builder.Services.AddSingleton<ICustomLogger, CustomLogger>(); // Đăng ký CustomLogger
+
+// ✅ Chat & SignalR
+builder.Services.AddTransient<IChatRepository, ChatRepository>();
+builder.Services.AddTransient<IChatNotificationService, BE_2911_CleanArchitechture.Logging.ChatNotificationService>();
+builder.Services.AddTransient<IChatServices, ChatServices>();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>(); // <--- THÊM DÒNG NÀY
+
+builder.Services.AddSingleton<ICustomLogger, CustomLogger>();
 builder.Services.AddScoped<PaginationValidationFilter>();
 builder.Services.AddApplicationMediaR();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthorization(options =>
 {
-    //Role admin
-    options.AddPolicy("RequireAdminRole", policy => 
-    policy.RequireRole("Admin"));
-    //Role User
-    options.AddPolicy("RequireUserRole", policy => 
-    policy.RequireRole("User"));
-    //Role admin, user
-    options.AddPolicy("RequireAdminOrUserRole", policy =>
-    policy.RequireRole("Admin", "User"));
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    options.AddPolicy("RequireAdminOrUserRole", policy => policy.RequireRole("Admin", "User"));
 });
 
-// Thêm dịch vụ xác thực JWT
+// ✅ Authentication & JWT Configuration (With SignalR Token Support)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(options =>
+.AddJwtBearer(options =>
+{
+    options.IncludeErrorDetails = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.IncludeErrorDetails = true;
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidateLifetime = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+
+    // Fix for SignalR authentication via Query String
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
         {
-
-            ValidateIssuerSigningKey = true,
-            ValidateIssuer = true, // Có thể cấu hình theo nhu cầu
-            ValidateAudience = true, // Có thể cấu hình theo nhu cầu
-            ClockSkew = TimeSpan.Zero, // Không cho phép thời gian trễ
-            ValidateLifetime = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
-
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddMvc();
 var automapper = new MapperConfiguration(item => item.AddProfile(new MappingProfile()));
 IMapper mapper = automapper.CreateMapper();
-builder.Services.AddSingleton( mapper);
+builder.Services.AddSingleton(mapper);
 
+// ✅ Correct CORS for SignalR (Specific Origin + Credentials)
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
-    builder => builder.AllowAnyOrigin()
-    .WithMethods("GET", "POST", "PUT", "DELETE")
+    p => p.WithOrigins("http://localhost:5173")
+    .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials()
-    .Build()
 ));
-// Cấu hình Serilog
-var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-if (!Directory.Exists(logDirectory))
-{
-    Directory.CreateDirectory(logDirectory);
-}
 
-
+// ✅ Logging
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateLogger();
 
-builder.Logging.ClearProviders(); // Xóa các logger mặc định
-builder.Logging.AddSerilog(); // Thêm Serilog
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog();
 
 builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(DataAnnotationValidationBehavior<,>));
 
 var app = builder.Build();
 
-// Map DataAnnotation validation exceptions to 400 responses
+// ✅ Error Handling Middleware
 app.Use(async (context, next) =>
 {
-    try
-    {
-        await next();
-    }
+    try { await next(); }
     catch (CleanArchitecture.Application.Utilities.ValidationException vex)
     {
-        // Log short warning
-        app.Logger.LogWarning("Validation failed: {Errors}", string.Join("; ", vex.Errors ?? new List<string>()));
-
         context.Response.StatusCode = 400;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(CleanArchitecture.Application.Utilities.ApiResponse<List<string>>.CreateErrorResponse(vex.Errors ?? new List<string>(), false));
     }
 });
 
-// Configure the HTTP request pipeline.
+// ✅ Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaThanhHoang API V1");
-    });
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaThanhHoang API V1"));
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+// ✅ CORS MUST be before Authentication
+app.UseCors("CorsPolicy");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    endpoints.MapHub<ChatHub>("/chatHub");
 });
 app.Run();
+public class CustomUserIdProvider : IUserIdProvider
+{
+    public string GetUserId(HubConnectionContext connection)
+    {
+        // SignalR sẽ tìm ID người dùng trong thuộc tính 'nameid' của Token
+        return connection.User?.FindFirst("nameid")?.Value
+            ?? connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    }
+}

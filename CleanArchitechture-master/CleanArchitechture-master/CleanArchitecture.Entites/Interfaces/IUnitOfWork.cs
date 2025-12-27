@@ -16,6 +16,7 @@ namespace CleanArchitecture.Entites.Interfaces
         IUserRepository Users { get; }
         IUserDetailRepository UserDetails { get; }
         ICommentRepository Comments { get; }
+        IChatRepository Chat { get; } // Add Chat Repository
         IFriendRepository Friends { get; }
 
         Task<int> CompleteAsync(CancellationToken cancellationToken = default);

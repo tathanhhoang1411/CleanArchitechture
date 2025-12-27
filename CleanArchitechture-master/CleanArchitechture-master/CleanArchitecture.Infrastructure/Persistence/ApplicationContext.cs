@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Domain.Entites;
+﻿
 using CleanArchitecture.Entites.Entites;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,5 +41,9 @@ namespace CleanArchitecture.Infrastructure.Persistence
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Friend> Friends { get; set; }
         public DbSet<UserDetail> UserDetails { get; set; }
+        // Chat Features
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Participant> Participants { get; set; }
     }
 }

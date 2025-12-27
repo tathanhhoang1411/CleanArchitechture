@@ -21,6 +21,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
         public IUserDetailRepository UserDetails{ get; private set; }
         public ICommentRepository Comments { get; private set; }
         public IFriendRepository Friends { get; private set; }
+        public IChatRepository Chat { get; private set; } // Add Chat Property
         public UnitOfWork(ApplicationContext context, IConfiguration configuration)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -30,6 +31,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             Comments = new CommentRepository(_context, configuration);
             Friends = new FriendRepository(_context, configuration);
             UserDetails = new UserDetailRepository(_context);
+            Chat = new ChatRepository(_context);
         }
 
 

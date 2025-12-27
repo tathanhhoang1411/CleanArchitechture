@@ -28,12 +28,12 @@ namespace BE_2911_CleanArchitechture.Handler
                 .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.BirthDate : null))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Address : null))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Bio : null))
-                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src =>  src.UserDetail.Gender ))
-                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src =>  src.UserDetail.CountryCode ))
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src =>  src.UserDetail.Phone ))
-                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src =>  src.UserDetail.FirstName))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.UserDetail.Gender))
+                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.UserDetail.CountryCode))
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.UserDetail.Phone))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.UserDetail.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.UserDetail.LastName))
-                .ForMember(dest => dest.Material, opt => opt.MapFrom(src =>  src.UserDetail.Material))
+                .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.UserDetail.Material))
                 .ForAllOtherMembers(opt => opt.Ignore());
             CreateMap<UserDetail, UserWithDetailDto>()
                 // 1. Ánh xạ các trường từ chính UserDetail
@@ -50,7 +50,21 @@ namespace BE_2911_CleanArchitechture.Handler
                 .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Material ?? 0))
 
                 .ForMember(dest => dest.FriendCount, opt => opt.Ignore());
-        }
 
+            // Chat Mappings
+            CreateMap<Conversation, ConversationDto>()
+                .ForMember(dest => dest.Participants, opt => opt.MapFrom(src => src.Participants.Select(p => p.User)))
+                .ForMember(dest => dest.LastMessage, opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()))
+                .ReverseMap();
+
+            CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.SenderAvatar, opt => opt.MapFrom(src => src.Sender.Avatar))
+                .ForMember(dest => dest.MessageType, opt => opt.MapFrom(src => src.MessageType.ToString()))
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src =>
+                       (src.Sender != null && src.Sender.UserDetail != null)
+                       ? (src.Sender.UserDetail.FirstName + " " + src.Sender.UserDetail.LastName)  : "Người dùng"));
+            CreateMap<User, UserDto>().ReverseMap();
+
+        }
     }
 }
