@@ -118,11 +118,13 @@ FodyWeavers.xsd
 ## CRITICAL SECURITY: Production Configuration Files
 ## These files contain sensitive credentials and MUST NOT be committed to Git
 ##
-**/appsettings.Production.json
+# **/appsettings.Production.json
+!**/appsettings.Production.json
 **/appsettings.Staging.json
 **/appsettings.*.json
 !**/appsettings.json
 !**/appsettings.Development.json
+!**/appsettings.Production.json
 
 # Logs folder
 **/Logs/

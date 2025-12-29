@@ -59,9 +59,11 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("ConnectionString"), b => b.MigrationsAssembly("BE_2911_CleanArchitechture")));
 
+// ✅ Optimize Redis Connection (Lazy)
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var configuration = ConfigurationOptions.Parse(builder.Configuration["Redis:ConnectionString"], true);
+    configuration.AbortOnConnectFail = false; // Prevent crash on startup
     return ConnectionMultiplexer.Connect(configuration);
 });
 // Thêm class này vào cuối file Program.cs hoặc một file mới
@@ -145,8 +147,11 @@ IMapper mapper = automapper.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 // ✅ Correct CORS for SignalR (Specific Origin + Credentials)
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
-    p => p.WithOrigins("http://localhost:5173")
+    p => p.WithOrigins(allowedOrigins)
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials()
@@ -179,11 +184,13 @@ app.Use(async (context, next) =>
 });
 
 // ✅ Configure the HTTP request pipeline.
+// ✅ Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaThanhHoang API V1"));
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaThanhHoang API V1"));
 }
 
 app.UseHttpsRedirection();
@@ -199,6 +206,13 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<ChatHub>("/chatHub");
+    
+    // Redirect root URL to Swagger
+    endpoints.MapGet("/", async context =>
+    {
+        context.Response.Redirect("/swagger/index.html");
+        await Task.CompletedTask;
+    });
 });
 app.Run();
 public class CustomUserIdProvider : IUserIdProvider

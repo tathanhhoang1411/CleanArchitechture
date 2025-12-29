@@ -12,14 +12,25 @@ namespace CleanArchitecture.Infrastructure.Services
 
         public RabbitMQService(IConfiguration configuration)
         {
+            var vHost = configuration["RabbitMQ:VirtualHost"];
+            if (string.IsNullOrEmpty(vHost)) vHost = configuration["RabbitMQ:Username"]; // Fallback for CloudAMQP
+
             _factory = new ConnectionFactory
             {
                 HostName = configuration["RabbitMQ:Host"],
                 UserName = configuration["RabbitMQ:Username"],
-                Password = configuration["RabbitMQ:Password"]
+                Password = configuration["RabbitMQ:Password"],
+                VirtualHost = vHost,
+                Port = int.TryParse(configuration["RabbitMQ:Port"], out var port) ? port : 5672
             };
-        }
 
+            // Enable TLS if configured (Required for CloudAMQP)
+            if (bool.TryParse(configuration["RabbitMQ:UseTls"], out var useTls) && useTls)
+            {
+                _factory.Ssl.Enabled = true;
+                _factory.Ssl.ServerName = configuration["RabbitMQ:Host"];
+            }
+        }
         public void Publish(string message)
         {
             using var connection = _factory.CreateConnection();

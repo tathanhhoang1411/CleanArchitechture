@@ -20,7 +20,17 @@ namespace CleanArchitecture.Infrastructure.Services
             _connection = connection;
             var defaultSeconds = configuration.GetValue<int>("Redis:DefaultCacheDurationInSeconds", 60);
             _defaultCacheDuration = TimeSpan.FromSeconds(defaultSeconds);
-            rabbitMQ.Subscribe(OnMessageReceived);
+            
+            // ✅ Prevent Crash: Try to subscribe, but ignore if fails
+            try
+            {
+                rabbitMQ.Subscribe(OnMessageReceived);
+            }
+            catch (Exception ex)
+            {
+                // Log error but allow app to start
+                Console.WriteLine($"RabbitMQ Error: {ex.Message}");
+            }
         }
         private void OnMessageReceived(string message)
         {
