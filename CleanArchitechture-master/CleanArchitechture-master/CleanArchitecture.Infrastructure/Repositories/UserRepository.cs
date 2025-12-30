@@ -231,24 +231,25 @@ namespace CleanArchitecture.Infrastructure.Repositories
 
         public async Task<Entites.Entites.User> GetUserWithDetailByIdentifier(string identifier, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(identifier)) return null;
+
             try
             {
-                if (string.IsNullOrWhiteSpace(identifier)) return null;
+                // Tạo query cơ sở với các thiết lập tối ưu
+                var query = _userContext.Users
+                    .Include(u => u.UserDetail)
+                    .AsNoTracking();
 
-                // Try parse as long id
+                // 1. Trường hợp ID (long/bigint)
                 if (long.TryParse(identifier, out var id))
                 {
-                    return await _userContext.Users
-                        .Include(u => u.UserDetail)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
+                    return await query.FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
                 }
 
-                // Search by username (exact) or email (exact)
-                return await _userContext.Users
-                    .Include(u => u.UserDetail)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Username == identifier || u.Email == identifier, cancellationToken);
+                // 2. Trường hợp Username hoặc Email
+                // Lưu ý: Đảm bảo UserId trong Model là long để tránh lỗi Cast
+                return await query.FirstOrDefaultAsync(u =>
+                    u.Username == identifier || u.Email == identifier, cancellationToken);
             }
             catch
             {

@@ -56,7 +56,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 listSendFriend = await _userContext.Friends
-                                .Where(p => p.SenderId == userId && (int)p.Status== status)
+                                .Where(p => (p.SenderId == userId || p.ReceiverId == userId) && (int)p.Status== status)
                                 .OrderByDescending(p=>p.RequestedAt)
                                 .Skip(skip)
                                 .Take(take)
