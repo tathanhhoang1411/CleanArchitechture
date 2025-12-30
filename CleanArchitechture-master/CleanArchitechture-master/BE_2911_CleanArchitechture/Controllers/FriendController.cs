@@ -3,6 +3,7 @@ using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Features.Comments.Query;
 using CleanArchitecture.Application.Features.Friends.Commands.Create;
+using CleanArchitecture.Application.Features.Friends.Commands.Update;
 using CleanArchitecture.Application.Features.Friends.Query;
 using CleanArchitecture.Application.Features.Users.Query;
 using CleanArchitecture.Application.Interfaces;
@@ -10,6 +11,7 @@ using CleanArchitecture.Application.Services;
 using CleanArchitecture.Application.Utilities;
 using CleanArchitecture.Entites.Entites;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Threading;
@@ -28,7 +30,7 @@ namespace BE_2911_CleanArchitechture.Controllers
             , ICustomLogger logger
             , IConfiguration configuration
             , IMapper mapper
-            ,IUserServices userServices)
+            , IUserServices userServices)
             : base(logger, userServices)
         {
             this._mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -37,22 +39,23 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
         //Gửi lời mời kết bạn
         [HttpPost("send")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [SwaggerOperation(Summary = "Gửi kết bạn từ tài khoản hiện tại đến tài khoản khác thông qua userID",
                       Description = "")]
         #region
         public async Task<IActionResult> SendFriendRequest([FromQuery] long receiverId, CancellationToken cancellationToken)
         {
-            long UserID=0;
+            long UserID = 0;
             try
             {
 
                 //Kiểm tra userID có tồn tại không 
                 //Kiểm tra userID có tồn tại không 
                 UserID = await GetUserIdFromTokenAsync();
-                if (UserID == 0) return ForbiddenResponse();
-                //Select comment 
+                if (UserID == 0 || UserID == receiverId) return ForbiddenResponse();
+
                 this._logger.LogInformation(UserID.ToString(), "Friend request");
-                FriendsDto aFriendDto = await _mediator.Send(new SendFriendRequestCommand(UserID,receiverId), cancellationToken);
+                FriendsDto aFriendDto = await _mediator.Send(new SendFriendRequestCommand(UserID, receiverId), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
                 if (aFriendDto.ReceiverId == 0)
                 {
@@ -75,11 +78,12 @@ namespace BE_2911_CleanArchitechture.Controllers
 
         //Lấy danh sách đã gửi lời mời kết bạn 
         [HttpGet("ListSendFriend")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [SwaggerOperation(Summary = "Lấy danh sách kết bạn",
                       Description = "status=1: lời mời chưa chấp nhận, status=2: lời mời đã được chấp nhận")]
-                                   
+
         #region
-        public async Task<IActionResult> ListSendFriend([FromQuery] int skip,int take,int status, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListSendFriend([FromQuery] int skip, int take, int status, CancellationToken cancellationToken)
         {
             long UserID = 0;
             try
@@ -90,7 +94,7 @@ namespace BE_2911_CleanArchitechture.Controllers
                 if (UserID == 0) return ForbiddenResponse();
                 //Select ListSendFriend 
                 this._logger.LogInformation(UserID.ToString(), "ListSendFriend request");
-                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take,UserID, status), cancellationToken);
+                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take, UserID, status), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
                 if (listFriendDto == null)
                 {
@@ -100,6 +104,43 @@ namespace BE_2911_CleanArchitechture.Controllers
                 }
                 this._logger.LogInformation(UserID.ToString(), "Success!");
                 return Ok(new ApiResponse<List<FriendsDto>>(listFriendDto));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
+
+        //Chấp nhận/ xóa lời mời kết bạn
+        [HttpPost("set")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [SwaggerOperation(Summary = "Chấp nhận: 2- từ chối( xóa: 0) lời mời kết bạn từ tài khoản hiện tại đến tài khoản khác thông qua userID",
+                      Description = "")]
+        #region
+        public async Task<IActionResult> SetFriendRequest([FromQuery] long receiverId, int status, CancellationToken cancellationToken)
+        {
+            long UserID = 0;
+            try
+            {
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0 || UserID == receiverId) return ForbiddenResponse();
+
+                this._logger.LogInformation(UserID.ToString(), "Set friend request");
+                FriendsDto aFriendDto = await _mediator.Send(new SetFriendRequestCommand(receiverId, UserID, status), cancellationToken);
+                // Kiểm tra xem việc gửi kết bạn có thành công không
+                if (aFriendDto.ReceiverId == 0)
+                {
+                    // Trả về thất bại
+                    this._logger.LogInformation(UserID.ToString(), "Set friend request fail");
+                    return Ok(new ApiResponse<string>("Fail!"));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Success!");
+                return Ok(new ApiResponse<FriendsDto>(aFriendDto));
             }
             catch (Exception ex)
             {

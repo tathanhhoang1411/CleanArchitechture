@@ -10,5 +10,6 @@ namespace CleanArchitecture.Entites.Enums
     {
         Pending = 1, // Đang chờ
         Accepted = 2, // Đã chấp nhận (đã là bạn bè)
+        Rejected = 0 // từ chối
     }
 }

@@ -3,6 +3,7 @@ using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Repository;
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Entites.Enums;
 using CleanArchitecture.Entites.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -86,6 +87,45 @@ namespace CleanArchitecture.Application.Services
             {
                 _logger.LogError(ex, "Check ListSendFriend error");
                 return new List<FriendsDto>();
+            }
+        }
+        public async Task<Friend> GetAFriendRequest( long userId, long receiverId, CancellationToken cancellationToken)
+        {
+            Friend aFriendRequest = new Friend();
+            try
+            {
+                aFriendRequest = await _unitOfWork.Friends.GetAFriendRequest(userId,receiverId, cancellationToken);
+                if (aFriendRequest == null)
+                {
+                    return new Friend();
+                }
+                return _mapper.Map<Friend>(aFriendRequest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Check ListSendFriend error");
+                return new Friend();
+            }
+        }
+        public async Task<FriendsDto> Set(Friend friend, int status, CancellationToken cancellationToken )
+        {
+            Friend aFriendRequest = new Friend();
+            try
+            {
+                aFriendRequest = await _unitOfWork.Friends.SetAFriendRequest(friend, status, cancellationToken);
+                if (aFriendRequest == null)
+                {
+                    return new FriendsDto();
+                }
+                aFriendRequest.Status = (FriendRequestStatus)status;
+                aFriendRequest.ActionedAt = DateTime.UtcNow;
+                await _unitOfWork.CompleteAsync(cancellationToken);
+                return _mapper.Map<FriendsDto>(aFriendRequest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Check ListSendFriend error");
+                return new FriendsDto();
             }
         }
     }

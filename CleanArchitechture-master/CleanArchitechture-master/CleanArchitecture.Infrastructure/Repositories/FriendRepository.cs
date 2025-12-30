@@ -35,19 +35,33 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return new Friend();
             }
         }
+        public async Task<Friend> SetAFriendRequest(Friend friend, int status, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                Friend aFriendRequest =await _userContext.Friends
+                    .FirstOrDefaultAsync(p => p.ReceiverId==friend.ReceiverId && p.SenderId==friend.SenderId, cancellationToken);
+
+                return aFriendRequest;
+            }
+            catch
+            {
+                return new Friend();
+            }
+        }
         public async Task<Friend> CheckExist(long senderId, long receiverId, CancellationToken cancellationToken = default)
         {
-            Friend aFriend = null;
+            Friend aFriend = new Friend();
             try
             {
                 // Truy vấn chỉ cần kiểm tra một chiều duy nhất (A -> B)
-                aFriend = await _userContext.Friends
-                    .FirstOrDefaultAsync(p => p.SenderId == senderId && p.ReceiverId == receiverId, cancellationToken);
+                aFriend = await _userContext.Friends.AsNoTracking()
+                    .FirstOrDefaultAsync(p => (p.SenderId == senderId && p.ReceiverId == receiverId)||(p.SenderId == receiverId && p.ReceiverId == senderId), cancellationToken);
                 return aFriend;
             }
             catch
             {
-                return null;
+                return aFriend;
             }
         }
         public async Task<List<Friend>> GetListSendFriend(int skip, int take, long userId,int status, CancellationToken cancellationToken = default)
@@ -56,8 +70,10 @@ namespace CleanArchitecture.Infrastructure.Repositories
             try
             {
                 listSendFriend = await _userContext.Friends
-                                .Where(p => (p.SenderId == userId || p.ReceiverId == userId) && (int)p.Status== status)
-                                .OrderByDescending(p=>p.RequestedAt)
+                                .Where(p => (p.SenderId == userId || p.ReceiverId == userId) && (int)p.Status == status)
+                                .AsNoTracking()
+                                .OrderByDescending(p => p.RequestedAt)
+                                .AsNoTracking()
                                 .Skip(skip)
                                 .Take(take)
                                 .ToListAsync(cancellationToken);
@@ -68,6 +84,21 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return null;
             }
         }
+        public async Task<Friend> GetAFriendRequest(long userId, long receiverId, CancellationToken cancellationToken = default)
+        {
+            Friend AFriendRequest = new Friend();
+            try
+            {
+                AFriendRequest = await _userContext.Friends
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(p => p.SenderId == receiverId && p.ReceiverId == userId); 
+                return AFriendRequest;
+            }
+            catch
+            {
+                return AFriendRequest;
+            }
+        }
 
         public async Task<int> CountFriendsByUser(long userId, int status, CancellationToken cancellationToken = default)
         {
@@ -75,6 +106,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
             {
                 var count = await _userContext.Friends
                     .Where(f => ((f.SenderId == userId) || (f.ReceiverId == userId)) && (int)f.Status == status)
+                    .AsNoTracking()
                     .CountAsync(cancellationToken);
                 return count;
             }

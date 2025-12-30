@@ -2,6 +2,7 @@
 using CleanArchitecture.Application.Features.Comments.Commands.Create;
 using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Entites.Enums;
 using CleanArchitecture.Entites.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,8 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Create
                 {
                     _logger.LogInformation("SendFriendRequestCommand starting for user {UserId}", sendFriendRequestCommand.senderId);
                      friendDto = await _friendServices.CheckExist(sendFriendRequestCommand.senderId, sendFriendRequestCommand.receiverId, cancellationToken);
-                    if (friendDto.ReceiverId > 0)
+                    //Nếu có tồn tại lời mời rồi 
+                    if (friendDto.ReceiverId > 0 || friendDto.Status==FriendRequestStatus.Accepted)
                     {
                         return friendDto;
                     }
