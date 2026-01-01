@@ -124,7 +124,25 @@ namespace CleanArchitecture.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Check ListSendFriend error");
+                _logger.LogError(ex, "Accepted/ Rejected error");
+                return new FriendsDto();
+            }
+        }
+        public async Task<FriendsDto> Delete(Friend friend, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                bool result = await _unitOfWork.Friends.DelAFriendRequest(friend, cancellationToken);
+                if (!result)
+                {
+                    return new FriendsDto();
+                }  
+                await _unitOfWork.CompleteAsync(cancellationToken);
+                return _mapper.Map<FriendsDto>(friend);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Deleted error");
                 return new FriendsDto();
             }
         }

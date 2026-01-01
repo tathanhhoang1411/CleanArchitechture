@@ -10,6 +10,7 @@ using CleanArchitecture.Application.Interfaces;
 using CleanArchitecture.Application.Services;
 using CleanArchitecture.Application.Utilities;
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Entites.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,16 +55,16 @@ namespace BE_2911_CleanArchitechture.Controllers
                 UserID = await GetUserIdFromTokenAsync();
                 if (UserID == 0 || UserID == receiverId) return ForbiddenResponse();
 
-                this._logger.LogInformation(UserID.ToString(), "Friend request");
+                this._logger.LogInformation(UserID.ToString(), "Friend request starting ");
                 FriendsDto aFriendDto = await _mediator.Send(new SendFriendRequestCommand(UserID, receiverId), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
                 if (aFriendDto.ReceiverId == 0)
                 {
                     // Trả về thất bại
-                    this._logger.LogInformation(UserID.ToString(), "Friend request fail");
-                    return Ok(new ApiResponse<string>("Fail!"));
+                    this._logger.LogInformation(UserID.ToString(), "Failed!");
+                    return Ok(new ApiResponse<string>("Failed!"));
                 }
-                this._logger.LogInformation(UserID.ToString(), "Success!");
+                this._logger.LogInformation(UserID.ToString(), "Successed!");
                 return Ok(new ApiResponse<FriendsDto>(aFriendDto));
             }
             catch (Exception ex)
@@ -130,13 +131,13 @@ namespace BE_2911_CleanArchitechture.Controllers
                 UserID = await GetUserIdFromTokenAsync();
                 if (UserID == 0 || UserID == receiverId) return ForbiddenResponse();
 
-                this._logger.LogInformation(UserID.ToString(), "Set friend request");
+                this._logger.LogInformation(UserID.ToString(), "Setting friend request");
                 FriendsDto aFriendDto = await _mediator.Send(new SetFriendRequestCommand(receiverId, UserID, status), cancellationToken);
                 // Kiểm tra xem việc gửi kết bạn có thành công không
                 if (aFriendDto.ReceiverId == 0)
                 {
                     // Trả về thất bại
-                    this._logger.LogInformation(UserID.ToString(), "Set friend request fail");
+                    this._logger.LogInformation(UserID.ToString(), "Fail!");
                     return Ok(new ApiResponse<string>("Fail!"));
                 }
                 this._logger.LogInformation(UserID.ToString(), "Success!");

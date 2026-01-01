@@ -35,31 +35,51 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Update
                 _friendServices = friendServices ?? throw new ArgumentNullException(nameof(friendServices));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
+            /// <summary>
+            /// Hàm xử  lý cập nhật trạng thái lời mời kết bạn
+            /// 2 chấp nhận thì update, 0 từ chối thì xóa
+            /// </summary>
+            /// <param name="setFriendRequestCommand"></param>
+            /// <param name="cancellationToken"></param>
+            /// <returns></returns>
             public async Task<FriendsDto> Handle(SetFriendRequestCommand setFriendRequestCommand, CancellationToken cancellationToken)
             {
                 FriendsDto friendDto=null;
                 try
                 {
-                    _logger.LogInformation("SetFriendRequestCommand starting for user {UserId}", setFriendRequestCommand.senderId);
+                    _logger.LogInformation("SetFriendRequestCommand starting", setFriendRequestCommand.senderId);
                      friendDto = await _friendServices.CheckExist(setFriendRequestCommand.senderId, setFriendRequestCommand.receiverId, cancellationToken);
-                    if (friendDto.Status == FriendRequestStatus.Accepted || friendDto.Status == FriendRequestStatus.Rejected) return friendDto;
-                    //nếu không  tồn tại lời mời  
-                    if (!(friendDto.ReceiverId == setFriendRequestCommand.receiverId && friendDto.Status == FriendRequestStatus.Pending))
+                    if (friendDto.Status == FriendRequestStatus.Accepted || friendDto.Status == FriendRequestStatus.Rejected)
                     {
-                        return friendDto;
+                            return new FriendsDto();
                     }
-                    //nếu tồn tại rồi thì cập nhật trạng thái
-                    //Lấy lời mời kết bạn
+                    else
+                    {
+                        if (!(friendDto.ReceiverId == setFriendRequestCommand.receiverId))
+                        {
+                            return new FriendsDto();
+                        }
+                    }
+                        //nếu tồn tại rồi thì cập nhật trạng thái
+                        //Lấy lời mời kết bạn
                     Friend aFriendRequest = new Friend();
                     aFriendRequest.ReceiverId = friendDto.ReceiverId;
                     aFriendRequest.SenderId = friendDto.SenderId;
-                    friendDto = await _friendServices.Set(aFriendRequest, setFriendRequestCommand.status, cancellationToken);
-                    _logger.LogInformation("SendFriendRequestCommand completed for comment {CommentId}", setFriendRequestCommand.senderId);
+                    switch (setFriendRequestCommand.status)
+                    {
+                        case (int)FriendRequestStatus.Accepted:
+                               friendDto = await _friendServices.Set(aFriendRequest, setFriendRequestCommand.status, cancellationToken);
+                            break;
+                            case (int)FriendRequestStatus.Rejected:
+                                 friendDto = await _friendServices.Delete(aFriendRequest, cancellationToken);
+                            break;
+                    }
+                    _logger.LogInformation("SetFriendRequest completed!", setFriendRequestCommand.senderId);
                     return friendDto;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "SendFriendRequestCommand failed for user {UserId}", setFriendRequestCommand.senderId);
+                    _logger.LogError(ex, "SetFriendRequest failed!", setFriendRequestCommand.senderId);
                     return friendDto;
                 } 
             }

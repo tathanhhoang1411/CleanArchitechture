@@ -99,6 +99,34 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 return AFriendRequest;
             }
         }
+        public async Task<bool> DelAFriendRequest(Friend friend, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // 1. Tìm các bản ghi thỏa mãn điều kiện (Sử dụng IQueryable)
+                var requestsToDelete = _userContext.Friends
+                    .Where(p => p.ReceiverId == friend.ReceiverId && p.SenderId == friend.SenderId);
+
+                // 2. Kiểm tra nếu không có dữ liệu thì không làm gì cả
+                if (!requestsToDelete.Any())
+                {
+                    return false;
+                }
+
+                // 3. Đánh dấu xóa các bản ghi này trong Change Tracker
+                // RemoveRange sẽ tự thực hiện câu lệnh SELECT nội bộ trước khi đánh dấu xóa
+                _userContext.Friends.RemoveRange(requestsToDelete);
+
+                // LƯU Ý: Vì bạn đang dùng mô hình Unit of Work, việc xóa thực sự xuống Database 
+                // chỉ xảy ra khi bạn gọi _unitOfWork.CompleteAsync() ở tầng Service.
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Bạn nên dùng _logger ở đây để ghi lại lỗi nếu có
+                return false;
+            }
+        }
 
         public async Task<int> CountFriendsByUser(long userId, int status, CancellationToken cancellationToken = default)
         {

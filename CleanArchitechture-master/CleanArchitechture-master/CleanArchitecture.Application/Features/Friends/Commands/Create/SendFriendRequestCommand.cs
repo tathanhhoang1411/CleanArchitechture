@@ -37,12 +37,12 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Create
                 FriendsDto friendDto=null;
                 try
                 {
-                    _logger.LogInformation("SendFriendRequestCommand starting for user {UserId}", sendFriendRequestCommand.senderId);
+                    _logger.LogInformation("SendFriendRequestCommand starting ", sendFriendRequestCommand.senderId);
                      friendDto = await _friendServices.CheckExist(sendFriendRequestCommand.senderId, sendFriendRequestCommand.receiverId, cancellationToken);
                     //Nếu có tồn tại lời mời rồi 
-                    if (friendDto.ReceiverId > 0 || friendDto.Status==FriendRequestStatus.Accepted)
+                    if (friendDto.ReceiverId > 0 || friendDto.Status==FriendRequestStatus.Accepted || friendDto.Status == FriendRequestStatus.Pending)
                     {
-                        return friendDto;
+                        return new FriendsDto();
                     }
                     Friend friend = new Friend
                     {
@@ -53,12 +53,12 @@ namespace CleanArchitecture.Application.Features.Friends.Commands.Create
                         Status = Entites.Enums.FriendRequestStatus.Pending
                     };
                     friendDto = await _friendServices.Send(friend, cancellationToken);
-                    _logger.LogInformation("SendFriendRequestCommand completed for comment {CommentId}", sendFriendRequestCommand.senderId);
+                    _logger.LogInformation("Successed!", sendFriendRequestCommand.senderId);
                     return friendDto;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "SendFriendRequestCommand failed for user {UserId}", sendFriendRequestCommand.senderId);
+                    _logger.LogError(ex, "Failed!", sendFriendRequestCommand.senderId);
                     return friendDto;
                 } 
             }

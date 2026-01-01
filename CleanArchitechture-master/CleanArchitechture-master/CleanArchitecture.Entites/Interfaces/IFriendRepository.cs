@@ -19,5 +19,6 @@ namespace CleanArchitecture.Entites.Interfaces
         // Count friendships where the user is either sender or receiver and status matches
         Task<int> CountFriendsByUser(long userId, int status, CancellationToken cancellationToken = default);
         Task<Friend> SetAFriendRequest(Friend friend, int status, CancellationToken cancellationToken = default);
+        Task<bool> DelAFriendRequest(Friend friend, CancellationToken cancellationToken = default);
     }
 }

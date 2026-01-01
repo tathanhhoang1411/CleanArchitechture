@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.Application.Interfaces
@@ -15,5 +16,6 @@ namespace CleanArchitecture.Application.Interfaces
         Task<List<FriendsDto>> GetList_SendFriend(int skip,int take, long userId,int status, CancellationToken cancellationToken = default);
         Task<Friend> GetAFriendRequest( long userId,long receiverId, CancellationToken cancellationToken = default);
         Task<FriendsDto> Set(Friend friend,int status,CancellationToken cancellationToken = default);
+        Task<FriendsDto> Delete(Friend friend, CancellationToken cancellationToken = default);
     }
 }
