@@ -45,5 +45,6 @@ namespace CleanArchitecture.Infrastructure.Persistence
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Participant> Participants { get; set; }
+        public DbSet<CallHistory> CallHistory { get; set; }
     }
 }

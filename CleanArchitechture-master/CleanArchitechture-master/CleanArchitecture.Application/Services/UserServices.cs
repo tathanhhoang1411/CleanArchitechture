@@ -201,8 +201,8 @@ namespace CleanArchitecture.Application.Services
             {
                  await _unitOfWork.Users.CreateUser(user);
                 await _unitOfWork.CompleteAsync();
-                // Gửi event sau khi DB đã cập nhật
-                _rabbitMQ.Publish($"UsersCreate:{user.UserId}");
+                // Gửi event sau khi DB đã cập nhật (Non-blocking)
+                _ = Task.Run(() => _rabbitMQ.Publish($"UsersCreate:{user.UserId}"));
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -218,8 +218,8 @@ namespace CleanArchitecture.Application.Services
             {
                 await _unitOfWork.Users.ChangePassw(user);
                 await _unitOfWork.CompleteAsync();
-                // Gửi event sau khi DB đã cập nhật
-                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
+                // Gửi event sau khi DB đã cập nhật (Non-blocking)
+                _ = Task.Run(() => _rabbitMQ.Publish($"UsersUpdate:{user.UserId}"));
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -235,8 +235,8 @@ namespace CleanArchitecture.Application.Services
                 await _unitOfWork.Users.DeleteUser(user);
                 user.Status = false;
                 await _unitOfWork.CompleteAsync();
-                // Gửi event sau khi DB đã cập nhật
-                _rabbitMQ.Publish($"UsersDelete:{user.UserId}");
+                // Gửi event sau khi DB đã cập nhật (Non-blocking)
+                _ = Task.Run(() => _rabbitMQ.Publish($"UsersDelete:{user.UserId}"));
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -252,8 +252,8 @@ namespace CleanArchitecture.Application.Services
             {
                 await _unitOfWork.Users.isUpdUserAvatar(user);
                 await _unitOfWork.CompleteAsync();
-                // Gửi event sau khi DB đã cập nhật
-                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
+                // Gửi event sau khi DB đã cập nhật (Non-blocking)
+                _ = Task.Run(() => _rabbitMQ.Publish($"UsersUpdate:{user.UserId}"));
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -270,8 +270,8 @@ namespace CleanArchitecture.Application.Services
                 await _unitOfWork.Users.ActiveUser(user);
                 user.Status = true;
                 await _unitOfWork.CompleteAsync();
-                // Gửi event sau khi DB đã cập nhật
-                _rabbitMQ.Publish($"UsersUpdate:{user.UserId}");
+                // Gửi event sau khi DB đã cập nhật (Non-blocking)
+                _ = Task.Run(() => _rabbitMQ.Publish($"UsersUpdate:{user.UserId}"));
                 return _mapper.Map<UsersDto>(user);
             }
             catch
@@ -319,15 +319,18 @@ namespace CleanArchitecture.Application.Services
                     // ignore cache errors
                 }
 
-                // Publish an event to RabbitMQ that a user was searched/viewed
-                try
+                // Publish an event to RabbitMQ that a user was searched/viewed (Non-blocking)
+                _ = Task.Run(() =>
                 {
-                    _rabbitMQ.Publish($"UserSearched:{normalized}");
-                }
-                catch
-                {
-                    // swallow to avoid affecting main flow
-                }
+                    try
+                    {
+                        _rabbitMQ.Publish($"UserSearched:{normalized}");
+                    }
+                    catch
+                    {
+                        // ignore background errors
+                    }
+                });
 
                 return dto;
             }
