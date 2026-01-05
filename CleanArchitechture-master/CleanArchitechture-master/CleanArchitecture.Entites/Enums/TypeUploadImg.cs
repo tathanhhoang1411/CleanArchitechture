@@ -13,6 +13,7 @@ namespace CleanArchitecture.Entites.Enums
     {
         Avatar = 1, 
         Product = 2, 
-        Comment = 3
+        Comment = 3,
+        Chat = 4
     }
 }

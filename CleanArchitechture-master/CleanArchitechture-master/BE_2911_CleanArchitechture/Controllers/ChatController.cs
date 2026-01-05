@@ -30,6 +30,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         // Lấy danh sách các cuộc trò chuyện của người dùng hiện tại
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpGet("conversations")]
         public async Task<IActionResult> GetConversations()
         {
@@ -41,6 +42,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         // Lấy lịch sử tin nhắn của một cuộc trò chuyện cụ thể (có phân trang skip/take)
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpGet("{conversationId}/messages")]
         public async Task<IActionResult> GetMessages(long conversationId, [FromQuery] int skip = 0, [FromQuery] int take = 20)
         {
@@ -59,6 +61,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         // Gửi tin nhắn mới đến một cuộc trò chuyện hoặc người dùng
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
         {
@@ -78,6 +81,7 @@ namespace BE_2911_CleanArchitechture.Controllers
 
 
         // Tạo một nhóm chat mới với các thành viên được chỉ định
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("group")]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
@@ -91,8 +95,9 @@ namespace BE_2911_CleanArchitechture.Controllers
         /// <summary>
         /// Upload hình ảnh cho tin nhắn chat
         /// </summary>
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadChatImage([FromForm] long conversationId, CancellationToken cancellationToken)
+        public async Task<IActionResult> UploadChatImage([FromForm] int conversationId, CancellationToken cancellationToken)
         {
             var userId = await GetUserIdFromTokenAsync();
             if (userId == 0) return Unauthorized();
@@ -108,12 +113,12 @@ namespace BE_2911_CleanArchitechture.Controllers
 
                 _logger.LogInformation(userId.ToString(), "UploadChatImage request");
 
-                // Upload image(s). type=2 for chat images, using conversationId as imageId
+                // Upload image(s). type=4 for chat images, using conversationId as imageId
                 uploaded = await _imageService.UploadImage(
                     Request, 
                     $"chat_{userId}",  // identifier
                     userId,            // userId
-                    2,                 // type: 2 for chat images
+                    4,                 // type: 4 for chat images (TypeUploadImg.Chat)
                     conversationId,    // imageId: use conversationId
                     _environment.ContentRootPath, 
                     cancellationToken);
@@ -144,6 +149,7 @@ namespace BE_2911_CleanArchitechture.Controllers
         /// <summary>
         /// Lấy hình ảnh chat (Có kiểm tra quyền truy cập)
         /// </summary>
+        [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpGet("images/{**imagePath}")]
         public async Task<IActionResult> GetChatImage(string imagePath)
         {
@@ -153,15 +159,32 @@ namespace BE_2911_CleanArchitechture.Controllers
             try
             {
                 // Parse conversationId từ imagePath
-                // Format: /uploads/2/{userId}/{conversationId}/image.jpg
+                // Format: Uploads/Chats/UserID_{userId}/Conversation_{conversationId}/image.jpg
                 var pathParts = imagePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
                 
-                if (pathParts.Length < 4 || pathParts[0] != "uploads" || pathParts[1] != "2")
+                // pathParts[0] = "Uploads"
+                // pathParts[1] = "Chats"
+                // pathParts[2] = "UserID_{userId}"
+                // pathParts[3] = "Conversation_{conversationId}"
+                
+                if (pathParts.Length < 5 || 
+                    !pathParts[0].Equals("Uploads", StringComparison.OrdinalIgnoreCase) || 
+                    !pathParts[1].Equals("Chats", StringComparison.OrdinalIgnoreCase))
                 {
-                    return BadRequest("Invalid image path format");
+                    return BadRequest("Invalid image path format. Expected Uploads/Chats/...");
                 }
 
-                long conversationId = long.Parse(pathParts[3]);
+                // Extract conversation sequence (Conversation_{id})
+                var convPartHeader = "Conversation_";
+                if (!pathParts[3].StartsWith(convPartHeader))
+                {
+                    return BadRequest("Invalid conversation path part");
+                }
+
+                if (!long.TryParse(pathParts[3].Substring(convPartHeader.Length), out long conversationId))
+                {
+                    return BadRequest("Could not parse conversation ID from path");
+                }
 
                 // ✅ KIỂM TRA QUYỀN: User có phải là thành viên của conversation không?
                 var conversations = await _chatServices.GetUserConversations(userId);

@@ -51,6 +51,10 @@ namespace CleanArchitecture.Application.Repository
                     // Uploads/Comments/UserID_123/Comment_456
                     subFolder = Path.Combine("Comments", $"UserID_{userID}", $"Comment_{Id}");
                     break;
+                case TypeUploadImg.Chat:
+                    // Uploads/Chats/UserID_123/Conversation_456
+                    subFolder = Path.Combine("Chats", $"UserID_{userID}", $"Conversation_{Id}");
+                    break;
                 default:
                     throw new ArgumentException("Invalid flag value", nameof(type));
             }
@@ -104,6 +108,10 @@ namespace CleanArchitecture.Application.Repository
                             break;
                         case TypeUploadImg.Avatar:
                             fileName = email + ".jpg";
+                            break;
+                        case TypeUploadImg.Chat:
+                            // Use timestamp for unique chat image names
+                            fileName = $"{DateTime.Now.Ticks}_{temp}_{source.FileName}";
                             break;
                         default:
                             continue;
