@@ -172,16 +172,8 @@ builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(DataA
 var app = builder.Build();
 
 // ✅ Error Handling Middleware
-app.Use(async (context, next) =>
-{
-    try { await next(); }
-    catch (CleanArchitecture.Application.Utilities.ValidationException vex)
-    {
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(CleanArchitecture.Application.Utilities.ApiResponse<List<string>>.CreateErrorResponse(vex.Errors ?? new List<string>(), false));
-    }
-});
+// ✅ Error Handling Middleware
+app.UseMiddleware<BE_2911_CleanArchitechture.Middlewares.GlobalExceptionMiddleware>();
 
 // ✅ Configure the HTTP request pipeline.
 // ✅ Configure the HTTP request pipeline.

@@ -35,8 +35,12 @@ namespace CleanArchitecture.Entites.Entites
         /// </summary>
         public int? Duration { get; set; }
 
+        [ForeignKey("Message")]
+        public long? MessageId { get; set; }
+
         // Navigation properties
         public virtual User Caller { get; set; }
         public virtual User Receiver { get; set; }
+        public virtual Message Message { get; set; }
     }
 }

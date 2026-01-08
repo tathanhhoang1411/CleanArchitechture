@@ -12,5 +12,7 @@ namespace CleanArchitecture.Entites.Interfaces
         Task<List<Message>> GetMessages(long conversationId, int skip, int take);
         Task<bool> AddParticipant(Participant participant);
         Task<bool> IsUserInConversation(long conversationId, long userId);
+        Task<CallHistory> SaveCallHistory(CallHistory callHistory);
+        Task<Message> GetMessageById(long messageId);
     }
 }

@@ -29,5 +29,6 @@ namespace CleanArchitecture.Entites.Entites
         // Navigation properties
         public virtual Conversation Conversation { get; set; }
         public virtual User Sender { get; set; }
+        public virtual CallHistory CallHistory { get; set; }
     }
 }

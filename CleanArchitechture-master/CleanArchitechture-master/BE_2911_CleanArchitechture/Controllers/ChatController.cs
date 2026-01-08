@@ -1,6 +1,7 @@
 using BE_2911_CleanArchitechture.Logging;
 using CleanArchitecture.Application.Dtos;
 using CleanArchitecture.Application.Interfaces;
+using CleanArchitecture.Entites.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -70,6 +71,46 @@ namespace BE_2911_CleanArchitechture.Controllers
             
             try
             {
+                // 1. Kiểm tra xem Type gửi lên có nằm trong Enum không
+                if (!Enum.IsDefined(typeof(MessageType), request.Type))
+                {
+                    return BadRequest($"Invalid MessageType value: {(int)request.Type}");
+                }
+
+                // 2. Validate chi tiết từng loại
+                switch (request.Type)
+                {
+                    case MessageType.Text:
+                        if (string.IsNullOrWhiteSpace(request.Content))
+                            return BadRequest("Text message cannot be empty.");
+                        // Chặn gửi đường dẫn file thô dưới dạng Text (theo yêu cầu của bạn)
+                        if (request.Content.Contains("Uploads/Conversations/"))
+                            return BadRequest("Cannot send raw file path as Text. Please set correct MessageType (Image/Voice/File).");
+                        break;
+
+                    case MessageType.Image:
+                        if (string.IsNullOrEmpty(request.Content) || 
+                            (!request.Content.Contains("/Images/") && !request.Content.Contains(@"\Images\")))
+                            return BadRequest("Message of type 'Image' must reference a file in the 'Images' folder.");
+                        break;
+
+                    case MessageType.Voice:
+                        if (string.IsNullOrEmpty(request.Content) || 
+                            (!request.Content.Contains("/Voices/") && !request.Content.Contains(@"\Voices\")))
+                            return BadRequest("Message of type 'Voice' must reference a file in the 'Voices' folder.");
+                        break;
+
+                    case MessageType.File:
+                        if (string.IsNullOrEmpty(request.Content) || 
+                            (!request.Content.Contains("/Files/") && !request.Content.Contains(@"\Files\")))
+                            return BadRequest("Message of type 'File' must reference a file in the 'Files' folder.");
+                        break;
+
+                    default:
+                        // Các Type khác (Video = 4, hoặc mở rộng sau này) chưa hỗ trợ Send qua đây
+                        return BadRequest($"MessageType '{request.Type}' is not currently supported for sending.");
+                }
+
                 var result = await _chatServices.SendMessage(userId, request);
                 return Ok(result);
             }
@@ -93,143 +134,163 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
 
         /// <summary>
-        /// Upload hình ảnh cho tin nhắn chat
+        /// Upload file đính kèm (Ảnh/Voice/Video...) - Unified Endpoint
         /// </summary>
         [Authorize(Policy = "RequireAdminOrUserRole")]
-        [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadChatImage([FromForm] int conversationId, CancellationToken cancellationToken)
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadAttachment([FromForm] UploadAttachmentRequest request, CancellationToken cancellationToken)
         {
             var userId = await GetUserIdFromTokenAsync();
             if (userId == 0) return Unauthorized();
 
-            List<string> uploaded = null;
+            if (Request.Form.Files.Count == 0) return BadRequest("No file uploaded");
+
             try
             {
-                // Kiểm tra xem có file ảnh không
-                if (Request.Form.Files.Count == 0)
+                // VALIDATION: Kiểm tra tính hợp lệ giữa MessageType và File ContentType
+                if (request.MessageType == MessageType.Image)
                 {
-                    return BadRequest("No image file uploaded");
+                    if (!request.File.ContentType.StartsWith("image/"))
+                    {
+                        return BadRequest("Invalid file format. MessageType 'Image' requires an image file.");
+                    }
+                }
+                else if (request.MessageType == MessageType.Voice)
+                {
+                    if (!request.File.ContentType.StartsWith("audio/"))
+                    {
+                        return BadRequest("Invalid file format. MessageType 'Voice' requires an audio file.");
+                    }
                 }
 
-                _logger.LogInformation(userId.ToString(), "UploadChatImage request");
+                // Mapping MessageType (Enum Chat) -> TypeUploadImg (Enum Storage)
+                int typeUploadStorage;
+                string prefixIdentifier;
 
-                // Upload image(s). type=4 for chat images, using conversationId as imageId
-                uploaded = await _imageService.UploadImage(
-                    Request, 
-                    $"chat_{userId}",  // identifier
-                    userId,            // userId
-                    4,                 // type: 4 for chat images (TypeUploadImg.Chat)
-                    conversationId,    // imageId: use conversationId
-                    _environment.ContentRootPath, 
+                switch (request.MessageType)
+                {
+                    case MessageType.Image:
+                        typeUploadStorage = 4; // TypeUploadImg.Chat
+                        prefixIdentifier = $"chat_{userId}";
+                        break;
+                    case MessageType.Voice:
+                        typeUploadStorage = 5; // TypeUploadImg.Voice
+                        prefixIdentifier = $"voice_{userId}";
+                        break;
+                    case MessageType.File:
+                        typeUploadStorage = 6; // TypeUploadImg.ChatFile
+                        prefixIdentifier = $"file_{userId}";
+                        break;
+                    default:
+                        // Fallback hoặc báo lỗi nếu chưa hỗ trợ
+                         _logger.LogInformation(userId.ToString(), $"Unsupported message type: {request.MessageType}");
+                        return BadRequest("Unsupported message type for upload");
+                }
+
+                _logger.LogInformation(userId.ToString(), $"Upload request for Type: {request.MessageType}");
+
+                // Gọi Service Upload dùng chung
+                var uploaded = await _imageService.UploadImage(
+                    Request,
+                    prefixIdentifier,
+                    userId,
+                    typeUploadStorage,
+                    request.ConversationId,
+                    _environment.ContentRootPath,
                     cancellationToken);
 
                 if (uploaded != null && uploaded.Count > 0)
                 {
-                    string imagePath = uploaded.ElementAtOrDefault(0);
-                    _logger.LogInformation(userId.ToString(), $"Image uploaded: {imagePath}");
-                    
-                    return Ok(new { ImageUrl = imagePath });
+                    // Trả về URL và Type để Frontend tiện xử lý tiếp bước Send
+                    return Ok(new { 
+                        Url = uploaded.ElementAtOrDefault(0),
+                        MessageType = request.MessageType
+                    });
                 }
 
-                return BadRequest("Failed to upload image");
-            }
-            catch (OperationCanceledException)
-            {
-                try { if (uploaded != null) await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, CancellationToken.None); } catch { }
-                return StatusCode(499, "Client Closed Request");
+                return BadRequest("Failed to upload file");
             }
             catch (Exception ex)
             {
-                try { if (uploaded != null) await _imageService.DeleteUploadedFiles(uploaded, _environment.ContentRootPath, CancellationToken.None); } catch { }
-                _logger.LogError(userId.ToString(), "UploadChatImage", ex);
+                _logger.LogError(userId.ToString(), "UploadAttachment", ex);
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Lưu lịch sử cuộc gọi
+        /// </summary>
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpPost("save-call")]
+        public async Task<IActionResult> SaveCall([FromBody] SaveCallHistoryRequest request)
+        {
+            var userId = await GetUserIdFromTokenAsync();
+            if (userId == 0) return Unauthorized();
+
+            try
+            {
+                var result = await _chatServices.SaveCallHistory(userId, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(userId.ToString(), "SaveCall", ex);
                 return BadRequest(ex.Message);
             }
         }
 
         /// <summary>
-        /// Lấy hình ảnh chat (Có kiểm tra quyền truy cập)
+        /// Lấy tệp tin chat (Ảnh/Voice/File - Có kiểm tra quyền truy cập)
         /// </summary>
         [Authorize(Policy = "RequireAdminOrUserRole")]
-        [HttpGet("images/{**imagePath}")]
-        public async Task<IActionResult> GetChatImage(string imagePath)
+        [HttpGet("media/{**mediaPath}")]
+        public async Task<IActionResult> GetChatMedia(string mediaPath)
         {
             var userId = await GetUserIdFromTokenAsync();
             if (userId == 0) return Unauthorized();
 
             try
             {
-                // Parse conversationId từ imagePath
-                // Format: Uploads/Chats/UserID_{userId}/Conversation_{conversationId}/image.jpg
-                var pathParts = imagePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                
-                // pathParts[0] = "Uploads"
-                // pathParts[1] = "Chats"
-                // pathParts[2] = "UserID_{userId}"
-                // pathParts[3] = "Conversation_{conversationId}"
-                
-                if (pathParts.Length < 5 || 
-                    !pathParts[0].Equals("Uploads", StringComparison.OrdinalIgnoreCase) || 
-                    !pathParts[1].Equals("Chats", StringComparison.OrdinalIgnoreCase))
-                {
-                    return BadRequest("Invalid image path format. Expected Uploads/Chats/...");
-                }
-
-                // Extract conversation sequence (Conversation_{id})
-                var convPartHeader = "Conversation_";
-                if (!pathParts[3].StartsWith(convPartHeader))
-                {
-                    return BadRequest("Invalid conversation path part");
-                }
-
-                if (!long.TryParse(pathParts[3].Substring(convPartHeader.Length), out long conversationId))
-                {
-                    return BadRequest("Could not parse conversation ID from path");
-                }
-
-                // ✅ KIỂM TRA QUYỀN: User có phải là thành viên của conversation không?
-                var conversations = await _chatServices.GetUserConversations(userId);
-                bool isParticipant = conversations.Any(c => c.Id == conversationId);
-
-                if (!isParticipant)
-                {
-                    _logger.LogError(userId.ToString(), $"Unauthorized access attempt to image: {imagePath}", null);
-                    return Forbid(); // 403 Forbidden
-                }
-
-                // Construct full file path
-                var fullPath = Path.Combine(_environment.ContentRootPath, imagePath);
-
-                if (!System.IO.File.Exists(fullPath))
-                {
-                    _logger.LogError(userId.ToString(), $"Image not found: {imagePath}", null);
-                    return NotFound();
-                }
-
-                // Detect content type from extension
-                var extension = Path.GetExtension(fullPath).ToLowerInvariant();
-                var contentType = extension switch
-                {
-                    ".jpg" or ".jpeg" => "image/jpeg",
-                    ".png" => "image/png",
-                    ".gif" => "image/gif",
-                    ".webp" => "image/webp",
-                    _ => "application/octet-stream"
-                };
-
-                // Read and return file
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
-                return File(fileBytes, contentType);
+                var (stream, contentType) = await _chatServices.GetChatMediaStream(userId, mediaPath, _environment.ContentRootPath);
+                return File(stream, contentType);
             }
-            catch (FormatException)
+            catch (System.IO.FileNotFoundException)
             {
-                return BadRequest("Invalid conversation ID in path");
+                return NotFound("File not found");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái đã đọc của tin nhắn
+        /// </summary>
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [HttpPut("message/{id}/read-status")]
+        public async Task<IActionResult> UpdateMessageReadStatus(long id, [FromBody] UpdateReadStatusRequest request)
+        {
+            var userId = await GetUserIdFromTokenAsync();
+            if (userId == 0) return Unauthorized();
+
+            try
+            {
+                var result = await _chatServices.UpdateMessageReadStatus(userId, id, request.IsRead);
+                return Ok(new { success = result, messageId = id, isRead = request.IsRead });
             }
             catch (Exception ex)
             {
-                _logger.LogError(userId.ToString(), "GetChatImage error", ex);
-                return StatusCode(500, "Error retrieving image");
+                return BadRequest(ex.Message);
             }
         }
+           
 
     }
 
@@ -237,5 +298,17 @@ namespace BE_2911_CleanArchitechture.Controllers
     {
         public string Title { get; set; }
         public List<long> MemberIds { get; set; }
+    }
+
+    public class UploadAttachmentRequest
+    {
+        public int ConversationId { get; set; }
+        public MessageType MessageType { get; set; }
+        public IFormFile File { get; set; }
+    }
+
+    public class UpdateReadStatusRequest
+    {
+        public bool IsRead { get; set; }
     }
 }

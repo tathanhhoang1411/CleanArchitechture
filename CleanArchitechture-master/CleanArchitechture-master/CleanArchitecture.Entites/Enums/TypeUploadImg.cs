@@ -14,6 +14,8 @@ namespace CleanArchitecture.Entites.Enums
         Avatar = 1, 
         Product = 2, 
         Comment = 3,
-        Chat = 4
+        Chat = 4,   // Chat Images
+        Voice = 5,  // Chat Voices
+        ChatFile = 6 // Chat Documents/Files
     }
 }

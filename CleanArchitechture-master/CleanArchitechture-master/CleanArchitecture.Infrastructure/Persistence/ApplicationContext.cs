@@ -32,6 +32,31 @@ namespace CleanArchitecture.Infrastructure.Persistence
                 .WithOne(ud => ud.User)
                 .HasForeignKey<UserDetail>(ud => ud.UserId)
                 .OnDelete(DeleteBehavior.Cascade); // Xóa User thì xóa luôn Detail
+
+            // 1-1 Message and CallHistory (Explicit Mapping)
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.ToTable("Messages", "dbo");
+                entity.HasKey(e => e.Id);
+            });
+
+            modelBuilder.Entity<CallHistory>(entity =>
+            {
+                entity.ToTable("CallHistory", "dbo");
+                entity.HasKey(e => e.CallId);
+                
+                // Ép cột MessageId phải chuẩn
+                entity.Property(e => e.MessageId).HasColumnName("MessageId");
+                
+                entity.HasOne(d => d.Message)
+                    .WithOne(p => p.CallHistory)
+                    .HasForeignKey<CallHistory>(d => d.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Conversation>().ToTable("Conversations", "dbo");
+            modelBuilder.Entity<Participant>().ToTable("Participants", "dbo");
+
             base.OnModelCreating(modelBuilder);
         }
 
@@ -45,6 +70,6 @@ namespace CleanArchitecture.Infrastructure.Persistence
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Participant> Participants { get; set; }
-        public DbSet<CallHistory> CallHistory { get; set; }
+        public DbSet<CallHistory> CallHistories { get; set; }
     }
 }

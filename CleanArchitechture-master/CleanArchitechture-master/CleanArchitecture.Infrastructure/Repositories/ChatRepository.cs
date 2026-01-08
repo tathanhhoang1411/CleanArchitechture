@@ -92,6 +92,7 @@ namespace CleanArchitecture.Infrastructure.Repositories
                 .Include(m => m.Sender)
                     // 2. Chui tiếp vào bảng UserDetails để lấy FirstName, LastName
                     .ThenInclude(u => u.UserDetail)
+                .Include(m => m.CallHistory) // 3. Lấy thông tin cuộc gọi nếu có
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -113,6 +114,17 @@ namespace CleanArchitecture.Infrastructure.Repositories
         {
             return await _context.Participants
                 .AnyAsync(p => p.ConversationId == conversationId && p.UserId == userId);
+        }
+
+        public async Task<CallHistory> SaveCallHistory(CallHistory callHistory)
+        {
+            _context.CallHistories.Add(callHistory);
+            return callHistory;
+        }
+
+        public async Task<Message> GetMessageById(long messageId)
+        {
+            return await _context.Messages.FindAsync(messageId);
         }
     }
 }

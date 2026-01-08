@@ -62,7 +62,13 @@ namespace BE_2911_CleanArchitechture.Handler
                 .ForMember(dest => dest.MessageType, opt => opt.MapFrom(src => src.MessageType.ToString()))
                 .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src =>
                        (src.Sender != null && src.Sender.UserDetail != null)
-                       ? (src.Sender.UserDetail.FirstName + " " + src.Sender.UserDetail.LastName)  : "Người dùng"));
+                       ? (src.Sender.UserDetail.FirstName + " " + src.Sender.UserDetail.LastName)  : "Người dùng"))
+                .ForMember(dest => dest.CallDetails, opt => opt.MapFrom(src => src.CallHistory));
+
+            CreateMap<CallHistory, CallHistoryDto>()
+                .ForMember(dest => dest.CallType, opt => opt.MapFrom(src => src.CallType.ToString()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
             CreateMap<User, UserDto>().ReverseMap();
 
         }

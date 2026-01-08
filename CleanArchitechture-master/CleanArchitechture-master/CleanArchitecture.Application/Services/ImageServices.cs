@@ -52,8 +52,16 @@ namespace CleanArchitecture.Application.Repository
                     subFolder = Path.Combine("Comments", $"UserID_{userID}", $"Comment_{Id}");
                     break;
                 case TypeUploadImg.Chat:
-                    // Uploads/Chats/UserID_123/Conversation_456
-                    subFolder = Path.Combine("Chats", $"UserID_{userID}", $"Conversation_{Id}");
+                    // Uploads/Conversations/Conversation_456/Images
+                    subFolder = Path.Combine("Conversations", $"Conversation_{Id}", "Images");
+                    break;
+                case TypeUploadImg.Voice:
+                    // Uploads/Conversations/Conversation_456/Voices
+                    subFolder = Path.Combine("Conversations", $"Conversation_{Id}", "Voices");
+                    break;
+                case TypeUploadImg.ChatFile:
+                    // Uploads/Conversations/Conversation_456/Files
+                    subFolder = Path.Combine("Conversations", $"Conversation_{Id}", "Files");
                     break;
                 default:
                     throw new ArgumentException("Invalid flag value", nameof(type));
@@ -95,8 +103,20 @@ namespace CleanArchitecture.Application.Repository
                 {
                     if (temp > 5) break; // Dừng sớm
 
-                    // 2. Kiểm tra bảo mật cơ bản
-                    if (!source.ContentType.StartsWith("image/")) continue;
+                    // 2. Kiểm tra bảo mật cơ bản (Mở rộng cho file)
+                    if (type == (int)TypeUploadImg.ChatFile)
+                    {
+                        // Cho phép application/ (pdf, zip, docx...) và text/
+                        if (!(source.ContentType.StartsWith("application/") || 
+                              source.ContentType.StartsWith("text/") ||
+                              source.ContentType.StartsWith("image/"))) continue;
+                    } 
+                    else 
+                    {
+                        // Giữ nguyên logic cũ cho Avatar, Product, ChatImage, Voice
+                        if (!(source.ContentType.StartsWith("image/") ||
+                              source.ContentType.StartsWith("audio/"))) continue;
+                    }
 
                     string fileName = "";
                     switch ((TypeUploadImg)type)
@@ -111,6 +131,16 @@ namespace CleanArchitecture.Application.Repository
                             break;
                         case TypeUploadImg.Chat:
                             // Use timestamp for unique chat image names
+                            fileName = $"{DateTime.Now.Ticks}_{temp}_{source.FileName}";
+                            break;
+                        case TypeUploadImg.Voice:
+                            // Use timestamp for unique voice names
+                            string extVoice = Path.GetExtension(source.FileName);
+                            if (string.IsNullOrEmpty(extVoice)) extVoice = ".wav";
+                            fileName = $"{DateTime.Now.Ticks}_{temp}{extVoice}";
+                            break;
+                        case TypeUploadImg.ChatFile:
+                             // Use timestamp for unique generic files
                             fileName = $"{DateTime.Now.Ticks}_{temp}_{source.FileName}";
                             break;
                         default:
