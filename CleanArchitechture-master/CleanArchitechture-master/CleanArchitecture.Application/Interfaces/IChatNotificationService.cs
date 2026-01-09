@@ -6,5 +6,6 @@ namespace CleanArchitecture.Application.Interfaces
     {
         Task SendMessageToUser(long userId, MessageDto message);
         Task SendMessageToGroup(long conversationId, MessageDto message);
+        Task NotifyMessageRead(long infoUserId, long conversationId, long messageId, long readerId);
     }
 }

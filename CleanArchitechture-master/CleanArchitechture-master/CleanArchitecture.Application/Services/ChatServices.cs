@@ -230,6 +230,14 @@ namespace CleanArchitecture.Application.Services
             message.IsRead = isRead;
             await _unitOfWork.CompleteAsync();
 
+            // REALTIME NOTIFICATION:
+            // Chỉ gửi thông báo nếu người đọc KHÁC người gửi (tránh spam chính mình)
+            // Và chỉ gửi khi isRead = true
+            if (isRead && message.SenderId != userId)
+            {
+                await _notificationService.NotifyMessageRead(message.SenderId, message.ConversationId, message.Id, userId);
+            }
+
             return true;
         }
 

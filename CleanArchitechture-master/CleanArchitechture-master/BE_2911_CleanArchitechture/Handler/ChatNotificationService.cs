@@ -25,5 +25,18 @@ namespace BE_2911_CleanArchitechture.Logging
         {
              await _hubContext.Clients.Group($"User_{userId}").SendAsync("ReceiveMessage", message);
         }
+
+        public async Task NotifyMessageRead(long infoUserId, long conversationId, long messageId, long readerId)
+        {
+             // Gửi sự kiện cho người cần nhận thông báo (ví dụ: người gửi tin nhắn gốc)
+             // Payload: Ai đã đọc (readerId), Đọc tin nào (messageId), Ở hội thoại nào (conversationId)
+             await _hubContext.Clients.Group($"User_{infoUserId}").SendAsync("ReceiveReadStatus", new 
+             { 
+                 ConversationId = conversationId,
+                 MessageId = messageId,
+                 ReaderId = readerId,
+                 ReadAt = DateTime.Now
+             });
+        }
     }
 }
