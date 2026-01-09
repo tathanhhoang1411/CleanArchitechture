@@ -1,5 +1,6 @@
 ﻿
 using CleanArchitecture.Entites.Entites;
+using CleanArchitecture.Entites.Enums;
 using CleanArchitecture.Entites.Interfaces;
 using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -69,14 +70,32 @@ namespace CleanArchitecture.Infrastructure.Repositories
             List<Friend> listSendFriend = null;
             try
             {
-                listSendFriend = await _userContext.Friends
-                                .Where(p => (p.SenderId == userId || p.ReceiverId == userId) && (int)p.Status == status)
-                                .AsNoTracking()
-                                .OrderByDescending(p => p.RequestedAt)
-                                .AsNoTracking()
-                                .Skip(skip)
-                                .Take(take)
-                                .ToListAsync(cancellationToken);
+                switch (status)
+                {
+                    case (int)FriendRequestStatus.Accepted:
+                        listSendFriend = await _userContext.Friends
+                             .Where(p => (p.SenderId == userId || p.ReceiverId == userId) && (int)p.Status == status)
+                             .AsNoTracking()
+                             .OrderByDescending(p => p.RequestedAt)
+                             .AsNoTracking()
+                             .Skip(skip)
+                             .Take(take)
+                             .ToListAsync(cancellationToken);
+                        break;
+                    case (int)FriendRequestStatus.Pending:
+                        listSendFriend = await _userContext.Friends
+                             .Where(p => (p.SenderId == userId) && (int)p.Status == status)
+                             .AsNoTracking()
+                             .OrderByDescending(p => p.RequestedAt)
+                             .AsNoTracking()
+                             .Skip(skip)
+                             .Take(take)
+                             .ToListAsync(cancellationToken);
+                        break;
+                }
+
+
+
                 return listSendFriend;
             }
             catch
