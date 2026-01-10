@@ -286,11 +286,12 @@ namespace CleanArchitecture.Application.Services
             {
                 if (string.IsNullOrWhiteSpace(id)) return null;
 
-                var normalized = id.Trim().ToLowerInvariant();
-                var cacheKey = $"user:detail:{normalized}";
-                // Try cache first
-                var cached = await _cache.GetAsync<UserWithDetailDto>(cacheKey);
-                if (cached != null) return cached;
+                //Khóa cache và rabbitMQ vì chưa cần dùng
+                //var normalized = id.Trim().ToLowerInvariant();
+                //var cacheKey = $"user:detail:{normalized}";
+                //// Try cache first
+                //var cached = await _cache.GetAsync<UserWithDetailDto>(cacheKey);
+                //if (cached != null) return cached;
 
                 var user = await _unitOfWork.Users.GetUserWithDetailByIdentifier(id);
                 if (user == null) return null;
@@ -309,28 +310,29 @@ namespace CleanArchitecture.Application.Services
                     dto.FriendCount = 0;
                 }
 
+                //Khóa cache và rabbitMQ vì chưa cần dùng
                 // Cache the result for short period
-                try
-                {
-                    await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(1));
-                }
-                catch
-                {
-                    // ignore cache errors
-                }
+                //try
+                //{
+                //    await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(1));
+                //}
+                //catch
+                //{
+                //    // ignore cache errors
+                //}
 
                 // Publish an event to RabbitMQ that a user was searched/viewed (Non-blocking)
-                _ = Task.Run(() =>
-                {
-                    try
-                    {
-                        _rabbitMQ.Publish($"UserSearched:{normalized}");
-                    }
-                    catch
-                    {
-                        // ignore background errors
-                    }
-                });
+                //_ = Task.Run(() =>
+                //{
+                //    try
+                //    {
+                //        _rabbitMQ.Publish($"UserSearched:{normalized}");
+                //    }
+                //    catch
+                //    {
+                //        // ignore background errors
+                //    }
+                //});
 
                 return dto;
             }

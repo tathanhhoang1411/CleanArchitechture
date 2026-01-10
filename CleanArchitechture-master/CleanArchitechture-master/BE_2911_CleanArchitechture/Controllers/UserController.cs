@@ -344,6 +344,7 @@ namespace BE_2911_CleanArchitecture.Controllers
         [HttpGet("SearchUser")]
         [SwaggerOperation(Summary = "Tìm kiếm thông tin người dùng theo id/username/email",
                       Description = "Trả về thông tin user kèm userdetail")]
+        #region
         public async Task<IActionResult> SearchUser([FromQuery] string id, CancellationToken cancellationToken)
         {
             try
@@ -378,11 +379,13 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
+        #endregion
         // Upload avatar for current user
         [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("UploadAvatar")]
         [SwaggerOperation(Summary = "Upload ảnh đại diện cho tài khoản hiện tại",
                       Description = "Upload multipart/form-data với ảnh. Trả về Success! hoặc Fail!")]
+        #region
         public async Task<IActionResult> UploadAvatar([FromForm] string requestEmail,CancellationToken cancellationToken)
         {
             long userId = 0;
@@ -454,7 +457,7 @@ namespace BE_2911_CleanArchitecture.Controllers
                 return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
             }
         }
-
+#endregion
         //Sửa thông tin tài khoản user
         [Authorize(Policy = "RequireAdminOrUserRole")]
         [HttpPost("UpdInfoUser")]

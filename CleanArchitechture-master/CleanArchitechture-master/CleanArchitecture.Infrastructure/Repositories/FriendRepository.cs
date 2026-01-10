@@ -92,6 +92,16 @@ namespace CleanArchitecture.Infrastructure.Repositories
                              .Take(take)
                              .ToListAsync(cancellationToken);
                         break;
+                        default:
+                        listSendFriend = await _userContext.Friends
+                             .Where(p => ( p.ReceiverId == userId) && (int)p.Status == (int)FriendRequestStatus.Pending)
+                             .AsNoTracking()
+                             .OrderByDescending(p => p.RequestedAt)
+                             .AsNoTracking()
+                             .Skip(skip)
+                             .Take(take)
+                             .ToListAsync(cancellationToken);
+                        break;
                 }
 
 

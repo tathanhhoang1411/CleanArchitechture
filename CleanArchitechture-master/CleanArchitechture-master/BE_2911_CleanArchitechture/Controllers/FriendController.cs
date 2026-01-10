@@ -116,6 +116,45 @@ namespace BE_2911_CleanArchitechture.Controllers
         }
         #endregion
 
+        //Lấy danh sách lời mời kết bạn 
+        [HttpGet("ListRequestFriend")]
+        [Authorize(Policy = "RequireAdminOrUserRole")]
+        [SwaggerOperation(Summary = "Lấy danh sách lời mời kết bạn",
+                      Description = "")]
+
+        #region
+        public async Task<IActionResult> ListRequestFriend([FromQuery] int skip, int take, CancellationToken cancellationToken)
+        {
+            long UserID = 0;
+            try
+            {
+
+                //Kiểm tra userID có tồn tại không 
+                UserID = await GetUserIdFromTokenAsync();
+                if (UserID == 0) return ForbiddenResponse();
+                //Select ListSendFriend 
+                this._logger.LogInformation(UserID.ToString(), "ListRequestFriend request");
+                List<FriendsDto> listFriendDto = await _mediator.Send(new GetAllSendFriendRequestsQuery(skip, take, UserID, 11), cancellationToken);
+                // Kiểm tra xem việc lấy DS lời mời kết bạn có thành công không
+                if (listFriendDto == null)
+                {
+                    // Trả về thất bại
+                    this._logger.LogInformation(UserID.ToString(), "ListRequestFriend request fail");
+                    return Ok(new ApiResponse<string>("Fail!"));
+                }
+                this._logger.LogInformation(UserID.ToString(), "Success!");
+                return Ok(new ApiResponse<List<FriendsDto>>(listFriendDto));
+            }
+            catch (Exception ex)
+            {
+
+                // Trả về mã lỗi 500 với thông điệp chi tiết
+                var errors = new List<string> { "Internal server error. Please try again later." };
+                return StatusCode(500, ApiResponse<List<string>>.CreateErrorResponse(errors, false));
+            }
+        }
+        #endregion
+
         //Chấp nhận/ xóa lời mời kết bạn
         [HttpPost("set")]
         [Authorize(Policy = "RequireAdminOrUserRole")]
